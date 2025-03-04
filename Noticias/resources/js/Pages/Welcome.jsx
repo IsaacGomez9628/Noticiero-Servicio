@@ -10,17 +10,38 @@ import img1 from "@/assets/img1.jpeg";
 import img2 from "@/assets/img2.png";
 import sedeq from "@/assets/SEDEQ.jpg";
 
-
 export default function Welcome() {
     return (
         <div className="min-h-screen bg-gray-50">
             <header className="bg-white border-b">
                 <nav className="container mx-auto px-4 py-4 flex items-center justify-between">
-                    <Link href="/" className="text-2xl font-bold text-primary flex items-center space-x-2">
+                    <Link
+                        href="/"
+                        className="text-2xl font-bold text-primary flex items-center space-x-2"
+                    >
                         <img src={sedeq} alt="Logo" className="h-8 w-8" />
-                        <span>TechNews</span>
+                        <span>Secretaria de Educación</span>
                     </Link>
                     <div className="hidden md:flex items-center space-x-6">
+                        <Link
+                            href="/eventos"
+                            className="text-sm font-medium hover:text-primary"
+                        >
+                            Eventos
+                        </Link>
+                        <Link
+                            href="/miembros"
+                            className="text-sm font-medium hover:text-primary"
+                        >
+                            Equipo
+                        </Link>
+                        <Link
+                            href="/quienes-somos"
+                            className="text-sm font-medium hover:text-primary"
+                        >
+                            ¿Quiénes Somos?
+                        </Link>
+
                         <div className="relative w-64">
                             <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                             <Input
@@ -29,18 +50,15 @@ export default function Welcome() {
                                 className="pl-8"
                             />
                         </div>
+                    </div>
+                    <div className="md:hidden flex items-center space-x-2">
                         <Button variant="ghost" size="icon">
-                            <Bell className="h-5 w-5" />
+                            <Search className="h-5 w-5" />
                         </Button>
                         <Button variant="ghost" size="icon">
-                            <Bookmark className="h-5 w-5" />
-                        </Button>              
-       
-
+                            <User className="h-5 w-5" />
+                        </Button>
                     </div>
-                    <Button className="md:hidden" variant="ghost" size="icon">
-                        <Search className="h-5 w-5" />
-                    </Button>
                 </nav>
             </header>
 
@@ -57,9 +75,9 @@ export default function Welcome() {
                             <div className="grid md:grid-cols-2 gap-6">
                                 <div className="relative h-64 md:h-full">
                                     <img
-                                        src={img1} 
-                                        alt="Featured article image" 
-                                        className="object-cover"                                     
+                                        src={img1}
+                                        alt="Featured article image"
+                                        className="object-cover"
                                     />
                                 </div>
                                 <CardContent className="p-6">
@@ -73,15 +91,16 @@ export default function Welcome() {
                                             </span>
                                         </div>
                                         <h2 className="text-2xl font-bold">
-                                            El futuro de la inteligencia artificial en el 
-                                            desarrollo web
+                                            El futuro de la inteligencia
+                                            artificial en el desarrollo web
                                         </h2>
                                         <p className="text-muted-foreground">
-                                            Explora como es que la inteligencia 
-                                            artificial esta revolucionando la 
-                                            forma en la que desarrollamos y mantenemos 
-                                            un sitio web. Desde testeo automatico hasta
-                                            llenado automatico de código.
+                                            Explora como es que la inteligencia
+                                            artificial esta revolucionando la
+                                            forma en la que desarrollamos y
+                                            mantenemos un sitio web. Desde
+                                            testeo automatico hasta llenado
+                                            automatico de código.
                                         </p>
                                         <div className="flex items-center space-x-4">
                                             <Button>Acerca de</Button>
@@ -102,9 +121,9 @@ export default function Welcome() {
                                 <Card key={i}>
                                     <div className="relative h-48">
                                         <img
-                                            src={img2} 
-                                            alt="Featured article image" 
-                                            className="object-cover"                                     
+                                            src={img2}
+                                            alt="Featured article image"
+                                            className="object-cover"
                                         />
                                     </div>
                                     <CardContent className="p-4">
@@ -219,6 +238,68 @@ export default function Welcome() {
                             ))}
                         </div>
                     </TabsContent>
+
+                    <section className="mt-12">
+                        <div className="flex items-center justify-between mb-6">
+                            <h2 className="text-2xl font-bold">
+                                Próximos Eventos
+                            </h2>
+                            <Link href="/eventos">
+                                <Button variant="outline">Ver Todos</Button>
+                            </Link>
+                        </div>
+
+                        <div className="grid md:grid-cols-2 gap-6">
+                            {/* Aquí podrías mostrar 2 eventos destacados */}
+                            <Card className="overflow-hidden">
+                                <div className="relative h-48">
+                                    <img
+                                        src={
+                                            "/placeholder.svg?height=200&width=400"
+                                        }
+                                        alt="Imagen del evento"
+                                        className="object-cover h-full w-full"
+                                    />
+                                </div>
+                                <CardContent className="p-6">
+                                    <h3 className="text-xl font-bold mb-2">
+                                        Conferencia de Tecnología
+                                    </h3>
+                                    <p className="text-muted-foreground mb-3">
+                                        Únete a nosotros para explorar las
+                                        últimas tendencias en tecnología.
+                                    </p>
+                                    <Link href="/eventos/1">
+                                        <Button>Ver Detalles</Button>
+                                    </Link>
+                                </CardContent>
+                            </Card>
+
+                            <Card className="overflow-hidden">
+                                <div className="relative h-48">
+                                    <img
+                                        src={
+                                            "/placeholder.svg?height=200&width=400"
+                                        }
+                                        alt="Imagen del evento"
+                                        className="object-cover h-full w-full"
+                                    />
+                                </div>
+                                <CardContent className="p-6">
+                                    <h3 className="text-xl font-bold mb-2">
+                                        Workshop de Desarrollo Web
+                                    </h3>
+                                    <p className="text-muted-foreground mb-3">
+                                        Aprende las mejores prácticas para el
+                                        desarrollo web moderno.
+                                    </p>
+                                    <Link href="/eventos/2">
+                                        <Button>Ver Detalles</Button>
+                                    </Link>
+                                </CardContent>
+                            </Card>
+                        </div>
+                    </section>
                 </Tabs>
             </main>
         </div>

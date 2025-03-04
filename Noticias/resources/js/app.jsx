@@ -1,21 +1,17 @@
-import "../css/app.css";
-import "./bootstrap";
+import "../css/app.css"; // Añade esta línea al principio
 
+import { createRoot } from "react-dom/client";
 import { createInertiaApp } from "@inertiajs/react";
 import { resolvePageComponent } from "laravel-vite-plugin/inertia-helpers";
-import { createRoot } from "react-dom/client";
-
-const appName = import.meta.env.VITE_APP_NAME || "Laravel";
 
 createInertiaApp({
+    title: (title) => `${title} - Mi Aplicación`,
     resolve: (name) => {
-        return resolvePageComponent(
-            `./Pages/${name}.jsx`,
-            import.meta.glob("./Pages/**/*.jsx")
-        );
+        const pages = import.meta.glob("./Pages/**/*.jsx", { eager: true });
+        return pages[`./Pages/${name}.jsx`];
     },
     setup({ el, App, props }) {
-        createRoot(el).render(<App {...props} />);
+        const root = createRoot(el);
+        root.render(<App {...props} />);
     },
-    title: (title) => `${title} - ${appName}`,
 });

@@ -1,27 +1,26 @@
 <?php
 
-use App\Http\Controllers\ProfileController;
-use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
+use App\Http\Controllers\Home\EventoController;
+use App\Http\Controllers\Home\NoticiaController;
+use App\Http\Controllers\Home\QuienesSomosController;
+use App\Http\Controllers\Home\MiembroController;
+use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\HomeController;;
 
-Route::get('/', function () {
-    return Inertia::render('Welcome', [
-        'canLogin' => Route::has('login'),
-        'canRegister' => Route::has('register'),
-        'laravelVersion' => Application::VERSION,
-        'phpVersion' => PHP_VERSION,
-    ]);
-});
+// Rutas para vistas principales (renderizan la SPA de React)
+Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::get('/eventos', [EventoController::class, 'index'])->name('eventos');
+Route::get('/eventos/{id}', [EventoController::class, 'show'])->name('eventos.show');
+Route::get('/eventos/{id}/registro', [EventoController::class, 'registro'])->name('eventos.registro');
+Route::get('/miembros', [MiembroController::class, 'index'])->name('miembros');
+Route::get('/miembros/{id}', [MiembroController::class, 'show'])->name('miembros.show');
+Route::get('/quienes-somos', [QuienesSomosController::class, 'index'])->name('quienes-somos');
+Route::get('/noticias/{id}', [NoticiaController::class, 'show'])->name('noticias.show');
 
-Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+// Rutas de autenticación
+Route::get('/login', [AuthController::class, 'login'])->name('login');
+Route::get('/signup', [AuthController::class, 'signup'])->name('signup');
 
-Route::middleware('auth')->group(function () {
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-});
-
-require __DIR__.'/auth.php';
+// Ruta para cualquier otra URL que debería ser manejada por React Router
+Route::get('/{any}', [HomeController::class, 'index'])->where('any', '.*');
