@@ -5,21 +5,27 @@ import { CardContent } from "@/Components/Card";
 import { Input } from "@/Components/Input";
 import { Button } from "@/Components/Button";
 import { TabsList, TabsTrigger, TabsContent, Tabs } from "@/Components/Tabs";
+//import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/dropdown-menu"
+import img1 from "@/assets/img1.jpeg";
+import img2 from "@/assets/img2.png";
+import sedeq from "@/assets/SEDEQ.jpg";
+
 
 export default function Welcome() {
     return (
         <div className="min-h-screen bg-gray-50">
             <header className="bg-white border-b">
                 <nav className="container mx-auto px-4 py-4 flex items-center justify-between">
-                    <Link href="/" className="text-2xl font-bold text-primary">
-                        TechNews
+                    <Link href="/" className="text-2xl font-bold text-primary flex items-center space-x-2">
+                        <img src={sedeq} alt="Logo" className="h-8 w-8" />
+                        <span>TechNews</span>
                     </Link>
                     <div className="hidden md:flex items-center space-x-6">
                         <div className="relative w-64">
                             <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                             <Input
                                 type="search"
-                                placeholder="Search articles..."
+                                placeholder="Buscar noticias..."
                                 className="pl-8"
                             />
                         </div>
@@ -28,10 +34,9 @@ export default function Welcome() {
                         </Button>
                         <Button variant="ghost" size="icon">
                             <Bookmark className="h-5 w-5" />
-                        </Button>
-                        <Button variant="ghost" size="icon">
-                            <User className="h-5 w-5" />
-                        </Button>
+                        </Button>              
+       
+
                     </div>
                     <Button className="md:hidden" variant="ghost" size="icon">
                         <Search className="h-5 w-5" />
@@ -42,9 +47,9 @@ export default function Welcome() {
             <main className="container mx-auto px-4 py-8">
                 <Tabs defaultValue="featured" className="space-y-6">
                     <TabsList>
-                        <TabsTrigger value="featured">Featured</TabsTrigger>
-                        <TabsTrigger value="latest">Latest</TabsTrigger>
-                        <TabsTrigger value="trending">Trending</TabsTrigger>
+                        <TabsTrigger value="featured">Presentando</TabsTrigger>
+                        <TabsTrigger value="latest">Lo más nuevo</TabsTrigger>
+                        <TabsTrigger value="trending">Tendencia</TabsTrigger>
                     </TabsList>
 
                     <TabsContent value="featured" className="space-y-8">
@@ -52,10 +57,9 @@ export default function Welcome() {
                             <div className="grid md:grid-cols-2 gap-6">
                                 <div className="relative h-64 md:h-full">
                                     <img
-                                        src="/placeholder.svg?height=400&width=600"
-                                        alt="Featured article image"
-                                        fill
-                                        className="object-cover"
+                                        src={img1} 
+                                        alt="Featured article image" 
+                                        className="object-cover"                                     
                                     />
                                 </div>
                                 <CardContent className="p-6">
@@ -69,17 +73,18 @@ export default function Welcome() {
                                             </span>
                                         </div>
                                         <h2 className="text-2xl font-bold">
-                                            The Future of AI in Web Development
+                                            El futuro de la inteligencia artificial en el 
+                                            desarrollo web
                                         </h2>
                                         <p className="text-muted-foreground">
-                                            Explore how artificial intelligence
-                                            is revolutionizing the way we build
-                                            and maintain websites, from
-                                            automated testing to intelligent
-                                            code completion.
+                                            Explora como es que la inteligencia 
+                                            artificial esta revolucionando la 
+                                            forma en la que desarrollamos y mantenemos 
+                                            un sitio web. Desde testeo automatico hasta
+                                            llenado automatico de código.
                                         </p>
                                         <div className="flex items-center space-x-4">
-                                            <Button>Read More</Button>
+                                            <Button>Acerca de</Button>
                                             <Button
                                                 variant="outline"
                                                 size="icon"
@@ -97,10 +102,9 @@ export default function Welcome() {
                                 <Card key={i}>
                                     <div className="relative h-48">
                                         <img
-                                            src={`/placeholder.svg?height=200&width=400`}
-                                            alt={`Article ${i} image`}
-                                            fill
-                                            className="object-cover"
+                                            src={img2} 
+                                            alt="Featured article image" 
+                                            className="object-cover"                                     
                                         />
                                     </div>
                                     <CardContent className="p-4">
