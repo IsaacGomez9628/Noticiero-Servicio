@@ -108,4 +108,9 @@ class Evento extends Model
                     })
                     ->count();
     }
+
+    public function getModalidadAttribute()
+    {
+        return $this->direccion_id ? 'Presencial' : 'Virtual';
+    }
 }
