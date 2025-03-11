@@ -5,112 +5,93 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Laravel\Sanctum\HasApiTokens;
+use App\Models\Rol;
 
 class Usuario extends Authenticatable
 {
-    use HasApiTokens, HasFactory, Notifiable;
+    use HasFactory, Notifiable;
 
-    // Nombre de la tabla
     protected $table = 'usuarios';
 
-    // No utilizamos timestamps estándar
-    public $timestamps = false;
-
-    // Atributos asignables masivamente
     protected $fillable = [
         'persona_id',
-        'tipo_usuario_id',
-        'status_id',
+        'empresa_id',
         'email',
         'password',
+        'status_id',
+        'rol_id',
+        'eliminado',
+        'fecha_eliminacion',
+        'eliminado_por',
     ];
 
-    // Ocultar estos atributos en las respuestas
     protected $hidden = [
         'password',
-        'salt',
+        'remember_token',
     ];
 
-    // Convertir atributos a tipos nativos
     protected $casts = [
-        'ultima_autenticacion' => 'datetime',
-        'fecha_eliminacion' => 'datetime',
-        'bloqueado' => 'boolean',
+        'email_verified_at' => 'datetime',
+        'password' => 'hashed',
         'eliminado' => 'boolean',
+        'fecha_eliminacion' => 'datetime',
     ];
 
-    // Relaciones
+    /**
+     * Obtener la persona asociada al usuario
+     */
     public function persona()
     {
         return $this->belongsTo(Persona::class);
     }
 
-    public function tipoUsuario()
+    /**
+     * Obtener la empresa asociada al usuario (si existe)
+     */
+    public function empresa()
     {
-        return $this->belongsTo(TipoUsuario::class);
+        return $this->belongsTo(Empresa::class);
     }
 
+    /**
+     * Obtener el rol del usuario
+     */
+    public function rol()
+    {
+        return $this->belongsTo(Rol::class);
+    }
+
+    /**
+     * Obtener el estado del usuario
+     */
     public function status()
     {
         return $this->belongsTo(Status::class);
     }
 
-    public function usuariosCreados()
+    /**
+     * Relación con las asistencias a eventos
+     */
+    public function asistenciasEventos()
     {
-        return $this->hasMany(Usuario::class, 'creado_por_superadmin_id');
+        return $this->hasMany(AsistenciaEvento::class, 'usuario_id');
     }
 
-    public function creadoPor()
-    {
-        return $this->belongsTo(Usuario::class, 'creado_por_superadmin_id');
-    }
-
-    public function noticias()
-    {
-        return $this->hasMany(Noticia::class, 'autor_id');
-    }
-
-    public function comentarios()
-    {
-        return $this->hasMany(Comentario::class);
-    }
-
-    public function eventos()
-    {
-        return $this->hasMany(Evento::class, 'organizador_id');
-    }
-
-    public function asistenciaEventos()
-    {
-        return $this->hasMany(AsistenciaEvento::class);
-    }
-
-    public function interaccionesNoticias()
-    {
-        return $this->hasMany(InteraccionNoticia::class);
-    }
-
-    public function notificaciones()
-    {
-        return $this->hasMany(Notificacion::class);
-    }
-
-    // Scope para obtener solo usuarios activos
-    public function scopeActivos($query)
-    {
-        return $query->where('eliminado', false);
-    }
-
-    // Método para verificar si es administrador
+    /**
+     * Verificar si el usuario es administrador
+     */
     public function esAdmin()
     {
-        return $this->tipoUsuario->nombre === 'Administrador';
+        // Implementa esta lógica según tu estructura de roles
+        // Por ejemplo:
+        return $this->rol_id === 1 || $this->rol?->nombre === 'Administrador';
     }
 
-    // Método para verificar si es editor
-    public function esEditor()
+    /**
+     * Obtener el nombre completo del usuario
+     */
+    public function getNombreAttribute()
     {
-        return $this->tipoUsuario->nombre === 'Editor';
+        return $this->persona ? $this->persona->nombres . ' ' . $this->persona->apellidos : $this->email;
     }
 }

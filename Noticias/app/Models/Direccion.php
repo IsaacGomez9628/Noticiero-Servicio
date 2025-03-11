@@ -53,21 +53,7 @@ class Direccion extends Model
     }
 
     public function getDireccionCompletaAttribute()
-    {
-        $direccion = $this->calle->direccion_calle;
-        
-        if ($this->ciudad) {
-            $direccion .= ', ' . $this->ciudad->nombre;
-        }
-        
-        if ($this->estado) {
-            $direccion .= ', ' . $this->estado->nombre;
-        }
-        
-        if ($this->codigo_postal) {
-            $direccion .= ', C.P. ' . $this->codigo_postal;
-        }
-        
-        return $direccion;
-    }
+{
+    return $this->calle . ', ' . $this->ciudad->nombre . ', ' . $this->codigo_postal;
+}
 }

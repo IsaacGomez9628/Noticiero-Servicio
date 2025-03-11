@@ -1,22 +1,43 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Home\EventoController;
+use Inertia\Inertia;
 use App\Http\Controllers\Home\NoticiaController;
 use App\Http\Controllers\Home\QuienesSomosController;
-use App\Http\Controllers\Home\MiembroController;
+use App\Http\Controllers\EventoAsistenciaController;
+use App\Http\Controllers\EventoController;
 use App\Http\Controllers\Auth\AuthController;
-use App\Http\Controllers\HomeController;;
+use App\Http\Controllers\HomeController;
 
 // Rutas para vistas principales (renderizan la SPA de React)
-Route::get('/', [HomeController::class, 'index'])->name('home');
-Route::get('/eventos', [EventoController::class, 'index'])->name('eventos');
+Route::get('/', function () {
+    return Inertia::render('Welcome');
+})->name('welcome');
+
+// Rutas para eventos
+Route::get('/eventos', [EventoController::class, 'index'])->name('eventos.index');
 Route::get('/eventos/{id}', [EventoController::class, 'show'])->name('eventos.show');
-Route::get('/eventos/{id}/registro', [EventoController::class, 'registro'])->name('eventos.registro');
-Route::get('/miembros', [MiembroController::class, 'index'])->name('miembros');
-Route::get('/miembros/{id}', [MiembroController::class, 'show'])->name('miembros.show');
+
+// Rutas para registro de asistencia a eventos
+Route::post('/eventos/{id}/registro', [EventoAsistenciaController::class, 'registrar'])->name('eventos.registro');
+
+// Ruta de compatibilidad (para mantener enlaces antiguos)
+Route::get('/eventos/{id}/registro', [EventoController::class, 'showRegistrationForm'])->name('eventos.registro.form');
+
+// Rutas para historial de asistencias (requieren autenticación)
+Route::middleware(['auth'])->group(function () {
+    Route::get('/mis-asistencias', [EventoAsistenciaController::class, 'misAsistencias'])->name('eventos.mis-asistencias');
+    Route::post('/asistencia/{id}/cancelar', [EventoAsistenciaController::class, 'cancelarAsistencia'])->name('eventos.asistencia.cancelar');
+});
+
+// Rutas para administradores
+Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
+    Route::get('/eventos/{id}/asistentes', [EventoAsistenciaController::class, 'listarAsistentes'])->name('admin.eventos.asistentes');
+});
+
+// Otras rutas
 Route::get('/quienes-somos', [QuienesSomosController::class, 'index'])->name('quienes-somos');
-Route::get('/noticias/{id}', [NoticiaController::class, 'show'])->name('noticias.show');
+Route::get('/noticias', [NoticiaController::class, 'index'])->name('noticias');
 
 // Rutas de autenticación
 Route::get('/login', [AuthController::class, 'login'])->name('login');
