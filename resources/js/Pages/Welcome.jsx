@@ -20,7 +20,7 @@ export default function Welcome() {
                         className="text-2xl font-bold text-primary flex items-center space-x-2"
                     >
                         <img src={sedeq} alt="Logo" className="h-8 w-8" />
-                        <span>Secretaria de Educación</span>
+                        <span>CEATyCC</span>
                     </Link>
                     <div className="hidden md:flex items-center space-x-6">
                         <Link
