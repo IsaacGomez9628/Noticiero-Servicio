@@ -49,44 +49,6 @@ export default function MainLayout({ children, selectedTab = null }) {
                 </nav>
             </header>
 
-            {/* Barra de navegación secundaria (tabs) */}
-            <div className="border-b bg-white">
-                <div className="container mx-auto px-4">
-                    <nav className="flex space-x-8">
-                        <Link
-                            href="/"
-                            className={`py-4 border-b-2 ${
-                                selectedTab === "presentando"
-                                    ? "border-primary text-primary"
-                                    : "border-transparent hover:border-primary hover:text-primary"
-                            }`}
-                        >
-                            Presentando
-                        </Link>
-                        <Link
-                            href="/lo-mas-nuevo"
-                            className={`py-4 border-b-2 ${
-                                selectedTab === "lo-mas-nuevo"
-                                    ? "border-primary text-primary"
-                                    : "border-transparent hover:border-primary hover:text-primary"
-                            }`}
-                        >
-                            Lo más nuevo
-                        </Link>
-                        <Link
-                            href="/tendencia"
-                            className={`py-4 border-b-2 ${
-                                selectedTab === "tendencia"
-                                    ? "border-primary text-primary"
-                                    : "border-transparent hover:border-primary hover:text-primary"
-                            }`}
-                        >
-                            Tendencia
-                        </Link>
-                    </nav>
-                </div>
-            </div>
-
             {/* Contenido principal */}
             <main className="container mx-auto px-4 py-8">{children}</main>
 

@@ -14,8 +14,6 @@ class HomeController extends Controller
     // return 'Hola Mundo';
     
     // Luego intenta con Inertia
-    return Inertia::render('Welcome', [
-        'message' => 'Hola desde Inertia'
-    ]);
+    return Inertia::render('MiembrosPage');
 }
 }

@@ -1,99 +1,107 @@
-import React, { useState, useEffect } from "react";
-import { Card, CardContent } from "@/components/card";
-import { Button } from "@/components/button";
-import Image from "@/Components/Image";
-import axios from "axios";
+import { Search, User } from "lucide-react";
+import { Link } from "@inertiajs/react";
+import { Input } from "@/Components/Input";
+import { Button } from "@/Components/Button";
+import MainLayout from "@/Layouts/MainLayout";
+import sedeq from "@/assets/SEDEQ.jpg";
+import img2 from "@/assets/lira.png";
+import img5 from "@/assets/hugo.png";
+import img4 from "@/assets/mlg.png";
+import img6 from "@/assets/olmo.png";
+import img7 from "@/assets/manuel.png";
+import img8 from "@/assets/victor.png";
+import { useState } from "react";
 
-export default function MiembrosPage() {
-    const [miembros, setMiembros] = useState([]);
-    const [cargando, setCargando] = useState(true);
-    const [error, setError] = useState(null);
-
-    useEffect(() => {
-        // Función para cargar los miembros
-        const cargarMiembros = async () => {
-            try {
-                setCargando(true);
-                const respuesta = await axios.get("/api/miembros");
-                setMiembros(respuesta.data);
-                setCargando(false);
-            } catch (err) {
-                setError(
-                    "Error al cargar los miembros. Por favor, intenta nuevamente más tarde."
-                );
-                setCargando(false);
-                console.error("Error al cargar miembros:", err);
-            }
-        };
-
-        cargarMiembros();
-    }, []);
-
-    if (cargando) {
-        return (
-            <div className="container mx-auto px-4 py-8 text-center">
-                <p>Cargando miembros...</p>
-            </div>
-        );
+const newsArticles = [
+    {
+        id: 1,
+        image: img2,
+        title: "Ana Laura Lira Cortes",
+        description: "La Dra. Ana Laura Lira Cortes es una destacada académica mexicana. Estudió en la Universidad Autónoma de Querétaro, obteniendo su doctorado en Innovación, Tecnología y Hábitat. Su investigación se enfoca en problemas complejos que afectan la calidad de vida, utilizando tecnología para su abordaje. Actualmente es profesora investigadora en la Universidad Politécnica de Querétaro. Ha ocupado cargos administrativos y tiene una trayectoria docente de 20 años, impartiendo materias relacionadas con TIC. También ha asesorado proyectos de Estadía Profesional para estudiantes en este campo. Su trabajo incluye el análisis de la percepción de inseguridad con inteligencia artificial.",
+    },
+    {
+        id: 2,
+        image: img5,
+        title: "Hugo Rodríguez Reséndiz",
+        description: "Hugo Rodríguez-Reséndiz, originario de Querétaro, México, tiene estudios en humanidades con enfoque en educación, filosofía de la ciencia, ética y bioética. Ha trabajado en innovación tecnológica, gestión del conocimiento y proyectos comunitarios. Es profesor-investigador en la Universidad Autónoma de Querétaro y Coordinador de Educación Colaborativa. Sus líneas de investigación incluyen ética de la inteligencia artificial y educación colaborativa. Ha colaborado con empresas como Continental, Microsoft y UNESCO, y ha recibido premios por su labor en ética y docencia. También ha sido consultor en gobiernos y ha participado en foros internacionales.",
+    },
+    {
+        id: 3,
+        image: img4,
+        title: "Maribel Leyva Gaxiola",
+        description: "La licenciada en Sistemas Computacionales por la UAEH (2004-2008) continuó su formación con una maestría y doctorado en Gestión Tecnológica e Innovación en la UAQ. Su investigación se enfoca en Prospectiva y Difusión de Tecnologías. Ha participado activamente en congresos y proyectos innovadores, además de gestionar patentes y planes de negocio. Desde 2013, ha sido profesora y asesora de tesis en diferentes niveles académicos. En 2021, fue reconocida como Candidata a Investigadora Nacional por el CONACYT, destacando su trayectoria en investigación y tecnología.",
+    },
+    {
+        id: 4,
+        image: img6,
+        title: "Carlos Alberto Olmos Trejo",
+        description: "Carlos Alberto Olmos Trejo es profesor de tiempo completo en la Facultad de Informática de la Universidad Autónoma de Querétaro. Actualmente, es Director General de Bibliotecas y Servicios Digitales de Información desde enero de 2024. Anteriormente, fue Coordinador de la Maestría en Sistemas Computacionales y Secretario Académico de la Facultad de Informática. Su experiencia incluye docencia, tutoría y generación de conocimiento en tecnología educativa y desarrollo de sistemas. También ha participado en la coordinación de programas educativos en el municipio de Colón, enfocados en tecnologías de la información y ciberseguridad",
+    },
+    {
+        id:5,
+        image: img7,
+        title: "Juan Manuel Peña Aguilar",
+        description: "Juan Manuel Peña Aguilar cuenta con un Doctorado en Gestión Tecnológica e Innovación y varias maestrías en ingeniería y finanzas. Ha sido reconocido con el 1er Lugar del Premio Nacional de ADIAT a la Innovación Tecnológica 2017 y el Premio Nacional de ANUIES de Innovación para la Competitividad 2012. Es miembro del Sistema Nacional de Investigadores y autor de numerosas publicaciones internacionales. Ha dirigido tesis y proyectos tecnológicos, y es conferencista internacional. Actualmente, coordina programas de posgrado en UNIR México y es profesor investigador en la Universidad Politécnica de Santa Rosa Jáuregui"
+    },
+    {
+        id: 6,
+        image: img8,
+        title: "Victor Alegandro Gonzáles Huitrón",
+        description: "El doctor Victor Alejandro obtuvo su licenciatura en Ingeniería en Comunicaciones y Electrónica en 2009, seguida de una maestría en Microelectrónica en 2013 y un doctorado en Comunicaciones y Electrónica en 2017. Ha sido docente en ingenierías electrónica, eléctrica, biomédica, mecatrónica y computación desde 2017. Su experiencia incluye roles como ingeniero de capacitación, analista de datos y desarrollador de algoritmos. Actualmente es profesor e investigador en el Instituto Tecnológico de Querétaro, con intereses en procesamiento de imágenes, visión artificial y análisis de datos. Es miembro del Sistema Nacional de Investigadores."
     }
+];
 
-    if (error) {
-        return (
-            <div className="container mx-auto px-4 py-8 text-center">
-                <p className="text-red-500">{error}</p>
-                <Button
-                    onClick={() => window.location.reload()}
-                    className="mt-4"
-                >
-                    Intentar nuevamente
-                </Button>
-            </div>
-        );
-    }
-
+export default function Welcome() {
     return (
-        <div className="container mx-auto px-4 py-8">
-            <h1 className="text-3xl font-bold text-center mb-12">
-                Nuestro Equipo
-            </h1>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {miembros.map((miembro) => (
-                    <Card key={miembro.id} className="overflow-hidden">
-                        <div className="relative h-48">
-                            {miembro.multimedia ? (
-                                <Image
-                                    src={miembro.multimedia.url}
-                                    alt={`Foto de ${miembro.persona.nombres} ${miembro.persona.apellido_paterno}`}
-                                    fill
-                                    className="object-cover"
-                                />
-                            ) : (
-                                <Image
-                                    src="/placeholder-person.jpg"
-                                    alt="Imagen de perfil"
-                                    fill
-                                    className="object-cover"
-                                />
-                            )}
+        <div className="min-h-screen bg-gray-50">
+            <header className="bg-white border-b">
+                <nav className="container mx-auto px-4 py-4 flex items-center justify-between">
+                    <Link href="/" className="text-2xl font-bold text-primary flex items-center space-x-2">
+                        <img src={sedeq} alt="Logo" className="h-20 w-20" />
+                        <span>CEATyCC</span>
+                    </Link>
+                    <div className="hidden md:flex items-center space-x-6">
+                        <Link href="/eventos" className="text-sm font-medium hover:text-primary">Eventos</Link>
+                        <Link href="/miembros" className="text-sm font-medium hover:text-primary">Equipo</Link>
+                        <Link href="/quienes-somos" className="text-sm font-medium hover:text-primary">¿Quiénes Somos?</Link>
+                        <div className="relative w-64">
+                            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                            <Input type="search" placeholder="Buscar noticias..." className="pl-8" />
                         </div>
-                        <CardContent className="p-6">
-                            <h3 className="text-xl font-bold mb-1">
-                                {miembro.persona.nombres}{" "}
-                                {miembro.persona.apellido_paterno}{" "}
-                                {miembro.persona.apellido_materno}
-                            </h3>
-                            <p className="text-primary font-medium mb-3">
-                                {miembro.cargo.nombre}
+                    </div>
+                    <div className="md:hidden flex items-center space-x-2">
+                        <Button variant="ghost" size="icon">
+                            <Search className="h-5 w-5" />
+                        </Button>
+                        <Button variant="ghost" size="icon">
+                            <User className="h-5 w-5" />
+                        </Button>
+                    </div>
+                </nav>
+            </header>
+
+            <main className="container mx-auto px-4 py-8">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {newsArticles.map((article) => (
+                    <div key={article.id} className="bg-white rounded-lg shadow-md p-4">
+                        <div className="flex justify-center">
+                            <img 
+                                src={article.image} 
+                                alt={article.title} 
+                                className="h-60 w-60 object-cover rounded-md" 
+                            />
+                        </div>
+                        <div className="mt-4 text-center">
+                            <p className="text-xs text-gray-500">{article.category} • {article.readTime}</p>
+                            <h3 className="text-lg font-semibold mt-2">{article.title}</h3>
+                            <p className="text-gray-700 mt-1 text-justify">
+                                {article.description}
                             </p>
-                            <p className="text-muted-foreground text-sm line-clamp-3">
-                                {miembro.descripcion_profesional ||
-                                    "Miembro del equipo."}
-                            </p>
-                        </CardContent>
-                    </Card>
+                        </div>
+                    </div>
                 ))}
-            </div>
+                </div>
+            </main>
         </div>
     );
 }

@@ -10,38 +10,46 @@ class AsistenciaEvento extends Model
     use HasFactory;
 
     protected $table = 'asistencia_eventos';
-    
-    public $timestamps = false;
-    
+
     protected $fillable = [
-        'usuario_id',
         'evento_id',
+        'usuario_id',
+        'empresa_id',
+        'nombre',
+        'email',
+        'es_titular',
         'status_id',
+        'asistio',
         'fecha_registro',
-        'fecha_actualizacion',
-        'nota_cancelacion',
-        'eliminado',
-        'fecha_eliminacion',
-        'eliminado_por'
+        'fecha_confirmacion',
     ];
-    
-    protected $dates = [
-        'fecha_registro',
-        'fecha_actualizacion',
-        'fecha_eliminacion'
+
+    protected $casts = [
+        'es_titular' => 'boolean',
+        'asistio' => 'boolean',
+        'fecha_registro' => 'datetime',
+        'fecha_confirmacion' => 'datetime',
     ];
-    
-    // Relaciones
-    public function usuario()
-    {
-        return $this->belongsTo(Usuario::class);
-    }
-    
+
+    // Relación con el evento
     public function evento()
     {
         return $this->belongsTo(Evento::class);
     }
-    
+
+    // Relación con el usuario (si está registrado)
+    public function usuario()
+    {
+        return $this->belongsTo(Usuario::class);
+    }
+
+    // Relación con la empresa
+    public function empresa()
+    {
+        return $this->belongsTo(Empresa::class);
+    }
+
+    // Relación con el status
     public function status()
     {
         return $this->belongsTo(Status::class);
