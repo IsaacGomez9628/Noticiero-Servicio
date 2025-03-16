@@ -14,8 +14,12 @@ export default function MainLayout({ children, selectedTab = null }) {
                         href="/"
                         className="text-2xl font-bold text-primary flex items-center space-x-2"
                     >
-                        <img src={sedeq} alt="Logo" className="h-8 w-8" />
-                        <span>Secretaria de Educación</span>
+                        <img
+                            src={sedeq}
+                            alt="Logo"
+                            className="h-24 w-24 max-w-full max-h-full object-contain"
+                        />
+                        <span>CEATyCC</span>
                     </Link>
                     <div className="hidden md:flex items-center space-x-6">
                         <Link
@@ -25,7 +29,7 @@ export default function MainLayout({ children, selectedTab = null }) {
                             Eventos
                         </Link>
                         <Link
-                            href="/equipo"
+                            href="/miembros"
                             className="text-sm font-medium hover:text-primary"
                         >
                             Equipo
@@ -35,6 +39,12 @@ export default function MainLayout({ children, selectedTab = null }) {
                             className="text-sm font-medium hover:text-primary"
                         >
                             ¿Quiénes Somos?
+                        </Link>
+                        <Link
+                            href="/signup"
+                            className="text-sm font-medium hover:text-primary"
+                        >
+                            Sign Up
                         </Link>
 
                         <div className="relative w-64">
