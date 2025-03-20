@@ -143,13 +143,13 @@ export default function MainLayout({ children, selectedTab = null }) {
                                         className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1 z-10 border border-gray-100 overflow-hidden"
                                     >
                                         <Link
-                                            href="/login"
+                                            href={route("login")}
                                             className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 transition-colors"
                                         >
                                             Iniciar sesión
                                         </Link>
                                         <Link
-                                            href="/signup"
+                                            href={route("registro")}
                                             className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 transition-colors"
                                         >
                                             Registrarse

@@ -31,7 +31,7 @@ export default function TextInput({
             ref={input}
             autoComplete={autoComplete}
             required={required}
-            onChange={handleChange} // IMPORTANTE: Cambio de (e) => handleChange(e) a simplemente handleChange
+            onChange={(e) => handleChange(e)}
             placeholder={placeholder}
             disabled={disabled}
         />
