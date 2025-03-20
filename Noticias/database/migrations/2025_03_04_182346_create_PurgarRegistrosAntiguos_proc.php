@@ -10,6 +10,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Primero elimina el procedimiento si existe
+        DB::unprepared("DROP PROCEDURE IF EXISTS PurgarRegistrosAntiguos");
+        
+        // Luego crea el procedimiento
         DB::unprepared("CREATE DEFINER=`root`@`localhost` PROCEDURE `PurgarRegistrosAntiguos`(
     IN dias_antiguedad INT
 )

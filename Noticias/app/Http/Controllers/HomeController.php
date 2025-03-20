@@ -12,4 +12,9 @@ class HomeController extends Controller
     {
         return Inertia::render('Welcome');
     }
+
+    public function loMasNuevo() 
+    {
+        return Inertia::render('Home.LoMasNuevo');
+    }
 }

@@ -14,6 +14,10 @@ Route::get('/', function () {
     return Inertia::render('Welcome');
 })->name('welcome');
 
+// Rutas de Home
+Route::get('/home/loMasNuevo', [HomeController::class, 'loMasNuevo'])->name('home.loMasNuevo');
+Route::get('/Home/Quienes-Somos', [QuienesSomosController::class, 'index'])->name('quienes-somos');
+
 // Rutas para eventos
 Route::get('/eventos', [EventoController::class, 'index'])->name('eventos.index');
 Route::get('/eventos/{id}', [EventoController::class, 'show'])->name('eventos.show');
@@ -36,7 +40,6 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
 });
 
 // Otras rutas
-Route::get('/quienes-somos', [QuienesSomosController::class, 'index'])->name('quienes-somos');
 Route::get('/noticias', [NoticiaController::class, 'index'])->name('noticias');
 
 // Rutas de autenticación

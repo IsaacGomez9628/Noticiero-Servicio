@@ -11,8 +11,8 @@ import "swiper/css/navigation";
 import { Navigation, Autoplay } from "swiper/modules";
 import { Bookmark as BookmarkIcon } from "lucide-react";
 import MainLayout from "@/Layouts/MainLayout";
-//import {NewsCard} from "@/components/NewsCard";
-//import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/dropdown-menu"
+
+// Importa las imágenes para las noticias principales
 import img1 from "@/assets/img1.jpeg";
 import img2 from "@/assets/img2.png";
 import img4 from "@/assets/img4.jpg";
@@ -21,7 +21,24 @@ import img6 from "@/assets/img6.png";
 import img7 from "@/assets/img7.png";
 import sedeq from "@/assets/SEDEQ.jpg";
 
+// Importa las imágenes para "Lo más nuevo"
+import img16 from "@/assets/img16.jpg";
+import img17 from "@/assets/img17.jpg";
+import img18 from "@/assets/img18.jpg";
+import img19 from "@/assets/img19.jpg";
+import img20 from "@/assets/img20.jpg";
+import img21 from "@/assets/img21.jpg";
+
+// Importa las imágenes para "Tendencia"
+import img10 from "@/assets/img10.jpg";
+import img11 from "@/assets/img11.jpg";
+import img12 from "@/assets/img12.jpg";
+import img13 from "@/assets/img13.jpg";
+import img14 from "@/assets/img14.jpg";
+import img15 from "@/assets/img15.jpg";
+
 export default function Welcome() {
+    // Noticias para la sección "Presentando"
     const newsArticles = [
         {
             id: 1,
@@ -52,6 +69,122 @@ export default function Welcome() {
         },
     ];
 
+    // Artículos para la sección "Lo más nuevo"
+    const latestArticles = [
+        {
+            id: 1,
+            image: img16,
+            category: "Últimos Avances",
+            readTime: "5 min de lectura",
+            title: "Nanotecnología en la Medicina",
+            description:
+                "Explora cómo la nanotecnología está revolucionando los tratamientos médicos y la detección de enfermedades.",
+        },
+        {
+            id: 2,
+            image: img17,
+            category: "Ciencia y Tecnología",
+            readTime: "6 min de lectura",
+            title: "El avance de los materiales inteligentes",
+            description:
+                "Descubre cómo los materiales inteligentes están transformando la industria con sus propiedades adaptativas.",
+        },
+        {
+            id: 3,
+            image: img18,
+            category: "Espacio y Exploración",
+            readTime: "4 min de lectura",
+            title: "Misión a Marte: ¿Qué sigue?",
+            description:
+                "Un vistazo a los próximos planes y tecnologías clave para la exploración del planeta rojo.",
+        },
+        {
+            id: 4,
+            image: img19,
+            category: "Tecnología de Consumo",
+            readTime: "5 min de lectura",
+            title: "El futuro de los smartphones plegables",
+            description:
+                "Analiza cómo los dispositivos plegables están evolucionando y qué esperar en los próximos años.",
+        },
+        {
+            id: 5,
+            image: img20,
+            category: "Energía y Medio Ambiente",
+            readTime: "4 min de lectura",
+            title: "Baterías de estado sólido: La revolución energética",
+            description:
+                "Explora cómo esta tecnología promete mejorar la eficiencia y seguridad de las baterías en el futuro.",
+        },
+        {
+            id: 6,
+            image: img21,
+            category: "Automoción",
+            readTime: "5 min de lectura",
+            title: "Autos eléctricos con mayor autonomía",
+            description:
+                "Conoce las innovaciones en baterías y motores eléctricos que están redefiniendo la movilidad sostenible.",
+        },
+    ];
+
+    // Artículos para la sección "Tendencia"
+    const trendArticles = [
+        {
+            id: 1,
+            image: img10,
+            category: "Tendencias Globales",
+            readTime: "5 min de lectura",
+            title: "La evolución del 5G en 2025",
+            description:
+                "Descubre cómo el 5G seguirá transformando la conectividad y la industria tecnológica en los próximos años.",
+        },
+        {
+            id: 2,
+            image: img11,
+            category: "Tendencias Globales",
+            readTime: "6 min de lectura",
+            title: "El auge de la Web3",
+            description:
+                "Explora cómo la Web3 está cambiando la forma en que interactuamos con el internet y los servicios descentralizados.",
+        },
+        {
+            id: 3,
+            image: img12,
+            category: "Inteligencia Artificial",
+            readTime: "4 min de lectura",
+            title: "El impacto de la IA en el empleo",
+            description:
+                "Conoce cómo la inteligencia artificial está redefiniendo los roles laborales y creando nuevas oportunidades.",
+        },
+        {
+            id: 4,
+            image: img13,
+            category: "Tendencias Globales",
+            readTime: "5 min de lectura",
+            title: "Realidad Virtual en la educación",
+            description:
+                "Analiza cómo la realidad virtual está revolucionando la enseñanza y el aprendizaje en todo el mundo.",
+        },
+        {
+            id: 5,
+            image: img14,
+            category: "Engergías",
+            readTime: "4 min de lectura",
+            title: "El futuro de la energía renovable",
+            description:
+                "Descubre los últimos avances en energía solar, eólica y otras fuentes sostenibles para un planeta más verde.",
+        },
+        {
+            id: 6,
+            image: img15,
+            category: "Innovación Tecnológica",
+            readTime: "5 min de lectura",
+            title: "Computación Cuántica: La próxima revolución",
+            description:
+                "Explora cómo la computación cuántica está transformando la ciencia y la tecnología con su poder de procesamiento sin precedentes.",
+        },
+    ];
+
     return (
         <MainLayout>
             <div className="min-h-screen bg-gray-50">
@@ -69,7 +202,8 @@ export default function Welcome() {
                             </TabsTrigger>
                         </TabsList>
 
-                        <TabsContent value="featured" className="space-y-8">
+                        {/* Contenido para "Presentando" */}
+                        <TabsContent value="featured">
                             <Swiper
                                 modules={[Navigation, Autoplay]}
                                 navigation
@@ -90,40 +224,13 @@ export default function Welcome() {
                                                     />
                                                 </div>
                                                 <CardContent className="p-6">
-                                                    <div className="space-y-4">
-                                                        <div className="flex items-center space-x-2">
-                                                            <span className="text-sm font-medium text-primary">
-                                                                {
-                                                                    article.category
-                                                                }
-                                                            </span>
-                                                            <span className="text-sm text-muted-foreground">
-                                                                •{" "}
-                                                                {
-                                                                    article.readTime
-                                                                }
-                                                            </span>
-                                                        </div>
-                                                        <h2 className="text-2xl font-bold">
-                                                            {article.title}
-                                                        </h2>
-                                                        <p className="text-muted-foreground">
-                                                            {
-                                                                article.description
-                                                            }
-                                                        </p>
-                                                        <div className="flex items-center space-x-4">
-                                                            <Button>
-                                                                Leer Más
-                                                            </Button>
-                                                            <Button
-                                                                variant="outline"
-                                                                size="icon"
-                                                            >
-                                                                <Bookmark className="h-4 w-4" />
-                                                            </Button>
-                                                        </div>
-                                                    </div>
+                                                    <h2 className="text-2xl font-bold">
+                                                        {article.title}
+                                                    </h2>
+                                                    <p className="text-muted-foreground">
+                                                        {article.description}
+                                                    </p>
+                                                    <Button>Leer Más</Button>
                                                 </CardContent>
                                             </div>
                                         </Card>
@@ -132,6 +239,93 @@ export default function Welcome() {
                             </Swiper>
                         </TabsContent>
 
+                        {/* Contenido para "Lo más nuevo" - CONTENIDO INTEGRADO */}
+                        <TabsContent value="latest">
+                            <div className="grid md:grid-cols-2 gap-6">
+                                {latestArticles.map((article) => (
+                                    <Card
+                                        key={article.id}
+                                        className="overflow-hidden"
+                                    >
+                                        <div className="relative h-48">
+                                            <img
+                                                src={article.image}
+                                                alt={article.title}
+                                                className="object-cover h-full w-full"
+                                            />
+                                        </div>
+                                        <CardContent className="p-6">
+                                            <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                                                <span>{article.category}</span>
+                                                <span>
+                                                    • {article.readTime}
+                                                </span>
+                                            </div>
+                                            <h3 className="text-xl font-bold mb-2">
+                                                {article.title}
+                                            </h3>
+                                            <p className="text-muted-foreground mb-3">
+                                                {article.description}
+                                            </p>
+                                            <div className="flex items-center space-x-4">
+                                                <Button>Leer Más</Button>
+                                                <Button
+                                                    variant="outline"
+                                                    size="icon"
+                                                >
+                                                    <Bookmark className="h-4 w-4" />
+                                                </Button>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                ))}
+                            </div>
+                        </TabsContent>
+
+                        {/* Contenido para "Tendencia" - CONTENIDO INTEGRADO */}
+                        <TabsContent value="trending">
+                            <div className="grid md:grid-cols-2 gap-6">
+                                {trendArticles.map((article) => (
+                                    <Card
+                                        key={article.id}
+                                        className="overflow-hidden"
+                                    >
+                                        <div className="relative h-48">
+                                            <img
+                                                src={article.image}
+                                                alt={article.title}
+                                                className="object-cover h-full w-full"
+                                            />
+                                        </div>
+                                        <CardContent className="p-6">
+                                            <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                                                <span>{article.category}</span>
+                                                <span>
+                                                    • {article.readTime}
+                                                </span>
+                                            </div>
+                                            <h3 className="text-xl font-bold mb-2">
+                                                {article.title}
+                                            </h3>
+                                            <p className="text-muted-foreground mb-3">
+                                                {article.description}
+                                            </p>
+                                            <div className="flex items-center space-x-4">
+                                                <Button>Leer Más</Button>
+                                                <Button
+                                                    variant="outline"
+                                                    size="icon"
+                                                >
+                                                    <Bookmark className="h-4 w-4" />
+                                                </Button>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                ))}
+                            </div>
+                        </TabsContent>
+
+                        {/* Sección de eventos que se mantiene fija */}
                         <section className="mt-12">
                             <div className="flex items-center justify-between mb-6">
                                 <h2 className="text-2xl font-bold">

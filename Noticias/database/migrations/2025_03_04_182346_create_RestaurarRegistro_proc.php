@@ -10,6 +10,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Primero elimina el procedimiento si existe
+        DB::unprepared("DROP PROCEDURE IF EXISTS RestaurarRegistro");
+        
+        // Luego crea el procedimiento
         DB::unprepared("CREATE DEFINER=`root`@`localhost` PROCEDURE `RestaurarRegistro`(
     IN tabla VARCHAR(50),
     IN registro_id INT
