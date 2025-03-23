@@ -172,13 +172,13 @@ export default function MainLayout({ children, selectedTab = null }) {
                                 Eventos
                                 <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-500 group-hover:w-full transition-all duration-300"></span>
                             </Link>
-                            <Link
+                            {/* <Link
                                 href="/noticias"
                                 className="text-base font-medium text-gray-700 hover:text-blue-600 transition-colors relative group"
                             >
                                 Noticias
                                 <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-500 group-hover:w-full transition-all duration-300"></span>
-                            </Link>
+                            </Link> */}
                             <Link
                                 href="/home/Quienes-Somos"
                                 className="text-base font-medium text-gray-700 hover:text-blue-600 transition-colors relative group"
@@ -197,7 +197,7 @@ export default function MainLayout({ children, selectedTab = null }) {
             {/* Footer */}
             <footer className="bg-gray-50 py-12 border-t">
                 <div className="container mx-auto px-4">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div className="grid grid-cols-1 md:grid-cols-3 mx-36 gap-8 justify-between">
                         <div>
                             <h3 className="font-bold text-lg mb-4 text-blue-700">
                                 Contacto

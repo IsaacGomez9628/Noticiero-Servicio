@@ -72,8 +72,8 @@ const teamMembers = [
 export default function Welcome() {
     return (
         <MainLayout>
-            <div className="min-h-96 bg-gray-800 text-white">
-                <section className="w-full h-full px-4 py-16">
+            <div className="min-h-2 ml-20 mr-20 text-white">
+                <section className="w-full h-full px-4 py-5 text-black">
                     <h1 className="text-5xl font-bold mb-6">Nuestro equipo</h1>
                     <p className="text-xl max-w-3xl">
                         Somos un grupo dinámico de individuos apasionados por lo
