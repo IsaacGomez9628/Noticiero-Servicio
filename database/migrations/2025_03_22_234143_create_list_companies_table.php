@@ -11,8 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('empresas', function (Blueprint $table) {
-            $table->foreign(['contacto_id'], 'empresas_ibfk_1')->references(['id'])->on('contactos')->onUpdate('restrict')->onDelete('restrict');
+        Schema::create('list_companies', function (Blueprint $table) {
+            $table->id();
+            $table->string('name', 75);
+            $table->timestamps();
         });
     }
 
@@ -21,8 +23,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('empresas', function (Blueprint $table) {
-            $table->dropForeign('empresas_ibfk_1');
-        });
+        Schema::dropIfExists('list_companies');
     }
 };
