@@ -6,11 +6,10 @@ use App\Http\Controllers\Home\NoticiaController;
 use App\Http\Controllers\Home\QuienesSomosController;
 use App\Http\Controllers\EventoAsistenciaController;
 use App\Http\Controllers\EventoController;
-use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\HomeController;
-use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegistroController;
+use App\Http\Controllers\EventController;
 
 // Rutas para vistas principales (renderizan la SPA de React)
 Route::get('/', function () {
@@ -22,8 +21,20 @@ Route::get('/home/loMasNuevo', [HomeController::class, 'loMasNuevo'])->name('hom
 Route::get('/home/Quienes-Somos', [QuienesSomosController::class, 'index'])->name('quienes-somos');
 
 // Rutas para eventos
-Route::get('/eventos', [EventoController::class, 'index'])->name('eventos.index');
-Route::get('/eventos/{id}', [EventoController::class, 'show'])->name('eventos.show');
+Route::get('/eventos', [EventController::class, 'index'])->name('eventos.index');
+
+// Nuevas rutas con el formato solicitado
+Route::get('/evento/{id}/detalles', [EventController::class, 'show'])->name('eventos.show');
+Route::get('/evento/{id}/ubicacion', [EventController::class, 'location'])->name('eventos.location');
+Route::get('/evento/{id}/registro', [EventController::class, 'showRegistrationForm'])->name('eventos.registro.form');
+
+// Rutas de compatibilidad (para mantener enlaces antiguos)
+Route::get('/eventos/{id}', function($id) {
+    return redirect()->route('eventos.show', $id);
+});
+Route::get('/eventos/{id}/registro', function($id) {
+    return redirect()->route('eventos.registro.form', $id);
+});
 
 // Rutas para registro
 Route::middleware('guest')->group(function () {
@@ -52,7 +63,7 @@ Route::middleware('guest')->group(function () {
 });
 
 // Ruta de compatibilidad (para mantener enlaces antiguos)
-Route::get('/eventos/{id}/registro', [EventoController::class, 'showRegistrationForm'])->name('eventos.registro.form');
+// Route::get('/eventos/{id}/registro', [EventoController::class, 'showRegistrationForm'])->name('eventos.registro.form');
 
 // Rutas para historial de asistencias (requieren autenticación)
 Route::middleware(['auth'])->group(function () {

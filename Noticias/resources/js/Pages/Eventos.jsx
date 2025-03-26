@@ -41,6 +41,20 @@ export default function EventosPage({
     const [showCalendar, setShowCalendar] = useState(false);
     const [filtrosVisibles, setFiltrosVisibles] = useState(true);
 
+    const formatPrice = (price) => {
+        if (price === null || price === undefined) return "0.00";
+
+        // Convertir a número si es un string
+        const numericPrice =
+            typeof price === "number" ? price : parseFloat(price || 0);
+
+        // Verificar si el precio es cero
+        if (numericPrice === 0) return "Gratis";
+
+        // Si no es cero, formatear como antes
+        return numericPrice.toFixed(2);
+    };
+
     const categorias = [
         { id: "negocios", nombre: "Negocios" },
         { id: "comida", nombre: "Comida y bebida" },
@@ -580,7 +594,8 @@ export default function EventosPage({
                                                         className="w-full h-full object-cover"
                                                     />
                                                 )}
-                                                {evento.precio === 0 && (
+                                                {formatPrice(evento.precio) ===
+                                                    "Gratis" && (
                                                     <div className="absolute top-2 right-2 bg-green-500 text-white px-3 py-1 rounded-full text-sm font-medium">
                                                         Gratis
                                                     </div>
@@ -647,16 +662,19 @@ export default function EventosPage({
                                                             </span>
                                                         </div>
                                                     </div>
-                                                    {evento.precio > 0 && (
+                                                    {evento.precio !== null && (
                                                         <div className="col-span-2 mt-2">
                                                             <p className="font-medium text-gray-600">
                                                                 Precio:
                                                             </p>
                                                             <p className="mt-1 font-medium">
-                                                                Desde $
-                                                                {evento.precio.toFixed(
-                                                                    2
-                                                                )}
+                                                                {formatPrice(
+                                                                    evento.precio
+                                                                ) === "Gratis"
+                                                                    ? "Gratis"
+                                                                    : `Desde $${formatPrice(
+                                                                          evento.precio
+                                                                      )}`}
                                                             </p>
                                                         </div>
                                                     )}
@@ -732,18 +750,20 @@ export default function EventosPage({
                                                 <div className="p-6 md:w-3/4">
                                                     <div className="flex flex-col md:flex-row md:justify-between">
                                                         <div className="mb-4 md:mb-0">
-                                                            {evento.precio ===
-                                                            0 ? (
-                                                                <span className="inline-block bg-green-100 text-green-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded">
-                                                                    Gratis
-                                                                </span>
-                                                            ) : (
-                                                                <span className="text-gray-700 font-medium">
-                                                                    Desde $
-                                                                    {evento.precio.toFixed(
-                                                                        2
-                                                                    )}
-                                                                </span>
+                                                            {evento.precio !==
+                                                                null && (
+                                                                <div className="mt-2">
+                                                                    <span className="text-gray-700 font-medium">
+                                                                        {formatPrice(
+                                                                            evento.precio
+                                                                        ) ===
+                                                                        "Gratis"
+                                                                            ? "Gratis"
+                                                                            : `Desde $${formatPrice(
+                                                                                  evento.precio
+                                                                              )}`}
+                                                                    </span>
+                                                                </div>
                                                             )}
                                                             <h3 className="text-xl font-bold mt-1">
                                                                 {evento.titulo}

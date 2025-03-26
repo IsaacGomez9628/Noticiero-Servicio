@@ -134,7 +134,6 @@ export default function EventoDetalle({ evento }) {
                                 <h2 className="text-xl font-semibold mb-4">
                                     Registro
                                 </h2>
-
                                 {evento.capacidad && (
                                     <div className="flex items-center gap-2 mb-4">
                                         <Users className="h-5 w-5 text-primary" />
@@ -146,14 +145,35 @@ export default function EventoDetalle({ evento }) {
                                         </div>
                                     </div>
                                 )}
-
                                 <div className="mb-6">
                                     <p className="text-muted-foreground mb-2">
                                         Asegura tu lugar en este evento
                                         registrándote ahora.
                                     </p>
                                 </div>
-
+                                <div className="flex items-center gap-2">
+                                    <MapPin className="h-5 w-5 text-primary" />
+                                    <div>
+                                        <p className="text-sm text-muted-foreground">
+                                            Ubicación
+                                        </p>
+                                        <p>
+                                            {
+                                                evento.direccion
+                                                    .direccion_completa
+                                            }
+                                            <Link
+                                                href={route(
+                                                    "eventos.location",
+                                                    evento.id
+                                                )}
+                                                className="ml-2 text-primary hover:underline"
+                                            >
+                                                Ver mapa
+                                            </Link>
+                                        </p>
+                                    </div>
+                                </div>
                                 <Link
                                     href={route(
                                         "eventos.registro.form",
