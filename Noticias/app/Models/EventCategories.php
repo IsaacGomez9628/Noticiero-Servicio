@@ -9,4 +9,19 @@ class EventCategories extends Model
 {
     /** @use HasFactory<\Database\Factories\EventCategoriesFactory> */
     use HasFactory;
+    
+    // Definir la tabla explícitamente
+    protected $table = 'event_categories';
+    
+    // Relación con Event (una relación pertenece a un evento)
+    public function event()
+    {
+        return $this->belongsTo(Events::class);
+    }
+    
+    // Relación con Category (una relación pertenece a una categoría)
+    public function category()
+    {
+        return $this->belongsTo(Categories::class, 'categorie_id');
+    }
 }

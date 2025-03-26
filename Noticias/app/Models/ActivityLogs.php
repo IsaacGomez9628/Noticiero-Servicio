@@ -9,4 +9,16 @@ class ActivityLogs extends Model
 {
     /** @use HasFactory<\Database\Factories\ActivityLogsFactory> */
     use HasFactory;
+    
+    // Relación con Admin (un registro de actividad pertenece a un admin)
+    public function admin()
+    {
+        return $this->belongsTo(Admins::class);
+    }
+    
+    // Relación polimórfica (un registro puede relacionarse con cualquier modelo)
+    public function object()
+    {
+        return $this->morphTo();
+    }
 }
