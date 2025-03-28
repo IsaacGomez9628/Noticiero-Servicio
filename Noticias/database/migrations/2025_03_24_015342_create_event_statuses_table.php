@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('event_statuses', function (Blueprint $table) {
-            $table->id();
+            $table->id()->primary();
             $table->string('name');
             $table->string('slug')->unique();
             $table->string('color')->nullable()->comment('Código de color para mostrar el estado (ej: #FF0000)');

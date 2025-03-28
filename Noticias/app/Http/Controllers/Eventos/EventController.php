@@ -3,9 +3,7 @@
 namespace App\Http\Controllers\Eventos;
 
 use App\Http\Controllers\Controller;
-use App\Models\Events;
-use App\Models\Categories;
-use Illuminate\Http\Request;
+use App\Models\Event;
 use Inertia\Inertia;
 
 class EventController extends Controller
@@ -17,7 +15,7 @@ class EventController extends Controller
     {
         try {
             // Obtener eventos activos ordenados por fecha
-            $eventos = Events::with(['organizer', 'location', 'status', 'categories', 'images'])
+            $eventos = Event::with(['organizer', 'location', 'status', 'categories', 'images'])
                 ->whereHas('status', function($query) {
                     $query->where('active', true);
                 })
@@ -79,7 +77,7 @@ class EventController extends Controller
     public function show($id)
     {
         try {
-            $evento = Events::with(['organizer', 'location', 'status', 'categories', 'images'])
+            $evento = Event::with(['organizer', 'location', 'status', 'categories', 'images'])
                 ->findOrFail($id);
                 
             // Obtener imagen principal o la primera disponible
@@ -128,7 +126,7 @@ class EventController extends Controller
     public function location($id)
     {
         try {
-            $evento = Events::with(['location', 'location.images'])->findOrFail($id);
+            $evento = Event::with(['location', 'location.images'])->findOrFail($id);
             
             $locationData = [
                 'id' => $evento->location->id,
@@ -170,7 +168,7 @@ class EventController extends Controller
     public function showRegistrationForm($id)
     {
         try {
-            $evento = Events::with(['organizer', 'location'])->findOrFail($id);
+            $evento = Event::with(['organizer', 'location'])->findOrFail($id);
             
             $eventoData = [
                 'id' => $evento->id,

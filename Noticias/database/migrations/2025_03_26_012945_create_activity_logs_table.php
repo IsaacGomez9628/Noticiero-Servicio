@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('activity_logs', function (Blueprint $table) {
-            $table->id();
+            $table->id()->primary();
             $table->foreignId('admin_id')->constrained();
             $table->morphs('object'); // objeto_id, objeto_type para relación polimórfica
             $table->string('action'); // crear, actualizar, eliminar, etc.
