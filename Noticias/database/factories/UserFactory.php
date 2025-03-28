@@ -2,6 +2,9 @@
 
 namespace Database\Factories;
 
+use App\Models\User;
+use App\Models\Person;
+use App\Models\Status;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -12,33 +15,81 @@ use Illuminate\Support\Str;
 class UserFactory extends Factory
 {
     /**
-     * The current password being used by the factory.
-     */
-    protected static ?string $password;
-
-    /**
      * Define the model's default state.
      *
      * @return array<string, mixed>
      */
-    public function definition()//: array
+
+     protected $fillable = [
+        'status_id',
+        'email',
+        'salt',
+        'password',
+        'last_authentication',
+        'blocked',
+        'failed_password_attempts',
+        'deleted'
+    ];
+    
+    protected $hidden = [
+        'password',
+        'salt',
+        'remember_token',
+    ];
+    
+    protected $casts = [
+        'blocked' => 'boolean',
+        'deleted' => 'boolean',
+        'last_authentication' => 'datetime',
+    ];
+    
+    /**
+     * Get the person associated with the user.
+     */
+    public function person()
     {
-        // return [
-        //     'name' => fake()->name(),
-        //     'email' => fake()->unique()->safeEmail(),
-        //     'email_verified_at' => now(),
-        //     'password' => static::$password ??= Hash::make('password'),
-        //     'remember_token' => Str::random(10),
-        // ];
+        return $this->hasOne(Person::class);
+    }
+    
+    public function definition(): array
+    {
+    
+        $salt = Str::random(16);
+        $activeStatus = Status::where('name', 'Active')
+                             ->where('type', 'user')
+                             ->first();
+        
+        if (!$activeStatus) {
+            $activeStatus = Status::create([
+                'name' => 'Active',
+                'description' => 'Active user',
+                'type' => 'user',
+                'deleted' => false
+            ]);
+        }
+        
+        return [
+            'status_id' => $activeStatus->id,
+            'email' => fake()->unique()->safeEmail(),
+            'salt' => $salt,
+            'password' => Hash::make($salt . 'password'), 
+            'last_authentication' => fake()->optional(0.7)->dateTimeThisMonth(),
+            'blocked' => false,
+            'failed_password_attempts' => 0,
+            'deleted' => false,
+        ];
+    }
+    
+    /**
+     * Indicate that the user should be blocked.
+     */
+    public function blocked(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'blocked' => true,
+            'failed_password_attempts' => 5,
+        ]);
     }
 
-    /**
-     * Indicate that the model's email address should be unverified.
-     */
-    public function unverified()//: static
-    {
-        // return $this->state(fn (array $attributes) => [
-        //     'email_verified_at' => null,
-        // ]);
-    }
+    
 }

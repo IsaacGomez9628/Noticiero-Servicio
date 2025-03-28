@@ -5,11 +5,13 @@ use Inertia\Inertia;
 use App\Http\Controllers\Home\NoticiaController;
 use App\Http\Controllers\Home\QuienesSomosController;
 use App\Http\Controllers\EventoAsistenciaController;
-use App\Http\Controllers\EventoController;
+use App\Http\Controllers\Eventos\EventoController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegistroController;
 use App\Http\Controllers\EventController;
+use App\Http\Controllers\Eventos\EventController as EventosEventController;
+use App\Http\Eventos\Controllers\EventController as ControllersEventController;
 
 // Rutas para vistas principales (renderizan la SPA de React)
 Route::get('/', function () {
@@ -21,12 +23,12 @@ Route::get('/home/loMasNuevo', [HomeController::class, 'loMasNuevo'])->name('hom
 Route::get('/home/Quienes-Somos', [QuienesSomosController::class, 'index'])->name('quienes-somos');
 
 // Rutas para eventos
-Route::get('/eventos', [EventController::class, 'index'])->name('eventos.index');
+Route::get('/eventos', [EventosEventController::class, 'index'])->name('eventos.index');
 
 // Nuevas rutas con el formato solicitado
-Route::get('/evento/{id}/detalles', [EventController::class, 'show'])->name('eventos.show');
-Route::get('/evento/{id}/ubicacion', [EventController::class, 'location'])->name('eventos.location');
-Route::get('/evento/{id}/registro', [EventController::class, 'showRegistrationForm'])->name('eventos.registro.form');
+Route::get('/evento/{id}/detalles', [EventosEventController::class, 'show'])->name('eventos.show');
+Route::get('/evento/{id}/ubicacion', [EventosEventController::class, 'location'])->name('eventos.location');
+Route::get('/evento/{id}/registro', [EventosEventController::class, 'showRegistrationForm'])->name('eventos.registro.form');
 
 // Rutas de compatibilidad (para mantener enlaces antiguos)
 Route::get('/eventos/{id}', function($id) {

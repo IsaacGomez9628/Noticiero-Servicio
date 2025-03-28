@@ -22,12 +22,12 @@ class PermissionRol extends Model
     // Relación con Permission (una asignación pertenece a un permiso)
     public function permission()
     {
-        return $this->belongsTo(Permissions::class);
+        return $this->belongsTo(Permission::class);
     }
     
     // Relación con Rol (una asignación pertenece a un rol)
     public function rol()
     {
-        return $this->belongsTo(Roles::class);
+        return $this->belongsTo(Rol::class);
     }
 }

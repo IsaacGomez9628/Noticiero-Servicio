@@ -5,15 +5,15 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class EventStatus extends Model
+class Image extends Model
 {
-    /** @use HasFactory<\Database\Factories\EventStatusFactory> */
+    /** @use HasFactory<\Database\Factories\ImagesFactory> */
     use HasFactory;
     
-    // Relación con Events (un estado puede tener muchos eventos)
-    public function events()
+    // Relación polimórfica (una imagen puede pertenecer a cualquier modelo)
+    public function imageable()
     {
-        return $this->hasMany(Event::class, 'event_statuses_id');
+        return $this->morphTo();
     }
     
     // Relación polimórfica para registrar actividades sobre este modelo

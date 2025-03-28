@@ -8,7 +8,7 @@ use App\Models\Rol;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
-class PermissionRolSeeder extends Seeder
+class RolPermissionSeeder extends Seeder
 {
     /**
      * Run the database seeds.

@@ -16,12 +16,12 @@ class EventCategories extends Model
     // Relación con Event (una relación pertenece a un evento)
     public function event()
     {
-        return $this->belongsTo(Events::class);
+        return $this->belongsTo(Event::class);
     }
     
     // Relación con Category (una relación pertenece a una categoría)
     public function category()
     {
-        return $this->belongsTo(Categories::class, 'categorie_id');
+        return $this->belongsTo(Categorie::class, 'categorie_id');
     }
 }

@@ -2,14 +2,14 @@
 
 namespace Database\Factories;
 
-use App\Models\Permission;
-use App\Models\Rol;
+use App\Models\Categorie;
+use App\Models\Event;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\PermissionRol>
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\EventCategories>
  */
-class PermissionRolFactory extends Factory
+class EventCategorieFactory extends Factory
 {
     /**
      * Define the model's default state.
@@ -19,8 +19,8 @@ class PermissionRolFactory extends Factory
     public function definition(): array
     {
         return [
-            'permission_id' => Permission::factory(),
-            'rol_id' => Rol::factory(),
+            'categorie_id' => Categorie::factory(),
+            'event_id' => Event::factory(),
             'created_at' => now(),
             'updated_at' => now(),
         ];

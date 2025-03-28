@@ -5,15 +5,16 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class EventStatus extends Model
+class Categorie extends Model
 {
-    /** @use HasFactory<\Database\Factories\EventStatusFactory> */
+    /** @use HasFactory<\Database\Factories\CategoriesFactory> */
     use HasFactory;
     
-    // Relación con Events (un estado puede tener muchos eventos)
+    // Relación muchos a muchos con Events (una categoría puede tener muchos eventos)
     public function events()
     {
-        return $this->hasMany(Event::class, 'event_statuses_id');
+        return $this->belongsToMany(Event::class, 'event_categories', 'categorie_id', 'event_id')
+                    ->withTimestamps();
     }
     
     // Relación polimórfica para registrar actividades sobre este modelo
