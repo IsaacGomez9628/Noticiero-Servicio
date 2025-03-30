@@ -27,4 +27,21 @@ class Location extends Model
     {
         return $this->morphMany(ActivityLog::class, 'object');
     }
+
+    // Relación con locations (una ubicación puede tener una ubicación padre)
+    public function contacts ()
+    {
+        return $this->hasMany(Contact::class);
+    } 
+    
+    // Relación con Estate (una ubicación pertenece a una propiedad)
+    public function estate()
+    {
+        return $this->belongsTo(Estate::class);
+    }
+    // Relación con City (una ubicación pertenece a una ciudad)
+    public function city()
+    {
+        return $this->belongsTo(City::class);
+    }
 }

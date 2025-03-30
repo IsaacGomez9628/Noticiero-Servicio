@@ -10,16 +10,23 @@ class Person extends Model
 
     protected $fillable = [
         'name',
-        'apellido_paterno',
-        'apellido_materno',
+        'last_name',
+        'second_last_name',
         'gender_id',
-        'user_id',
-        'age'
+        'age',
+        'birth_date',
     ];
+
+
     
+    protected $casts = [
+        'birth_date' => 'datetime',
+        'age' => 'integer',
+    ];
+
     public function user()
     {
-        return $this->belongsTo(User::class);
+        return $this->hasOne(User::class);
     }
 
     public function gender()

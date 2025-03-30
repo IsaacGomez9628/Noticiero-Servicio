@@ -3,16 +3,20 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Models\Persona;
-use App\Models\Usuario;
-use App\Models\Empresa;
-use App\Models\Contacto;
-use App\Models\TipoUsuario;
-use App\Models\Status;
+
+use App\Models\Person;
+use App\Models\User;
+use App\Models\Company;
+use App\Models\Contact;
+use App\Models\UserType;
+use App\Models\UserStatus;
+use App\Models\Gender;
+use App\Models\ListCompany;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 
@@ -57,6 +61,22 @@ class RegistroController extends Controller
         ]);
     }
 
+    public function store(Request $request)
+    {
+        Log::info('Data received in store method:', $request->all());
+        
+        // Redirige a storePersonal o storeInstitucional según el tipo de registro
+        if ($request->has('registration_type')) {
+            if ($request->registration_type === 'personal') {
+                return $this->storePersonal($request);
+            } else {
+                return $this->storeInstitucional($request);
+            }
+        }
+        
+        return back()->with('error', 'Invalid registration type');
+    }
+
     /**
      * Muestra el formulario para registro personal
      */
@@ -82,99 +102,123 @@ class RegistroController extends Controller
      */
     public function storePersonal(Request $request)
     {
-        // Validar datos
+        // Validar datos con mensajes más detallados
         $validator = Validator::make($request->all(), [
-            'nombres' => 'required|string|max:100',
-            'apellido_paterno' => 'required|string|max:100',
-            'apellido_materno' => 'nullable|string|max:100',
-            'fecha_nacimiento' => 'nullable|date',
-            'genero' => 'nullable|in:M,F,Otro',
-            'email' => 'required|email|max:100|unique:usuarios,email',
+            'name' => 'required|string|max:100',
+            'last_name' => 'required|string|max:100',
+            'second_last_name' => 'nullable|string|max:100',
+            'birthdate' => 'nullable|date',
+            'gender' => 'nullable|in:M,F,Other',
+            'email' => 'required|email|max:100|unique:users,email',
             'password' => 'required|min:8|confirmed',
-            'telefono' => 'nullable|string|max:20',
+            'phone' => 'nullable|string|max:20',
         ]);
 
         if ($validator->fails()) {
-            return redirect()->back()->withErrors($validator)->withInput();
+            return redirect()->back()
+                ->withErrors($validator)
+                ->withInput()
+                ->with('error_message', 'Error de validación: ' . implode(', ', $validator->errors()->all()));
         }
 
         try {
             // Iniciar transacción
             DB::beginTransaction();
+            
+            Log::info('Iniciando registro de usuario: ' . $request->email);
+
+            // Obtener o crear Gender
+            try {
+                $genderCode = $request->gender ?: 'M';
+                $gender = Gender::firstOrCreate(['name' => $genderCode]);
+                Log::info('Gender encontrado/creado:', ['id' => $gender->id, 'name' => $gender->name]);
+            } catch (\Exception $e) {
+                Log::error('Error al obtener/crear gender:', ['error' => $e->getMessage()]);
+                throw new \Exception('Error al obtener género: ' . $e->getMessage());
+            }
+
+            // Crear usuario - Usando solo las columnas que existen en la tabla users
+            try {
+                Log::info('Creando usuario...');
+                
+                $user = new User();
+                $user->name = $request->name;  // Usar name en lugar de guardarlo solo en Person
+                $user->email = $request->email;
+                $user->password = Hash::make($request->password); // Hash directo sin salt
+                $user->save();
+                
+                Log::info('Usuario creado exitosamente:', ['id' => $user->id, 'email' => $user->email]);
+            } catch (\Exception $e) {
+                Log::error('Error al crear usuario:', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+                throw new \Exception('Error al crear usuario: ' . $e->getMessage());
+            }
+
+            // Calcular la edad
+            $age = 0;
+            if ($request->birthdate) {
+                $birthdate = new \DateTime($request->birthdate);
+                $today = new \DateTime();
+                $age = $birthdate->diff($today)->y;
+                Log::info('Edad calculada:', ['age' => $age]);
+            }
 
             // Crear persona
-            $persona = Persona::create([
-                'nombres' => $request->nombres,
-                'apellido_paterno' => $request->apellido_paterno,
-                'apellido_materno' => $request->apellido_materno,
-                'fecha_nacimiento' => $request->fecha_nacimiento,
-                'genero' => $request->genero,
-                'fecha_registro' => now(),
-                'eliminado' => false
-            ]);
-
-            // Crear contacto
-            if ($request->telefono) {
-                Contacto::create([
-                    'persona_id' => $persona->id,
-                    'email' => $request->email,
-                    'telefono' => $request->telefono,
-                    'fecha_actualizacion_atributo' => now(),
-                    'eliminado' => false
-                ]);
+            try {
+                Log::info('Creando persona...');
+                
+                $person = new Person();
+                $person->name = $request->name;
+                $person->last_name = $request->last_name;
+                $person->second_last_name = $request->second_last_name;
+                $person->gender_id = $gender->id;
+                $person->user_id = $user->id;
+                $person->birthdate = $request->birthdate ?: now();
+                $person->age = $age;
+                $person->save();
+                
+                Log::info('Persona creada exitosamente:', ['id' => $person->id, 'name' => $person->name]);
+            } catch (\Exception $e) {
+                Log::error('Error al crear persona:', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+                throw new \Exception('Error al crear persona: ' . $e->getMessage());
             }
 
-            // Obtener tipo de usuario "Personal"
-            $tipoUsuarioPersonal = TipoUsuario::where('nombre', 'Personal')->first();
-            if (!$tipoUsuarioPersonal) {
-                // Si no existe, lo creamos
-                $tipoUsuarioPersonal = TipoUsuario::create([
-                    'nombre' => 'Personal',
-                    'descripcion' => 'Usuario personal',
-                    'eliminado' => false
-                ]);
+            // Crear contacto si hay teléfono
+            if ($request->phone) {
+                try {
+                    Log::info('Creando contacto...');
+                    
+                    $contact = new Contact();
+                    $contact->person_id = $person->id;
+                    $contact->email = $request->email;
+                    $contact->phone = $request->phone;
+                    $contact->deleted = false;
+                    $contact->save();
+                    
+                    Log::info('Contacto creado exitosamente:', ['id' => $contact->id]);
+                } catch (\Exception $e) {
+                    Log::error('Error al crear contacto:', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+                    throw new \Exception('Error al crear contacto: ' . $e->getMessage());
+                }
             }
 
-            // Obtener status "Activo"
-            $statusActivo = Status::where('nombre', 'Activo')->where('tipo', 'usuario')->first();
-            if (!$statusActivo) {
-                // Si no existe, lo creamos
-                $statusActivo = Status::create([
-                    'nombre' => 'Activo',
-                    'descripcion' => 'Usuario activo',
-                    'tipo' => 'usuario',
-                    'eliminado' => false
-                ]);
-            }
-
-            // Generar salt
-            $salt = Str::random(16);
-
-            // Crear usuario
-            Usuario::create([
-                'persona_id' => $persona->id,
-                'tipo_usuario_id' => $tipoUsuarioPersonal->id,
-                'status_id' => $statusActivo->id,
-                'email' => $request->email,
-                'salt' => $salt,
-                'password' => Hash::make($salt . $request->password),
-                'ultima_autenticacion' => null,
-                'bloqueado' => false,
-                'intentos_fallidos_contraseña' => 0,
-                'eliminado' => false
-            ]);
-
+            // Confirmar la transacción
             DB::commit();
+            Log::info('Transacción completada exitosamente. Usuario registrado:', ['email' => $request->email]);
 
-            // Redireccionar al login con mensaje de éxito
+            // Redirección normal con Inertia
             return redirect()->route('login')
-                ->with('success', 'Registro exitoso. Ahora puedes iniciar sesión.');
+                ->with('success', 'Registro exitoso. Ahora puedes iniciar sesión con ' . $request->email);
 
         } catch (\Exception $e) {
             // Revertir transacción en caso de error
             DB::rollBack();
+            
+            // Registrar el error detallado
+            Log::error('Error en registro:', ['message' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+            
+            // Redireccionar con mensaje de error
             return redirect()->back()
-                ->with('error', 'Error al registrar usuario: ' . $e->getMessage())
+                ->with('error', 'Error al registrar: ' . $e->getMessage())
                 ->withInput();
         }
     }
@@ -184,15 +228,15 @@ class RegistroController extends Controller
      */
     public function storeInstitucional(Request $request)
     {
-        // Validar datos
+        // Validar datos con los nuevos nombres de campos en inglés
         $validator = Validator::make($request->all(), [
-            'nombre_empresa' => 'required|string|max:100',
-            'descripcion' => 'nullable|string',
-            'nombre_responsable' => 'required|string|max:100',
-            'apellido_paterno' => 'required|string|max:100',
-            'apellido_materno' => 'nullable|string|max:100',
-            'email' => 'required|email|max:100|unique:usuarios,email',
-            'telefono' => 'nullable|string|max:20',
+            'name_empresa' => 'required|string|max:100',
+            'description' => 'nullable|string',
+            'responsible_name' => 'required|string|max:100',
+            'last_name' => 'required|string|max:100',
+            'second_last_name' => 'nullable|string|max:100',
+            'email' => 'required|email|max:100|unique:users,email',
+            'phone' => 'nullable|string|max:20',
             'password' => 'required|min:8|confirmed',
         ]);
 
@@ -203,85 +247,104 @@ class RegistroController extends Controller
         try {
             // Iniciar transacción
             DB::beginTransaction();
+            
+            Log::info('Iniciando registro institucional: ' . $request->email);
+
+            // Obtener o crear un género (predeterminado M)
+            $gender = Gender::firstOrCreate(['name' => 'M']);
+
+            // Crear usuario - Solo usando columnas existentes
+            $user = new User();
+            $user->name = $request->responsible_name;
+            $user->email = $request->email;
+            $user->password = Hash::make($request->password);
+            $user->save();
+            Log::info('Usuario institucional creado con ID: ' . $user->id);
 
             // Crear persona (responsable de la empresa)
-            $persona = Persona::create([
-                'nombres' => $request->nombre_responsable,
-                'apellido_paterno' => $request->apellido_paterno,
-                'apellido_materno' => $request->apellido_materno,
-                'fecha_registro' => now(),
-                'eliminado' => false
-            ]);
+            Log::info('Creando persona responsable');
+            $person = new Person();
+            $person->name = $request->responsible_name;
+            $person->last_name = $request->last_name;
+            $person->second_last_name = $request->second_last_name;
+            $person->gender_id = $gender->id;
+            $person->user_id = $user->id;
+            $person->birthdate = now(); // Fecha predeterminada
+            $person->age = 0; // Edad predeterminada
+            $person->save();
+            Log::info('Persona responsable creada con ID: ' . $person->id);
 
             // Crear contacto
-            $contacto = Contacto::create([
-                'persona_id' => $persona->id,
-                'email' => $request->email,
-                'telefono' => $request->telefono,
-                'fecha_actualizacion_atributo' => now(),
-                'eliminado' => false
-            ]);
+            Log::info('Creando contacto');
+            $contact = new Contact();
+            $contact->person_id = $person->id;
+            $contact->email = $request->email;
+            $contact->phone = $request->phone;
+            $contact->deleted = false;
+            $contact->save();
+            Log::info('Contacto creado con ID: ' . $contact->id);
+
+            // Obtener o crear el tipo de empresa predeterminado
+            $listCompany = ListCompany::firstOrCreate(
+                ['name' => 'Other'],
+                []
+            );
 
             // Crear empresa
-            $empresa = Empresa::create([
-                'nombre' => $request->nombre_empresa,
-                'descripcion' => $request->descripcion,
-                'contacto_id' => $contacto->id,
-                'eliminado' => false
-            ]);
-
-            // Obtener tipo de usuario "Institucional"
-            $tipoUsuarioInstitucional = TipoUsuario::where('nombre', 'Institucional')->first();
-            if (!$tipoUsuarioInstitucional) {
-                // Si no existe, lo creamos
-                $tipoUsuarioInstitucional = TipoUsuario::create([
-                    'nombre' => 'Institucional',
-                    'descripcion' => 'Usuario institucional o empresarial',
-                    'eliminado' => false
-                ]);
+            Log::info('Creando empresa');
+            $company = new Company();
+            $company->name = $request->name_empresa;
+            $company->description = $request->description;
+            $company->list_companies_id = $listCompany->id;
+            
+            // Solución para el problema del teléfono
+            if ($request->phone) {
+                // Eliminar caracteres no numéricos
+                $phoneNumber = preg_replace('/\D/', '', $request->phone);
+                // Limitar el número a 9 dígitos (para estar seguros)
+                $phoneNumber = substr($phoneNumber, -9);
+                // Si después de todo queda vacío, usar 0
+                if (empty($phoneNumber)) {
+                    $phoneNumber = '0';
+                }
+                // Asegurarse de que sea un número válido
+                $phoneNumber = intval($phoneNumber);
+                if ($phoneNumber > 999999999) {
+                    $phoneNumber = 999999999; // Máximo valor seguro
+                }
+                $company->phone = $phoneNumber;
+            } else {
+                $company->phone = 0; // Valor predeterminado
             }
+            
+            $company->save();
+            Log::info('Empresa creada con ID: ' . $company->id);
 
-            // Obtener status "Activo"
-            $statusActivo = Status::where('nombre', 'Activo')->where('tipo', 'usuario')->first();
-            if (!$statusActivo) {
-                // Si no existe, lo creamos
-                $statusActivo = Status::create([
-                    'nombre' => 'Activo',
-                    'descripcion' => 'Usuario activo',
-                    'tipo' => 'usuario',
-                    'eliminado' => false
-                ]);
-            }
-
-            // Generar salt
-            $salt = Str::random(16);
-
-            // Crear usuario
-            $usuario = Usuario::create([
-                'persona_id' => $persona->id,
-                'tipo_usuario_id' => $tipoUsuarioInstitucional->id,
-                'status_id' => $statusActivo->id,
-                'email' => $request->email,
-                'salt' => $salt,
-                'password' => Hash::make($salt . $request->password),
-                'ultima_autenticacion' => null,
-                'bloqueado' => false,
-                'intentos_fallidos_contraseña' => 0,
-                'eliminado' => false
+            // Crear relación entre empresa y contacto
+            DB::table('company_contacts')->insert([
+                'company_id' => $company->id, 
+                'contact_id' => $contact->id,
+                'created_at' => now(),
+                'updated_at' => now()
             ]);
+            Log::info('Relación empresa-contacto creada');
 
-            // Almacenamos el ID de la empresa en la sesión (para uso posterior)
-            session(['empresa_id' => $empresa->id]);
+            // Almacenar el ID de la empresa en la sesión (para uso posterior)
+            session(['company_id' => $company->id]);
 
             DB::commit();
 
-            // Redireccionar al login con mensaje de éxito
+            // Redirección normal 
             return redirect()->route('login')
                 ->with('success', 'Registro institucional exitoso. Ahora puede iniciar sesión.');
 
         } catch (\Exception $e) {
             // Revertir transacción en caso de error
             DB::rollBack();
+            
+            Log::error('Error en registro institucional: ' . $e->getMessage());
+            Log::error('Stack trace: ' . $e->getTraceAsString());
+            
             return redirect()->back()
                 ->with('error', 'Error al registrar institución: ' . $e->getMessage())
                 ->withInput();

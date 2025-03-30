@@ -14,10 +14,11 @@ return new class extends Migration
         Schema::create('persons', function (Blueprint $table) {
             $table->id()->primary();
             $table->string('name', 50);
-            $table->string('apellido_paterno', 50);
-            $table->string('apellido_materno', 50);
+            $table->string('last_name', 50);
+            $table->string('second_last_materno', 50);
             $table->foreignId('gender_id')->constrained()->onDelete('cascade');
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->date('birth_date');
             $table->unsignedInteger('age');
             $table->timestamps();
         });

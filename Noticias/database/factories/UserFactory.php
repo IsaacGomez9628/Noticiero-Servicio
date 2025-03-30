@@ -21,6 +21,8 @@ class UserFactory extends Factory
      */
 
      protected $fillable = [
+        'person_id',
+        'user_type_id',
         'status_id',
         'email',
         'salt',
@@ -41,6 +43,8 @@ class UserFactory extends Factory
         'blocked' => 'boolean',
         'deleted' => 'boolean',
         'last_authentication' => 'datetime',
+        'email_verified_at' => 'datetime',
+        'password' => 'hashed',
     ];
     
     /**

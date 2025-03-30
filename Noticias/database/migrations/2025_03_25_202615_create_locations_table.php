@@ -15,8 +15,12 @@ return new class extends Migration
             $table->id()->primary();
             $table->string('name');
             $table->string('direction');
-            $table->string('city')->nullable();
-            $table->string('estate')->nullable();
+            $table->foreignId('estate_id')->constrained('estates')
+                ->onDelete('cascade') 
+                ->onUpdate('cascade'); 
+            $table->foreignId('city_id')->constrained('cities') 
+                ->onDelete('cascade') 
+                ->onUpdate('cascade'); 
             $table->string('country')->nullable();
             $table->string('zip_code')->nullable();
             $table->decimal('latitude', 10, 7)->nullable();
