@@ -52,17 +52,12 @@ class VerificationController extends Controller
         }
         
         Log::info('VerificationController@notice - Email: ' . $email);
-
-        dd([
-            'session_email' => $request->session()->get('email'),
-            'flash_email' => session('email'),
-            'request_email' => $request->get('email')
-        ]);
         
         return Inertia::render('Auth/VerifyEmail', [
             'email' => $email,
             'success' => session('success'),
             'error' => session('error'),
+            'verification_token' => session('verification_token'),
         ]);
     }
 

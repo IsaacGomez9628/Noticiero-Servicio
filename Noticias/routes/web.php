@@ -43,7 +43,7 @@ Route::middleware('guest')->group(function () {
     Route::get('/registro', [RegistroController::class, 'index'])
         ->name('registro');
     
-        Route::get('/registro/personal', [RegistroController::class, 'createPersonal'])
+    Route::get('/registro/personal', [RegistroController::class, 'createPersonal'])
         ->name('registro.personal');
     
     Route::post('/registro/personal', [RegistroController::class, 'storePersonal'])

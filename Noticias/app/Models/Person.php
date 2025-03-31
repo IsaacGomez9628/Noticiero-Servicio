@@ -14,19 +14,17 @@ class Person extends Model
         'second_last_name',
         'gender_id',
         'age',
-        'birth_date',
+        'birth_date', 
     ];
 
-
-    
     protected $casts = [
-        'birth_date' => 'datetime',
+        'birthdate' => 'datetime', // Ajustar según la columna real
         'age' => 'integer',
     ];
 
     public function user()
     {
-        return $this->hasOne(User::class);
+        return $this->belongsTo(User::class);
     }
 
     public function gender()
@@ -34,8 +32,13 @@ class Person extends Model
         return $this->belongsTo(Gender::class);
     }
     
+    public function contacts()
+    {
+        return $this->hasMany(Contact::class);
+    }
+    
     public function getFullNameAttribute()
     {
-        return "{$this->name} {$this->apellido_paterno} {$this->apellido_materno}";
+        return "{$this->name} {$this->last_name} {$this->second_last_name}";
     }
 }

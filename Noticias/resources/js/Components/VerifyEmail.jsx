@@ -1,8 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Head, useForm } from "@inertiajs/react";
 import LoginLayout from "@/Layouts/LoginLayout";
 import { Button } from "@/Components/Button";
-import VerificationModal from "@/Components/VerificationModal";
 
 export default function VerifyEmail({
     email,
@@ -11,36 +10,53 @@ export default function VerifyEmail({
     verification_token,
 }) {
     console.log("VerifyEmail renderizado con email:", email);
-    console.log("Success:", success);
-    console.log("Error:", error);
-    console.log("Token de respaldo:", verification_token);
 
-    // Abre automáticamente el modal cuando hay un email
-    const [isModalOpen, setIsModalOpen] = useState(Boolean(email));
-
+    const [token, setToken] = useState(["", "", "", "", ""]);
     const { post, processing } = useForm({
         email: email || "",
+        token: "",
     });
 
-    const handleResendEmail = () => {
-        post(route("verification.resend"), {
-            data: { email: email },
-            preserveScroll: true,
+    const handleTokenChange = (index, value) => {
+        if (value.length > 1) {
+            value = value[0];
+        }
+
+        if (!/^\d*$/.test(value) && value !== "") {
+            return;
+        }
+
+        const newToken = [...token];
+        newToken[index] = value;
+        setToken(newToken);
+
+        // Si se ingresó un dígito y no es el último campo, mover al siguiente
+        if (value !== "" && index < 4) {
+            document.getElementById(`token-${index + 1}`).focus();
+        }
+    };
+
+    const handleKeyDown = (index, e) => {
+        // Manejar tecla de retroceso para navegar hacia atrás
+        if (e.key === "Backspace" && token[index] === "" && index > 0) {
+            document.getElementById(`token-${index - 1}`).focus();
+        }
+    };
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        const combinedToken = token.join("");
+        post(route("verification.verify"), {
+            email: email,
+            token: combinedToken,
         });
     };
 
-    const handleVerificationSuccess = () => {
-        setIsModalOpen(false);
-        window.location.href = route("login");
+    const handleResendEmail = () => {
+        post(route("verification.resend"), {
+            email: email,
+        });
     };
-
-    // Efecto para abrir el modal si llega un email después
-    useEffect(() => {
-        if (email && !isModalOpen) {
-            console.log("Abriendo modal debido a email recibido");
-            setIsModalOpen(true);
-        }
-    }, [email]);
 
     return (
         <LoginLayout>
@@ -102,48 +118,66 @@ export default function VerifyEmail({
                         </p>
                     )}
 
-                    {!verification_token && (
-                        <p className="text-gray-600 text-center mb-6">
-                            Por favor, revisa tu bandeja de entrada e ingresa el
-                            código de 5 dígitos para completar tu registro.
-                        </p>
-                    )}
-
-                    <div className="flex flex-col space-y-4">
-                        <Button
-                            onClick={() => setIsModalOpen(true)}
-                            className="w-full"
-                        >
-                            Ingresar código de verificación
-                        </Button>
-
-                        {email && !verification_token && (
-                            <div className="text-center">
-                                <button
-                                    type="button"
-                                    onClick={handleResendEmail}
-                                    disabled={processing}
-                                    className="text-sm text-blue-600 hover:text-blue-500 font-medium"
-                                >
-                                    {processing
-                                        ? "Enviando..."
-                                        : "Reenviar código de verificación"}
-                                </button>
+                    <form onSubmit={handleSubmit} className="mt-6">
+                        <div className="text-center mb-4">
+                            <label className="text-sm text-gray-600 block mb-2">
+                                Ingresa el código de 5 dígitos:
+                            </label>
+                            <div className="flex justify-center space-x-2">
+                                {token.map((digit, index) => (
+                                    <input
+                                        key={index}
+                                        id={`token-${index}`}
+                                        type="text"
+                                        value={digit}
+                                        onChange={(e) =>
+                                            handleTokenChange(
+                                                index,
+                                                e.target.value
+                                            )
+                                        }
+                                        onKeyDown={(e) =>
+                                            handleKeyDown(index, e)
+                                        }
+                                        className="w-12 h-14 text-center text-xl font-semibold border-2 border-gray-300 rounded-md focus:border-blue-500 focus:outline-none"
+                                        maxLength={1}
+                                        autoFocus={index === 0}
+                                    />
+                                ))}
                             </div>
-                        )}
-                    </div>
+                        </div>
+
+                        <div className="flex flex-col space-y-4 mt-6">
+                            <Button
+                                type="submit"
+                                className="w-full"
+                                disabled={
+                                    token.join("").length !== 5 || processing
+                                }
+                            >
+                                {processing
+                                    ? "Verificando..."
+                                    : "Verificar código"}
+                            </Button>
+
+                            {email && !verification_token && (
+                                <div className="text-center">
+                                    <button
+                                        type="button"
+                                        onClick={handleResendEmail}
+                                        disabled={processing}
+                                        className="text-sm text-blue-600 hover:text-blue-500 font-medium"
+                                    >
+                                        {processing
+                                            ? "Enviando..."
+                                            : "Reenviar código de verificación"}
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    </form>
                 </div>
             </div>
-
-            {/* Mostrar el modal solo si hay un email */}
-            {email && (
-                <VerificationModal
-                    isOpen={isModalOpen}
-                    email={email}
-                    onClose={() => setIsModalOpen(false)}
-                    onSuccess={handleVerificationSuccess}
-                />
-            )}
         </LoginLayout>
     );
 }

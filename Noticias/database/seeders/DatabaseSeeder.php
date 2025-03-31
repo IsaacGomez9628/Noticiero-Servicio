@@ -41,6 +41,8 @@ class DatabaseSeeder extends Seeder
             
             // Event attendances
             EventAttendanceSeeder::class,
+
+            ListCompanySeeder::class,
         ]);
     }
 }

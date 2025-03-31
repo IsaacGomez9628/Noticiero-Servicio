@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useForm } from "@inertiajs/react";
 import LoginLayout from "@/Layouts/LoginLayout";
 import InputError from "@/Components/InputError";
@@ -8,13 +8,29 @@ import Textarea from "@/Components/Textarea";
 import Checkbox from "@/Components/Checkbox";
 import PrimaryButton from "@/Components/PrimaryButton";
 import SecondaryButton from "@/Components/SecondaryButton";
+import Notification from "@/Components/Notification";
 
-export default function RegistroInstitucional({ institucion }) {
+export default function RegistroInstitucional({
+    institucion,
+    institucionId = "",
+    institucionesList = [],
+    errors: pageErrors = {},
+    success: pageSuccess = null,
+    error: pageError = null,
+}) {
     const [currentStep, setCurrentStep] = useState(1);
     const [showPassword, setShowPassword] = useState(false);
     const totalSteps = 3;
     const [registroExitoso, setRegistroExitoso] = useState(false);
-    const [passwordError, setPasswordError] = useState("");
+    const [notification, setNotification] = useState({
+        message: pageSuccess || pageError || "",
+        type: pageSuccess ? "success" : pageError ? "error" : "",
+        visible: !!(pageSuccess || pageError),
+    });
+
+    // Estados para validación frontend
+    const [formErrors, setFormErrors] = useState({});
+    const [validationTimer, setValidationTimer] = useState(null);
 
     // Estados para validar cada paso
     const [paso1Valido, setPaso1Valido] = useState(false);
@@ -30,6 +46,7 @@ export default function RegistroInstitucional({ institucion }) {
 
     const { data, setData, post, processing, errors, reset } = useForm({
         nombre_empresa: institucionNombre,
+        institucion_id: institucionId || "",
         descripcion: "",
         nombre_responsable: "",
         apellido_paterno: "",
@@ -39,81 +56,281 @@ export default function RegistroInstitucional({ institucion }) {
         password: "",
         password_confirmation: "",
         terms: false,
+        // Nuevos campos para la tabla persons
+        birth_date: "", // Fecha de nacimiento
+        gender_id: "1", // ID de género (por defecto 1 para masculino)
     });
 
-    // Lista de instituciones educativas
-    const instituciones = [
-        { id: "UPSRJ", nombre: "Universidad Politécnica de San Rosa Jáuregui" },
-        { id: "UPQ", nombre: "Universidad Politécnica de Querétaro" },
-        { id: "SEDEQ", nombre: "SEDEQ. Coordinación de Educación Superior" },
-        {
-            id: "UNAQ",
-            nombre: "Universidad Nacional de Aeronáutica del Estado de Querétaro",
-        },
-        {
-            id: "UTEQ",
-            nombre: "Universidad Tecnológica del Estado de Querétaro",
-        },
-        { id: "UTC", nombre: "Universidad Tecnológica de corregidora" },
-        { id: "UTSJR", nombre: "Universidad Tecnológica de San Juan del Río" },
-        { id: "UAQ", nombre: "Universidad Autónoma de Querétaro" },
-        { id: "TECNM", nombre: "Tecnológico Nacional de México" },
-        {
-            id: "ENES",
-            nombre: "Escuela Nacional de Estudios Superiores campus Juriquilla",
-        },
-        { id: "OTRO", nombre: "Otra institución o empresa" },
-    ];
+    // Definir instituciones como una lista de respaldo o usar la recibida
+    const instituciones =
+        institucionesList.length > 0
+            ? institucionesList
+            : [
+                  {
+                      id: "UPSRJ",
+                      nombre: "Universidad Politécnica de San Rosa Jáuregui",
+                  },
+                  { id: "UPQ", nombre: "Universidad Politécnica de Querétaro" },
+                  {
+                      id: "SEDEQ",
+                      nombre: "SEDEQ. Coordinación de Educación Superior",
+                  },
+                  {
+                      id: "UNAQ",
+                      nombre: "Universidad Nacional de Aeronáutica del Estado de Querétaro",
+                  },
+                  {
+                      id: "UTEQ",
+                      nombre: "Universidad Tecnológica del Estado de Querétaro",
+                  },
+                  {
+                      id: "UTC",
+                      nombre: "Universidad Tecnológica de corregidora",
+                  },
+                  {
+                      id: "UTSJR",
+                      nombre: "Universidad Tecnológica de San Juan del Río",
+                  },
+                  { id: "UAQ", nombre: "Universidad Autónoma de Querétaro" },
+                  { id: "TECNM", nombre: "Tecnológico Nacional de México" },
+                  {
+                      id: "ENES",
+                      nombre: "Escuela Nacional de Estudios Superiores campus Juriquilla",
+                  },
+                  { id: "OTRO", nombre: "Otra institución o empresa" },
+              ];
+
+    // Funciones de validación frontend
+    const validateEmail = (email) => {
+        const re =
+            /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+        return re.test(String(email).toLowerCase());
+    };
+
+    const validatePhone = (phone) => {
+        if (!phone) return true; // Si no hay teléfono (es opcional)
+        const digitsOnly = phone.replace(/\D/g, "");
+        console.log("Dígitos del teléfono:", digitsOnly);
+        console.log("Longitud:", digitsOnly.length);
+        return digitsOnly.length === 10;
+    };
+
+    const validatePassword = (password) => {
+        const hasLetter = /[a-zA-Z]/.test(password);
+        const hasNumber = /\d/.test(password);
+        return password.length >= 8 && hasLetter && hasNumber;
+    };
+
+    const calculateAge = (birthDate) => {
+        if (!birthDate) return 0;
+
+        const today = new Date();
+        const birth = new Date(birthDate);
+        let age = today.getFullYear() - birth.getFullYear();
+        const monthDiff = today.getMonth() - birth.getMonth();
+
+        if (
+            monthDiff < 0 ||
+            (monthDiff === 0 && today.getDate() < birth.getDate())
+        ) {
+            age--;
+        }
+
+        return age;
+    };
+
+    const validateField = (name, value) => {
+        let error = "";
+
+        switch (name) {
+            case "nombre_empresa":
+                if (!value) error = "El nombre de la empresa es obligatorio";
+                break;
+            case "nombre_responsable":
+                if (!value) error = "El nombre del responsable es obligatorio";
+                break;
+            case "apellido_paterno":
+                if (!value) error = "El apellido paterno es obligatorio";
+                break;
+            case "email":
+                if (!value) {
+                    error = "El correo electrónico es obligatorio";
+                } else if (!validateEmail(value)) {
+                    error = "El formato del correo electrónico no es válido";
+                }
+                break;
+            case "telefono":
+                if (value && !validatePhone(value)) {
+                    error = "El número telefónico debe tener 10 dígitos";
+                }
+                break;
+            case "password":
+                if (!value) {
+                    error = "La contraseña es obligatoria";
+                } else if (value.length < 8) {
+                    error = "La contraseña debe tener al menos 8 caracteres";
+                } else if (!validatePassword(value)) {
+                    error =
+                        "La contraseña debe incluir al menos una letra y un número";
+                }
+                break;
+            case "password_confirmation":
+                if (value !== data.password) {
+                    error = "Las contraseñas no coinciden";
+                }
+                break;
+            case "terms":
+                if (!value) {
+                    error = "Debes aceptar los términos y condiciones";
+                }
+                break;
+            default:
+                break;
+        }
+
+        return error;
+    };
 
     // Validar el paso 1
     useEffect(() => {
-        if (data.nombre_empresa) {
+        const errors = {};
+
+        // Solo validar los campos del paso actual
+        if (data.nombre_empresa === "") {
+            errors.nombre_empresa = "El nombre de la empresa es obligatorio";
+        }
+
+        if (data.nombre_responsable === "") {
+            errors.nombre_responsable =
+                "El nombre del responsable es obligatorio";
+        }
+
+        if (data.apellido_paterno === "") {
+            errors.apellido_paterno = "El apellido paterno es obligatorio";
+        }
+
+        if (data.email === "") {
+            errors.email = "El correo electrónico es obligatorio";
+        } else if (!validateEmail(data.email)) {
+            errors.email = "El formato del correo electrónico no es válido";
+        }
+
+        if (data.telefono && !validatePhone(data.telefono)) {
+            errors.telefono = "El número telefónico debe tener 10 dígitos";
+        }
+
+        // Validación para los nuevos campos
+        if (!data.birth_date) {
+            errors.birth_date = "La fecha de nacimiento es obligatoria";
+        }
+
+        if (!data.gender_id) {
+            errors.gender_id = "Debes seleccionar un género";
+        }
+
+        setFormErrors((prev) => ({ ...prev, ...errors }));
+
+        if (data.nombre_empresa && !errors.nombre_empresa) {
             setPaso1Valido(true);
         } else {
             setPaso1Valido(false);
         }
-    }, [data.nombre_empresa]);
 
-    // Validar el paso 2
-    useEffect(() => {
-        if (data.nombre_responsable && data.apellido_paterno && data.email) {
+        if (
+            data.nombre_responsable &&
+            data.apellido_paterno &&
+            data.email &&
+            validateEmail(data.email) &&
+            (data.telefono === "" || validatePhone(data.telefono)) &&
+            data.birth_date &&
+            data.gender_id
+        ) {
             setPaso2Valido(true);
         } else {
             setPaso2Valido(false);
         }
-    }, [data.nombre_responsable, data.apellido_paterno, data.email]);
+    }, [
+        data.nombre_empresa,
+        data.nombre_responsable,
+        data.apellido_paterno,
+        data.email,
+        data.telefono,
+        data.birth_date,
+        data.gender_id,
+    ]);
 
-    // Función para validar que la contraseña tenga al menos 8 caracteres, letras y números
-    const validarPassword = (password) => {
-        const regexLetras = /[a-zA-Z]/;
-        const regexNumeros = /[0-9]/;
+    // Validar el paso 2
+    useEffect(() => {
+        const errors = {};
 
-        if (password.length < 8) {
-            return "La contraseña debe tener al menos 8 caracteres";
+        if (data.nombre_responsable === "") {
+            errors.nombre_responsable =
+                "El nombre del responsable es obligatorio";
         }
 
-        if (!regexLetras.test(password)) {
-            return "La contraseña debe incluir al menos una letra";
+        if (data.apellido_paterno === "") {
+            errors.apellido_paterno = "El apellido paterno es obligatorio";
         }
 
-        if (!regexNumeros.test(password)) {
-            return "La contraseña debe incluir al menos un número";
+        if (data.email === "") {
+            errors.email = "El correo electrónico es obligatorio";
+        } else if (!validateEmail(data.email)) {
+            errors.email = "El formato del correo electrónico no es válido";
         }
 
-        return "";
-    };
+        if (data.telefono && !validatePhone(data.telefono)) {
+            errors.telefono = "El número telefónico debe tener 10 dígitos";
+        }
+
+        setFormErrors((prev) => ({ ...prev, ...errors }));
+
+        if (
+            data.nombre_responsable &&
+            data.apellido_paterno &&
+            data.email &&
+            validateEmail(data.email) &&
+            (data.telefono === "" || validatePhone(data.telefono))
+        ) {
+            setPaso2Valido(true);
+        } else {
+            setPaso2Valido(false);
+        }
+    }, [
+        data.nombre_responsable,
+        data.apellido_paterno,
+        data.email,
+        data.telefono,
+    ]);
 
     // Validar el paso 3
     useEffect(() => {
-        const passwordValidationError = validarPassword(data.password);
-        setPasswordError(passwordValidationError);
+        const errors = {};
+
+        if (data.password === "") {
+            errors.password = "La contraseña es obligatoria";
+        } else if (data.password.length < 8) {
+            errors.password = "La contraseña debe tener al menos 8 caracteres";
+        } else if (!validatePassword(data.password)) {
+            errors.password =
+                "La contraseña debe incluir al menos una letra y un número";
+        }
+
+        if (data.password !== data.password_confirmation) {
+            errors.password_confirmation = "Las contraseñas no coinciden";
+        }
+
+        if (!data.terms) {
+            errors.terms = "Debes aceptar los términos y condiciones";
+        }
+
+        setFormErrors((prev) => ({ ...prev, ...errors }));
 
         if (
             data.password &&
             data.password_confirmation &&
             data.terms &&
             data.password === data.password_confirmation &&
-            passwordValidationError === ""
+            validatePassword(data.password)
         ) {
             setPaso3Valido(true);
         } else {
@@ -127,19 +344,50 @@ export default function RegistroInstitucional({ institucion }) {
         };
     }, []);
 
+    // Manejar errores del backend
+    useEffect(() => {
+        const errorMessages = Object.values(pageErrors).flat();
+        if (errorMessages.length > 0) {
+            setNotification({
+                message: errorMessages.join(", "),
+                type: "error",
+                visible: true,
+            });
+        }
+    }, [pageErrors]);
+
     const onHandleChange = (e) => {
         const { name, value, type, checked } = e.target;
-        setData(name, type === "checkbox" ? checked : value);
+        const newValue = type === "checkbox" ? checked : value;
+
+        setData(name, newValue);
+
+        // Validación en tiempo real con pequeño delay
+        if (validationTimer) {
+            clearTimeout(validationTimer);
+        }
+
+        setValidationTimer(
+            setTimeout(() => {
+                const error = validateField(name, newValue);
+                setFormErrors((prev) => ({
+                    ...prev,
+                    [name]: error,
+                }));
+            }, 300)
+        );
     };
 
     const handleInstitucionSelect = (event) => {
         const selectedId = event.target.value;
+        setData("institucion_id", selectedId);
+
         if (selectedId !== "OTRO") {
-            const selected = instituciones.find(
+            const selectedInst = instituciones.find(
                 (inst) => inst.id === selectedId
             );
-            if (selected) {
-                setData("nombre_empresa", selected.nombre);
+            if (selectedInst) {
+                setData("nombre_empresa", selectedInst.nombre);
             }
         } else {
             setData("nombre_empresa", "");
@@ -160,20 +408,114 @@ export default function RegistroInstitucional({ institucion }) {
         setCurrentStep(currentStep - 1);
     };
 
+    const formatPhoneNumber = (value) => {
+        // Eliminar todos los caracteres no numéricos
+        const cleaned = value.replace(/\D/g, "");
+
+        // Limitar a 10 dígitos
+        const truncated = cleaned.substring(0, 10);
+
+        // Formatear como (XXX) XXX-XXXX si hay suficientes dígitos
+        if (truncated.length >= 10) {
+            return `(${truncated.substring(0, 3)}) ${truncated.substring(
+                3,
+                6
+            )}-${truncated.substring(6, 10)}`;
+        } else if (truncated.length >= 6) {
+            return `(${truncated.substring(0, 3)}) ${truncated.substring(
+                3,
+                6
+            )}-${truncated.substring(6)}`;
+        } else if (truncated.length >= 3) {
+            return `(${truncated.substring(0, 3)}) ${truncated.substring(3)}`;
+        }
+
+        return truncated;
+    };
+
+    const handlePhoneChange = (e) => {
+        const formattedValue = formatPhoneNumber(e.target.value);
+        setData("telefono", formattedValue);
+    };
+
     const submit = (e) => {
         e.preventDefault();
 
-        // Validar la contraseña antes de enviar
-        const passwordValidationError = validarPassword(data.password);
-        if (passwordValidationError) {
-            setPasswordError(passwordValidationError);
+        // Verificar si hay errores de validación frontend antes de enviar
+        const currentErrors = {};
+
+        // Validar todos los campos requeridos
+        if (!data.nombre_empresa)
+            currentErrors.nombre_empresa =
+                "El nombre de la empresa es obligatorio";
+        if (!data.nombre_responsable)
+            currentErrors.nombre_responsable =
+                "El nombre del responsable es obligatorio";
+        if (!data.apellido_paterno)
+            currentErrors.apellido_paterno =
+                "El apellido paterno es obligatorio";
+        if (!data.email)
+            currentErrors.email = "El correo electrónico es obligatorio";
+        if (!validateEmail(data.email))
+            currentErrors.email =
+                "El formato del correo electrónico no es válido";
+        if (data.telefono && !validatePhone(data.telefono))
+            currentErrors.telefono =
+                "El número telefónico debe tener 10 dígitos";
+        if (!data.password)
+            currentErrors.password = "La contraseña es obligatoria";
+        if (!validatePassword(data.password))
+            currentErrors.password =
+                "La contraseña debe incluir al menos una letra y un número";
+        if (data.password !== data.password_confirmation)
+            currentErrors.password_confirmation =
+                "Las contraseñas no coinciden";
+        if (!data.terms)
+            currentErrors.terms = "Debes aceptar los términos y condiciones";
+        if (!data.birth_date)
+            currentErrors.birth_date = "La fecha de nacimiento es obligatoria";
+        if (!data.gender_id)
+            currentErrors.gender_id = "Debes seleccionar un género";
+
+        setFormErrors(currentErrors);
+
+        // Si hay errores, mostrar notificación y detener envío
+        if (Object.keys(currentErrors).length > 0) {
+            setNotification({
+                message:
+                    "Por favor corrige los errores en el formulario antes de continuar",
+                type: "error",
+                visible: true,
+            });
             return;
         }
 
-        post(route("registro.institucional.store"), {
+        // Y agrégalo a tu formData
+        const age = calculateAge(data.birth_date);
+
+        // Preparar datos para envío
+        const formData = {
+            ...data,
+            // Cambiar esta línea para asegurarnos que funcione correctamente
+            telefono: data.telefono ? data.telefono.replace(/\D/g, "") : "",
+            age: age,
+        };
+
+        console.log("Teléfono limpio antes de enviar:", formData.telefono); // Agrega esto para verificar
+        console.log("Longitud del teléfono:", formData.telefono.length);
+        console.log("Enviando datos:", formData);
+
+        post(route("registro.institucional.store"), formData, {
             onSuccess: () => {
-                reset();
-                window.location.href = route("verification.notice");
+                // Método simple para redirigir
+                window.location.href = route("login") + "?success=true";
+            },
+            onError: (errors) => {
+                // Alerta simple para ver el error
+                console.error("Error en registro:", errors);
+                alert(
+                    "Hubo un error en el registro: " + JSON.stringify(errors)
+                );
             },
         });
     };
@@ -181,6 +523,72 @@ export default function RegistroInstitucional({ institucion }) {
     if (registroExitoso) {
         return (
             <LoginLayout title="Registro Exitoso">
+                {notification.visible && (
+                    <div
+                        className={`fixed top-0 right-0 m-8 p-4 rounded-lg shadow-lg ${
+                            notification.type === "success"
+                                ? "bg-green-100 text-green-800"
+                                : "bg-red-100 text-red-800"
+                        }`}
+                    >
+                        <div className="flex items-center">
+                            {notification.type === "success" ? (
+                                <svg
+                                    className="h-6 w-6 mr-2"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth="2"
+                                        d="M5 13l4 4L19 7"
+                                    />
+                                </svg>
+                            ) : (
+                                <svg
+                                    className="h-6 w-6 mr-2"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth="2"
+                                        d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                                    />
+                                </svg>
+                            )}
+                            <span>{notification.message}</span>
+                            <button
+                                onClick={() =>
+                                    setNotification({
+                                        ...notification,
+                                        visible: false,
+                                    })
+                                }
+                                className="ml-4 text-gray-500 hover:text-gray-700"
+                            >
+                                <svg
+                                    className="h-4 w-4"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth="2"
+                                        d="M6 18L18 6M6 6l12 12"
+                                    />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                )}
+
                 <div className="bg-white rounded-xl shadow-lg overflow-hidden max-w-2xl mx-auto p-8 text-center">
                     <div className="flex justify-center mb-4">
                         <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
@@ -200,6 +608,9 @@ export default function RegistroInstitucional({ institucion }) {
                             </svg>
                         </div>
                     </div>
+                    <h2 className="text-2xl font-bold text-gray-800 mb-4">
+                        ¡Registro Completado!
+                    </h2>
                     <div className="mt-4 text-sm text-gray-500">
                         <p>
                             <svg
@@ -216,16 +627,15 @@ export default function RegistroInstitucional({ institucion }) {
                                     d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                                 />
                             </svg>
-                            Después de registrarte, recibirás un código de
-                            verificación en tu correo electrónico que deberás
-                            ingresar para activar tu cuenta.
+                            Tu cuenta ha sido creada exitosamente. Serás
+                            redirigido al inicio de sesión en unos momentos.
                         </p>
                     </div>
                     <Link
-                        href={route("verification.notice")}
-                        className="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                        href={route("login")}
+                        className="inline-flex items-center px-4 py-2 mt-6 bg-blue-600 border border-transparent rounded-md font-semibold text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                     >
-                        Verificar mi correo
+                        Ir al inicio de sesión
                     </Link>
                 </div>
             </LoginLayout>
@@ -234,6 +644,16 @@ export default function RegistroInstitucional({ institucion }) {
 
     return (
         <LoginLayout title="Registro Institucional">
+            {notification.visible && (
+                <Notification
+                    message={notification.message}
+                    type={notification.type}
+                    onClose={() =>
+                        setNotification({ ...notification, visible: false })
+                    }
+                />
+            )}
+
             <div className="bg-white rounded-xl shadow-lg overflow-hidden max-w-2xl mx-auto">
                 {/* Barra de progreso con pasos más juntos */}
                 <div className="px-8 pt-8">
@@ -303,9 +723,10 @@ export default function RegistroInstitucional({ institucion }) {
                                     />
                                     <select
                                         id="institucion_id"
+                                        name="institucion_id"
                                         className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
                                         onChange={handleInstitucionSelect}
-                                        defaultValue=""
+                                        value={data.institucion_id}
                                     >
                                         <option value="" disabled>
                                             -- Selecciona una institución --
@@ -339,7 +760,10 @@ export default function RegistroInstitucional({ institucion }) {
                                         required
                                     />
                                     <InputError
-                                        message={errors.nombre_empresa}
+                                        message={
+                                            formErrors.nombre_empresa ||
+                                            errors.nombre_empresa
+                                        }
                                         className="mt-2"
                                     />
                                 </div>
@@ -363,7 +787,10 @@ export default function RegistroInstitucional({ institucion }) {
                                         actividad principal.
                                     </p>
                                     <InputError
-                                        message={errors.descripcion}
+                                        message={
+                                            formErrors.descripcion ||
+                                            errors.descripcion
+                                        }
                                         className="mt-2"
                                     />
                                 </div>
@@ -379,7 +806,7 @@ export default function RegistroInstitucional({ institucion }) {
                             </h3>
 
                             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                                {/* Nombre del responsable */}
+                                {/* Nombre del responsable - Ya existente */}
                                 <div>
                                     <InputLabel
                                         htmlFor="nombre_responsable"
@@ -397,12 +824,15 @@ export default function RegistroInstitucional({ institucion }) {
                                         required
                                     />
                                     <InputError
-                                        message={errors.nombre_responsable}
+                                        message={
+                                            formErrors.nombre_responsable ||
+                                            errors.nombre_responsable
+                                        }
                                         className="mt-2"
                                     />
                                 </div>
 
-                                {/* Apellido paterno */}
+                                {/* Apellido paterno - Ya existente */}
                                 <div>
                                     <InputLabel
                                         forInput="apellido_paterno"
@@ -420,12 +850,15 @@ export default function RegistroInstitucional({ institucion }) {
                                         required
                                     />
                                     <InputError
-                                        message={errors.apellido_paterno}
+                                        message={
+                                            formErrors.apellido_paterno ||
+                                            errors.apellido_paterno
+                                        }
                                         className="mt-2"
                                     />
                                 </div>
 
-                                {/* Apellido materno */}
+                                {/* Apellido materno - Ya existente */}
                                 <div>
                                     <InputLabel
                                         forInput="apellido_materno"
@@ -440,12 +873,74 @@ export default function RegistroInstitucional({ institucion }) {
                                         handleChange={onHandleChange}
                                     />
                                     <InputError
-                                        message={errors.apellido_materno}
+                                        message={
+                                            formErrors.apellido_materno ||
+                                            errors.apellido_materno
+                                        }
                                         className="mt-2"
                                     />
                                 </div>
 
-                                {/* Email */}
+                                {/* Fecha de nacimiento - NUEVO */}
+                                <div>
+                                    <InputLabel
+                                        forInput="birth_date"
+                                        value="Fecha de nacimiento"
+                                        required
+                                    />
+                                    <TextInput
+                                        id="birth_date"
+                                        name="birth_date"
+                                        type="date"
+                                        value={data.birth_date}
+                                        className="mt-1 block w-full"
+                                        handleChange={onHandleChange}
+                                        required
+                                    />
+                                    <InputError
+                                        message={
+                                            formErrors.birth_date ||
+                                            errors.birth_date
+                                        }
+                                        className="mt-2"
+                                    />
+                                    {data.birth_date && (
+                                        <p className="mt-1 text-xs text-gray-500">
+                                            Edad calculada:{" "}
+                                            {calculateAge(data.birth_date)} años
+                                        </p>
+                                    )}
+                                </div>
+
+                                {/* Género - NUEVO */}
+                                <div>
+                                    <InputLabel
+                                        forInput="gender_id"
+                                        value="Género"
+                                        required
+                                    />
+                                    <select
+                                        id="gender_id"
+                                        name="gender_id"
+                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                                        value={data.gender_id}
+                                        onChange={onHandleChange}
+                                        required
+                                    >
+                                        <option value="1">Masculino</option>
+                                        <option value="2">Femenino</option>
+                                        <option value="3">Otro</option>
+                                    </select>
+                                    <InputError
+                                        message={
+                                            formErrors.gender_id ||
+                                            errors.gender_id
+                                        }
+                                        className="mt-2"
+                                    />
+                                </div>
+
+                                {/* Email - Ya existente */}
                                 <div>
                                     <InputLabel
                                         forInput="email"
@@ -481,16 +976,18 @@ export default function RegistroInstitucional({ institucion }) {
                                         />
                                     </div>
                                     <InputError
-                                        message={errors.email}
+                                        message={
+                                            formErrors.email || errors.email
+                                        }
                                         className="mt-2"
                                     />
                                 </div>
 
-                                {/* Teléfono */}
+                                {/* Teléfono - Ya existente pero modificado */}
                                 <div className="md:col-span-2">
                                     <InputLabel
                                         forInput="telefono"
-                                        value="Teléfono"
+                                        value="Teléfono (10 dígitos)"
                                     />
                                     <div className="mt-1 relative rounded-md shadow-sm">
                                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -512,16 +1009,35 @@ export default function RegistroInstitucional({ institucion }) {
                                         <TextInput
                                             id="telefono"
                                             name="telefono"
-                                            type="tel"
-                                            value={data.telefono}
+                                            type="text"
+                                            inputMode="numeric"
+                                            maxLength="10"
+                                            value={data.telefono.replace(
+                                                /\D/g,
+                                                ""
+                                            )}
                                             className="block w-full md:w-1/2 pl-10"
                                             autoComplete="tel"
-                                            placeholder="(123) 456-7890"
-                                            handleChange={onHandleChange}
+                                            placeholder="1234567890"
+                                            handleChange={(e) => {
+                                                const cleaned =
+                                                    e.target.value.replace(
+                                                        /\D/g,
+                                                        ""
+                                                    );
+                                                setData("telefono", cleaned);
+                                            }}
                                         />
                                     </div>
+                                    <p className="mt-1 text-xs text-gray-500">
+                                        Ingresa un número telefónico de 10
+                                        dígitos (solo números).
+                                    </p>
                                     <InputError
-                                        message={errors.telefono}
+                                        message={
+                                            formErrors.telefono ||
+                                            errors.telefono
+                                        }
                                         className="mt-2"
                                     />
                                 </div>
@@ -631,7 +1147,8 @@ export default function RegistroInstitucional({ institucion }) {
                                     </p>
                                     <InputError
                                         message={
-                                            errors.password || passwordError
+                                            formErrors.password ||
+                                            errors.password
                                         }
                                         className="mt-2"
                                     />
@@ -673,12 +1190,8 @@ export default function RegistroInstitucional({ institucion }) {
                                     </div>
                                     <InputError
                                         message={
-                                            errors.password_confirmation ||
-                                            (data.password !==
-                                                data.password_confirmation &&
-                                            data.password_confirmation
-                                                ? "Las contraseñas no coinciden"
-                                                : "")
+                                            formErrors.password_confirmation ||
+                                            errors.password_confirmation
                                         }
                                         className="mt-2"
                                     />
@@ -714,7 +1227,7 @@ export default function RegistroInstitucional({ institucion }) {
                                     </div>
                                 </div>
                                 <InputError
-                                    message={errors.terms}
+                                    message={formErrors.terms || errors.terms}
                                     className="mt-2"
                                 />
                             </div>
@@ -801,7 +1314,7 @@ export default function RegistroInstitucional({ institucion }) {
                                 <PrimaryButton
                                     className="ml-3"
                                     processing={processing}
-                                    disabled={!paso3Valido}
+                                    disabled={!paso3Valido || processing}
                                 >
                                     {processing
                                         ? "Procesando..."

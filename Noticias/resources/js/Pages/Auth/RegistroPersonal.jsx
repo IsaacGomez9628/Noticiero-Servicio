@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link, useForm } from "@inertiajs/inertia-react";
+import { Link, useForm } from "@inertiajs/react";
 import LoginLayout from "@/Layouts/LoginLayout";
 import InputError from "@/Components/InputError";
 import InputLabel from "@/Components/InputLabel";
@@ -7,11 +7,23 @@ import TextInput from "@/Components/TextInput";
 import Checkbox from "@/Components/Checkbox";
 import PrimaryButton from "@/Components/PrimaryButton";
 import SecondaryButton from "@/Components/SecondaryButton";
+import Notification from "@/Components/Notification";
 
-export default function RegistroPersonal() {
+export default function RegistroPersonal({
+    errors: pageErrors = {},
+    success: pageSuccess = null,
+    error: pageError = null,
+}) {
     const [currentStep, setCurrentStep] = useState(1);
     const [showPassword, setShowPassword] = useState(false);
     const totalSteps = 3;
+    const [registroExitoso, setRegistroExitoso] = useState(false);
+    const [passwordError, setPasswordError] = useState("");
+    const [notification, setNotification] = useState({
+        message: pageSuccess || pageError || "",
+        type: pageSuccess ? "success" : pageError ? "error" : "",
+        visible: !!(pageSuccess || pageError),
+    });
 
     // Estado para manejar la validación de cada paso
     const [paso1Valido, setPaso1Valido] = useState(false);
@@ -49,9 +61,38 @@ export default function RegistroPersonal() {
         }
     }, [data.email]);
 
+    // Función para validar que la contraseña tenga al menos 8 caracteres, letras y números
+    const validarPassword = (password) => {
+        const regexLetras = /[a-zA-Z]/;
+        const regexNumeros = /[0-9]/;
+
+        if (password.length < 8) {
+            return "La contraseña debe tener al menos 8 caracteres";
+        }
+
+        if (!regexLetras.test(password)) {
+            return "La contraseña debe incluir al menos una letra";
+        }
+
+        if (!regexNumeros.test(password)) {
+            return "La contraseña debe incluir al menos un número";
+        }
+
+        return "";
+    };
+
     // Validar el paso 3
     useEffect(() => {
-        if (data.password && data.password_confirmation && data.terms) {
+        const passwordValidationError = validarPassword(data.password);
+        setPasswordError(passwordValidationError);
+
+        if (
+            data.password &&
+            data.password_confirmation &&
+            data.terms &&
+            data.password === data.password_confirmation &&
+            passwordValidationError === ""
+        ) {
             setPaso3Valido(true);
         } else {
             setPaso3Valido(false);
@@ -63,6 +104,18 @@ export default function RegistroPersonal() {
             reset("password", "password_confirmation");
         };
     }, []);
+
+    // Manejar errores del backend
+    useEffect(() => {
+        const errorMessages = Object.values(pageErrors).flat();
+        if (errorMessages.length > 0) {
+            setNotification({
+                message: errorMessages.join(", "),
+                type: "error",
+                visible: true,
+            });
+        }
+    }, [pageErrors]);
 
     const onHandleChange = (event) => {
         setData(
@@ -89,13 +142,107 @@ export default function RegistroPersonal() {
 
     const submit = (e) => {
         e.preventDefault();
+
+        // Validar la contraseña antes de enviar
+        const passwordValidationError = validarPassword(data.password);
+        if (passwordValidationError) {
+            setPasswordError(passwordValidationError);
+            return;
+        }
+
         post(route("registro.personal.store"), {
             onSuccess: () => {
                 reset();
-                window.location.href = route("verification.notice");
+                setRegistroExitoso(true);
+                setNotification({
+                    message:
+                        "Registro exitoso. Serás redirigido al inicio de sesión en unos segundos.",
+                    type: "success",
+                    visible: true,
+                });
+
+                // Redireccionar al login después de 5 segundos
+                setTimeout(() => {
+                    window.location.href = route("login");
+                }, 5000);
+            },
+            onError: (errors) => {
+                const errorMessages = Object.values(errors).flat();
+                setNotification({
+                    message: errorMessages.join(", "),
+                    type: "error",
+                    visible: true,
+                });
             },
         });
     };
+
+    // Renderizado condicional para registro exitoso
+    if (registroExitoso) {
+        return (
+            <LoginLayout title="Registro Exitoso">
+                {notification.visible && (
+                    <Notification
+                        message={notification.message}
+                        type={notification.type}
+                        onClose={() =>
+                            setNotification({ ...notification, visible: false })
+                        }
+                    />
+                )}
+
+                <div className="bg-white rounded-xl shadow-lg overflow-hidden max-w-2xl mx-auto p-8 text-center">
+                    <div className="flex justify-center mb-4">
+                        <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                className="h-10 w-10 text-green-500"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                            >
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M5 13l4 4L19 7"
+                                />
+                            </svg>
+                        </div>
+                    </div>
+                    <h2 className="text-2xl font-bold text-gray-800 mb-4">
+                        ¡Registro Completado!
+                    </h2>
+                    <div className="mt-4 text-sm text-gray-500">
+                        <p>
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                className="inline h-4 w-4 mr-1 text-blue-500"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                            >
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                                />
+                            </svg>
+                            Tu cuenta ha sido creada exitosamente. Serás
+                            redirigido al inicio de sesión en unos momentos.
+                        </p>
+                    </div>
+                    <Link
+                        href={route("login")}
+                        className="inline-flex items-center px-4 py-2 mt-6 bg-blue-600 border border-transparent rounded-md font-semibold text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                    >
+                        Ir al inicio de sesión
+                    </Link>
+                </div>
+            </LoginLayout>
+        );
+    }
 
     // Renderizar la barra de progreso con los pasos más cercanos
     const renderProgressBar = () => (
@@ -152,6 +299,16 @@ export default function RegistroPersonal() {
 
     return (
         <LoginLayout title="Registro Personal">
+            {notification.visible && (
+                <Notification
+                    message={notification.message}
+                    type={notification.type}
+                    onClose={() =>
+                        setNotification({ ...notification, visible: false })
+                    }
+                />
+            )}
+
             <div className="bg-white rounded-xl shadow-lg overflow-hidden max-w-2xl mx-auto">
                 {renderProgressBar()}
 
@@ -511,7 +668,9 @@ export default function RegistroPersonal() {
                                         caracteres, incluyendo letras y números.
                                     </p>
                                     <InputError
-                                        message={errors.password}
+                                        message={
+                                            errors.password || passwordError
+                                        }
                                         className="mt-2"
                                     />
                                 </div>
@@ -551,7 +710,14 @@ export default function RegistroPersonal() {
                                         />
                                     </div>
                                     <InputError
-                                        message={errors.password_confirmation}
+                                        message={
+                                            errors.password_confirmation ||
+                                            (data.password !==
+                                                data.password_confirmation &&
+                                            data.password_confirmation
+                                                ? "Las contraseñas no coinciden"
+                                                : "")
+                                        }
                                         className="mt-2"
                                     />
                                 </div>

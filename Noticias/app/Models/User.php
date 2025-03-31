@@ -37,24 +37,53 @@ class User extends Authenticatable
         'email_verified' => 'boolean',
     ];
 
+    /**
+     * Obtener los roles del usuario.
+     * Esta función intentará usar cualquiera de las tablas (user_role o user_roles)
+     * dependiendo de cuál exista.
+     */
     public function roles()
     {
-        return $this->belongsToMany(Rol::class, 'user_role', 'user_id', 'rol_id');
+        try {
+            // Primero intenta user_role
+            return $this->belongsToMany(Rol::class, 'user_role', 'user_id', 'rol_id');
+        } catch (\Exception $e) {
+            // Si falla, intenta user_roles
+            return $this->belongsToMany(Rol::class, 'user_roles', 'user_id', 'rol_id');
+        }
     }
     
+    /**
+     * Relación con la persona asociada
+     */
     public function person()
     {
-        return $this->belongsTo(Person::class);
+        return $this->hasOne(Person::class);
     }
     
+    /**
+     * Relación con el estado del usuario
+     */
     public function status()
     {
         return $this->belongsTo(Status::class);
     }
     
+    /**
+     * Relación con las asistencias a eventos
+     */
     public function eventAttendances()
     {
         return $this->hasMany(EventAttendance::class);
+    }
+    
+    /**
+     * Relación con las empresas asociadas
+     * Un usuario institucional puede tener una o más empresas
+     */
+    public function companies()
+    {
+        return $this->hasMany(Company::class);
     }
     
     /**
@@ -65,6 +94,9 @@ class User extends Authenticatable
         return $this->roles()->where('name', $roleName)->exists();
     }
     
+    /**
+     * Verifica si el usuario tiene un permiso específico
+     */
     public function hasPermission($permissionName)
     {
         $cacheKey = "user_{$this->id}_permission_{$permissionName}";
@@ -82,20 +114,40 @@ class User extends Authenticatable
     }
     
     /**
-     * Checar si es administrador
+     * Comprueba si es administrador
      */
     public function isAdmin()
     {
         return $this->hasRole('Administrator');
     }
     
-    // Saber si el usuario es super administrador   
+    /**
+     * Comprueba si es super administrador
+     */
     public function isSuperAdmin()
     {
         return $this->hasRole('SuperAdministrator');
     }
     
-    // Obetener los permisos del usuario
+    /**
+     * Comprueba si es usuario institucional
+     */
+    public function isInstitutional()
+    {
+        return $this->hasRole('Institucional');
+    }
+    
+    /**
+     * Comprueba si es usuario personal
+     */
+    public function isPersonal()
+    {
+        return $this->hasRole('Usuario');
+    }
+    
+    /**
+     * Obtiene todos los permisos del usuario
+     */
     public function getAllPermissions()
     {
         $permissions = collect();
@@ -107,7 +159,9 @@ class User extends Authenticatable
         return $permissions->unique('id');
     }
 
-    // Saber si el usuario tiene un permiso
+    /**
+     * Comprueba si el usuario tiene al menos uno de los permisos dados
+     */
     public function hasAnyPermission($permissions)
     {
         foreach ($permissions as $permission) {
@@ -118,7 +172,9 @@ class User extends Authenticatable
         return false;
     }
 
-    // Saber si el usuario tiene todos los permisos
+    /**
+     * Comprueba si el usuario tiene todos los permisos dados
+     */
     public function hasAllPermissions($permissions)
     {
         foreach ($permissions as $permission) {
@@ -129,17 +185,25 @@ class User extends Authenticatable
         return true;
     }
 
-    // Saber si el usuario tiene un permiso en especifico
+    /**
+     * Alias para hasPermission
+     */
     public function hasPermissionTo($permission)
     {
         return $this->hasPermission($permission);
     }
 
+    /**
+     * Comprueba si el email ha sido verificado
+     */
     public function hasVerifiedEmail(): bool
     {
         return $this->email_verified;
     }
 
+    /**
+     * Marca el email como verificado
+     */
     public function markEmailAsVerified(): bool
     {
         return $this->forceFill([
@@ -148,10 +212,11 @@ class User extends Authenticatable
         ])->save();
     }
     
+    /**
+     * Relación con el token de verificación de email
+     */
     public function verificationToken()
     {
-        return $this->hasOne(Email::class);
+        return $this->hasOne(EmailVerificationToken::class);
     }
-
-
 }

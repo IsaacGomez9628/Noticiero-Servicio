@@ -6,7 +6,6 @@ use App\Models\EmailVerificationToken;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Mail;
-use App\Mail\EmailVerification;
 use Illuminate\Support\Facades\Log;
 use Illuminate\View\View;
 
@@ -55,23 +54,23 @@ class EmailVerificationService
                 Log::error("La vista 'emails.verification' no existe. Usando respaldo.");
                 
                 // En lugar de fallar, guardamos el token y continuamos
-                // Aquí podríamos mostrar el token en la interfaz en vez de enviar correo
                 session()->put('verification_token', $token);
                 session()->put('user_email', $user->email);
                 
                 return;
             }
             
-            Mail::to($user->email)->send(new EmailVerification($user, $token));
+            // Enviar correo con el token
+            Mail::send('emails.verification', ['user' => $user, 'token' => $token], function($message) use ($user) {
+                $message->to($user->email, $user->name)
+                        ->subject('Verifica tu dirección de correo electrónico');
+            });
         } catch (\Exception $e) {
             Log::error("Error sending verification email: " . $e->getMessage());
             
             // Guardamos el token en la sesión como respaldo
             session()->put('verification_token', $token);
             session()->put('user_email', $user->email);
-            
-            // No relanzamos la excepción para que el registro no falle
-            // throw $e;
         }
     }
     
