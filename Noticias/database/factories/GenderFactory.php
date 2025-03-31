@@ -16,8 +16,10 @@ class GenderFactory extends Factory
      */
     public function definition(): array
     {
+        $genders = ['Masculino', 'Femenino', 'Otro'];
+        
         return [
-            //
+            'name' => fake()->unique()->randomElement($genders),
         ];
     }
 }

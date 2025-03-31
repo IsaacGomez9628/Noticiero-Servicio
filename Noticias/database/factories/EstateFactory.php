@@ -16,8 +16,15 @@ class EstateFactory extends Factory
      */
     public function definition(): array
     {
+
+        $states = [
+            'Querétaro', 'Guanajuato', 'Michoacán', 'Jalisco', 
+            'Hidalgo', 'San Luis Potosí', 'Estado de México', 
+            'Ciudad de México', 'Puebla', 'Veracruz'
+        ];
+        
         return [
-            //
+            'name' => fake()->unique()->randomElement($states),
         ];
     }
 }

@@ -2,12 +2,14 @@
 
 namespace Database\Factories;
 
+use App\Models\Rol;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\UserRoles>
  */
-class UserRolFactory extends Factory
+class UserRoleFactory extends Factory
 {
     /**
      * Define the model's default state.
@@ -17,7 +19,8 @@ class UserRolFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'user_id' => User::factory(),
+            'rol_id' => Rol::factory(),
         ];
     }
 }

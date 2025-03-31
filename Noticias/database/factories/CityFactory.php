@@ -16,8 +16,15 @@ class CityFactory extends Factory
      */
     public function definition(): array
     {
+
+        $cities = [
+            'Querétaro', 'San Juan del Río', 'Corregidora', 'El Marqués', 
+            'Tequisquiapan', 'Ezequiel Montes', 'Colón', 'Pedro Escobedo', 
+            'Amealco', 'Jalpan de Serra', 'Cadereyta', 'Pinal de Amoles'
+        ];
+        
         return [
-            //
+            'name' => fake()->unique()->randomElement($cities),
         ];
     }
 }

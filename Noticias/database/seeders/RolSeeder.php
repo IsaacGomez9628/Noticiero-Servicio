@@ -43,6 +43,12 @@ class RolSeeder extends Seeder
                 'description' => 'Usuario regular sin privilegios administrativos',
                 'active' => true,
             ],
+            [
+                'name' => 'Institucional',
+                'slug' => 'institucional',
+                'description' => 'Empresa o institucion regular sin privilegios administrativos',
+                'active' => true,
+            ]
         ];
 
         foreach ($roles as $role) {

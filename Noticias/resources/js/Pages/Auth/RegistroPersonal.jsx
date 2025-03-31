@@ -89,7 +89,12 @@ export default function RegistroPersonal() {
 
     const submit = (e) => {
         e.preventDefault();
-        post(route("registro.personal.store"));
+        post(route("registro.personal.store"), {
+            onSuccess: () => {
+                reset();
+                window.location.href = route("verification.notice");
+            },
+        });
     };
 
     // Renderizar la barra de progreso con los pasos más cercanos

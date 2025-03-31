@@ -3,8 +3,9 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Models\Usuario;
+use App\Models\Company;
 use App\Models\Empresa;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
@@ -18,9 +19,7 @@ class LoginController extends Controller
      */
     public function showLoginForm()
     {
-        return Inertia::render('Auth/Login', [
-            'status' => session('status')
-        ]);
+        return Inertia::render('Auth/Login');
     }
 
     /**
@@ -31,7 +30,7 @@ class LoginController extends Controller
         // Validar datos
         $validator = Validator::make($request->all(), [
             'email' => 'required|email',
-            'password' => 'required',
+            'password' => 'required|string',
             'remember' => 'boolean',
         ]);
 
@@ -40,7 +39,7 @@ class LoginController extends Controller
         }
 
         // Buscar usuario por email
-        $usuario = Usuario::where('email', $request->email)
+        $usuario = User::where('email', $request->email)
             ->where('eliminado', false)
             ->first();
 
@@ -48,6 +47,16 @@ class LoginController extends Controller
             return redirect()->back()
                 ->withErrors(['email' => 'No se encontró un usuario con este correo electrónico.'])
                 ->withInput();
+        }
+
+        // Verificar si el correo está verificado
+        if ($usuario->email_verificado !== true) {
+            // Guardar email en sesión para la página de verificación
+            $request->session()->put('email', $request->email);
+            
+            return redirect()->route('verification.notice')
+                ->with('email', $request->email)
+                ->with('error', 'Por favor verifica tu correo electrónico antes de iniciar sesión.');
         }
 
         // Verificar si el usuario está bloqueado
@@ -92,7 +101,7 @@ class LoginController extends Controller
         // Verificar si es usuario institucional y cargar datos de empresa
         if ($usuario->tipoUsuario->nombre === 'Institucional') {
             // Buscar empresa relacionada con el contacto del usuario
-            $empresa = Empresa::whereHas('contacto', function($query) use ($usuario) {
+            $empresa = Company::whereHas('contacto', function($query) use ($usuario) {
                 $query->where('persona_id', $usuario->persona_id);
             })->first();
 

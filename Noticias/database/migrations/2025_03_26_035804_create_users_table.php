@@ -12,11 +12,14 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('users', function (Blueprint $table) {
-            $table->id()->primary();
+            $table->id(); 
             $table->foreignId('status_id')->constrained();
             $table->string('email')->unique();
             $table->string('salt', 32);
             $table->string('password');
+            $table->timestamp('email_verified_at')->nullable(); 
+            $table->boolean('email_verified')->default(false);  
+            $table->timestamp('fecha_verificacion_email')->nullable(); 
             $table->timestamp('last_authentication')->nullable();
             $table->boolean('blocked')->default(false);
             $table->integer('failed_password_attempts')->default(0);
@@ -32,11 +35,11 @@ return new class extends Migration
             $table->primary(['user_id', 'rol_id']);
             $table->timestamps();
         });
-        
+
         Schema::create('password_reset_tokens', function(Blueprint $table){
             $table->string('email')->primary();
             $table->string('token');
-            $table->timestamp('create_alt')->nullable();
+            $table->timestamp('created_at')->nullable(); // Corregido de create_alt a created_at
         });
 
         Schema::create('sessions', function (Blueprint $table) {

@@ -5,13 +5,12 @@ use Inertia\Inertia;
 use App\Http\Controllers\Home\NoticiaController;
 use App\Http\Controllers\Home\QuienesSomosController;
 use App\Http\Controllers\EventoAsistenciaController;
-use App\Http\Controllers\Eventos\EventoController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegistroController;
-use App\Http\Controllers\EventController;
+use App\Http\Controllers\Auth\VerificationController;
 use App\Http\Controllers\Eventos\EventController as EventosEventController;
-use App\Http\Eventos\Controllers\EventController as ControllersEventController;
+use Illuminate\Support\Facades\Mail;
 
 // Rutas para vistas principales (renderizan la SPA de React)
 Route::get('/', function () {
@@ -44,7 +43,7 @@ Route::middleware('guest')->group(function () {
     Route::get('/registro', [RegistroController::class, 'index'])
         ->name('registro');
     
-    Route::get('/registro/personal', [RegistroController::class, 'createPersonal'])
+        Route::get('/registro/personal', [RegistroController::class, 'createPersonal'])
         ->name('registro.personal');
     
     Route::post('/registro/personal', [RegistroController::class, 'storePersonal'])
@@ -62,6 +61,16 @@ Route::middleware('guest')->group(function () {
     
     Route::post('/login', [LoginController::class, 'login'])
         ->name('login.store');
+        
+    // Rutas de verificación de correo - IMPORTANTE: estas deberían ser accesibles para usuarios no autenticados
+    Route::get('/email/verify', [VerificationController::class, 'notice'])
+        ->name('verification.notice');
+        
+    Route::post('/email/verify', [VerificationController::class, 'verify'])
+        ->name('verification.verify');
+        
+    Route::post('/email/resend', [VerificationController::class, 'resend'])
+        ->name('verification.resend');
 });
 
 // Ruta de compatibilidad (para mantener enlaces antiguos)
@@ -107,4 +116,15 @@ Route::middleware('auth')->group(function () {
 });
 
 // Ruta para cualquier otra URL que debería ser manejada por React Router
-Route::get('/{any}', [HomeController::class, 'index'])->where('any', '.*');
+// Route::get('/{any}', [HomeController::class, 'index'])->where('any', '.*');
+
+Route::get('/test-mail', function () {
+    $destinatario = 'gr27271593@gmail.com'; // Cambia esto por tu email autorizado en Mailgun
+    
+    Mail::raw('Este es un mensaje de prueba para verificar la configuración SMTP de Mailgun', function ($message) use ($destinatario) {
+        $message->to($destinatario)
+            ->subject('Prueba de configuración SMTP');
+    });
+    
+    return 'Correo enviado a ' . $destinatario . '. Por favor revisa tu bandeja de entrada.';
+});

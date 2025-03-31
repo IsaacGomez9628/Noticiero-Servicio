@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\ListCompany;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -17,7 +18,9 @@ class CompanyFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'list_companies_id' => ListCompany::factory(),
+            'description' => fake()->paragraph(),
+            'phone' => fake()->numberBetween(1000000000, 9999999999),
         ];
     }
 }

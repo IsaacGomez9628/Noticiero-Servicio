@@ -9,15 +9,17 @@ use Illuminate\Support\Facades\Cache;
 class User extends Authenticatable
 {
     protected $fillable = [
-        'person_id',
-        'status_id',
+        'name',
         'email',
-        'salt',
         'password',
+        'status_id',
+        'salt',
         'last_authentication',
         'blocked',
         'failed_password_attempts',
-        'deleted'
+        'deleted',
+        'email_verified',
+        'email_verified_at'
     ];
     
     protected $hidden = [
@@ -27,9 +29,12 @@ class User extends Authenticatable
     ];
     
     protected $casts = [
+        'email_verified_at' => 'datetime',
+        'password' => 'hashed',
+        'last_authentication' => 'datetime',
         'blocked' => 'boolean',
         'deleted' => 'boolean',
-        'last_authentication' => 'datetime',
+        'email_verified' => 'boolean',
     ];
 
     public function roles()
@@ -101,5 +106,52 @@ class User extends Authenticatable
         
         return $permissions->unique('id');
     }
+
+    // Saber si el usuario tiene un permiso
+    public function hasAnyPermission($permissions)
+    {
+        foreach ($permissions as $permission) {
+            if ($this->hasPermission($permission)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // Saber si el usuario tiene todos los permisos
+    public function hasAllPermissions($permissions)
+    {
+        foreach ($permissions as $permission) {
+            if (!$this->hasPermission($permission)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    // Saber si el usuario tiene un permiso en especifico
+    public function hasPermissionTo($permission)
+    {
+        return $this->hasPermission($permission);
+    }
+
+    public function hasVerifiedEmail(): bool
+    {
+        return $this->email_verified;
+    }
+
+    public function markEmailAsVerified(): bool
+    {
+        return $this->forceFill([
+            'email_verified' => true,
+            'email_verified_at' => $this->freshTimestamp(),
+        ])->save();
+    }
+    
+    public function verificationToken()
+    {
+        return $this->hasOne(Email::class);
+    }
+
 
 }

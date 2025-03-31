@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id()->primary();
             $table->string('name', 50);
             $table->string('last_name', 50);
-            $table->string('second_last_materno', 50);
+            $table->string('second_last_name', 50);
             $table->foreignId('gender_id')->constrained()->onDelete('cascade');
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->date('birth_date');

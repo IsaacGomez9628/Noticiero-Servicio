@@ -2,6 +2,8 @@
 
 namespace Database\Seeders;
 
+use App\Models\City;
+use App\Models\Estate;
 use App\Models\Location;
 use Illuminate\Database\Seeder;
 
@@ -12,12 +14,23 @@ class LocationSeeder extends Seeder
      */
     public function run(): void
     {
+        // Get Querétaro state and city
+        $queretaroState = Estate::where('name', 'Querétaro')->first();
+        $queretaroCity = City::where('name', 'Querétaro')->first();
+        
+        if (!$queretaroState || !$queretaroCity) {
+            // If they don't exist, create them
+            $this->call(CityEstateSeeder::class);
+            $queretaroState = Estate::where('name', 'Querétaro')->first();
+            $queretaroCity = City::where('name', 'Querétaro')->first();
+        }
+        
         $locations = [
             [
                 'name' => 'Centro de Congresos Querétaro',
                 'direction' => 'Paseo de las Artes 1531-B, Querétaro 2000',
-                'city' => 'Querétaro',
-                'estate' => 'Querétaro',
+                'city_id' => $queretaroCity->id,
+                'estate_id' => $queretaroState->id,
                 'country' => 'México',
                 'zip_code' => '76090',
                 'latitude' => 20.5931,
@@ -28,8 +41,8 @@ class LocationSeeder extends Seeder
             [
                 'name' => 'Teatro Metropolitano',
                 'direction' => 'Av. Constituyentes 3, Centro, Centro Histórico',
-                'city' => 'Querétaro',
-                'estate' => 'Querétaro',
+                'city_id' => $queretaroCity->id,
+                'estate_id' => $queretaroState->id,
                 'country' => 'México',
                 'zip_code' => '76000',
                 'latitude' => 20.5884,
@@ -40,8 +53,8 @@ class LocationSeeder extends Seeder
             [
                 'name' => 'Jardín Zenea',
                 'direction' => 'Calle 16 de Septiembre, Centro Histórico',
-                'city' => 'Querétaro',
-                'estate' => 'Querétaro',
+                'city_id' => $queretaroCity->id,
+                'estate_id' => $queretaroState->id,
                 'country' => 'México',
                 'zip_code' => '76000',
                 'latitude' => 20.5923,
@@ -52,8 +65,8 @@ class LocationSeeder extends Seeder
             [
                 'name' => 'Auditorio Josefa Ortiz de Domínguez',
                 'direction' => 'Av. Constituyentes S/N, Centro Histórico',
-                'city' => 'Querétaro',
-                'estate' => 'Querétaro',
+                'city_id' => $queretaroCity->id,
+                'estate_id' => $queretaroState->id,
                 'country' => 'México',
                 'zip_code' => '76000',
                 'latitude' => 20.5886,
@@ -64,8 +77,8 @@ class LocationSeeder extends Seeder
             [
                 'name' => 'Estadio Corregidora',
                 'direction' => 'Av. Constituyentes s/n, Villas del Sur',
-                'city' => 'Querétaro',
-                'estate' => 'Querétaro',
+                'city_id' => $queretaroCity->id,
+                'estate_id' => $queretaroState->id,
                 'country' => 'México',
                 'zip_code' => '76040',
                 'latitude' => 20.5866,
@@ -76,8 +89,8 @@ class LocationSeeder extends Seeder
             [
                 'name' => 'Centro Cultural Gómez Morín',
                 'direction' => 'Av. Constituyentes 24, La Cruz',
-                'city' => 'Querétaro',
-                'estate' => 'Querétaro',
+                'city_id' => $queretaroCity->id,
+                'estate_id' => $queretaroState->id,
                 'country' => 'México',
                 'zip_code' => '76000',
                 'latitude' => 20.5863,
@@ -88,8 +101,8 @@ class LocationSeeder extends Seeder
             [
                 'name' => 'Plaza de Armas',
                 'direction' => 'Calle 5 de Mayo, Centro Histórico',
-                'city' => 'Querétaro',
-                'estate' => 'Querétaro',
+                'city_id' => $queretaroCity->id,
+                'estate_id' => $queretaroState->id,
                 'country' => 'México',
                 'zip_code' => '76000',
                 'latitude' => 20.5930,
@@ -100,8 +113,8 @@ class LocationSeeder extends Seeder
             [
                 'name' => 'Parque Alcanfores',
                 'direction' => 'Av. de los Arcos, Residencial Caletto',
-                'city' => 'Querétaro',
-                'estate' => 'Querétaro',
+                'city_id' => $queretaroCity->id,
+                'estate_id' => $queretaroState->id,
                 'country' => 'México',
                 'zip_code' => '76903',
                 'latitude' => 20.6010,
@@ -112,8 +125,8 @@ class LocationSeeder extends Seeder
             [
                 'name' => 'Centro de Exposiciones Querétaro',
                 'direction' => 'Paseo de las Artes 1531, Querétaro 2000',
-                'city' => 'Querétaro',
-                'estate' => 'Querétaro',
+                'city_id' => $queretaroCity->id,
+                'estate_id' => $queretaroState->id,
                 'country' => 'México',
                 'zip_code' => '76090',
                 'latitude' => 20.5935,
@@ -124,8 +137,8 @@ class LocationSeeder extends Seeder
             [
                 'name' => 'Alameda Hidalgo',
                 'direction' => 'Av. Zaragoza s/n, Centro Histórico',
-                'city' => 'Querétaro',
-                'estate' => 'Querétaro',
+                'city_id' => $queretaroCity->id,
+                'estate_id' => $queretaroState->id,
                 'country' => 'México',
                 'zip_code' => '76000',
                 'latitude' => 20.5885,
@@ -137,6 +150,35 @@ class LocationSeeder extends Seeder
 
         foreach ($locations as $location) {
             Location::create($location);
+        }
+        
+        // Create a few additional locations in other cities
+        $otherCities = City::where('name', '!=', 'Querétaro')->take(5)->get();
+        
+        foreach ($otherCities as $city) {
+            $estate = Estate::first(); // Use a default estate
+            
+            // Find venues specific to the city
+            $venues = [
+                'Centro Cultural de ' . $city->name,
+                'Parque Municipal de ' . $city->name,
+                'Teatro Principal de ' . $city->name
+            ];
+            
+            foreach ($venues as $venue) {
+                Location::create([
+                    'name' => $venue,
+                    'direction' => fake()->streetAddress(),
+                    'city_id' => $city->id,
+                    'estate_id' => $estate->id,
+                    'country' => 'México',
+                    'zip_code' => fake()->numberBetween(10000, 99999),
+                    'latitude' => fake()->latitude(19.0, 22.0),
+                    'length' => fake()->longitude(-102.0, -98.0),
+                    'link_google_maps' => 'https://maps.google.com/?q=' . fake()->latitude(19.0, 22.0) . ',' . fake()->longitude(-102.0, -98.0),
+                    'active' => true,
+                ]);
+            }
         }
     }
 }

@@ -172,9 +172,8 @@ export default function RegistroInstitucional({ institucion }) {
 
         post(route("registro.institucional.store"), {
             onSuccess: () => {
-                setRegistroExitoso(true);
-                // Puedes redirigir después de un tiempo o mostrar un mensaje
-                // setTimeout(() => window.location.href = route('login'), 3000);
+                reset();
+                window.location.href = route("verification.notice");
             },
         });
     };
@@ -201,18 +200,32 @@ export default function RegistroInstitucional({ institucion }) {
                             </svg>
                         </div>
                     </div>
-                    <h2 className="text-2xl font-bold text-gray-800 mb-2">
-                        ¡Registro Completado con Éxito!
-                    </h2>
-                    <p className="text-gray-600 mb-6">
-                        Tu cuenta institucional ha sido creada correctamente. Ya
-                        puedes iniciar sesión con tus credenciales.
-                    </p>
+                    <div className="mt-4 text-sm text-gray-500">
+                        <p>
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                className="inline h-4 w-4 mr-1 text-blue-500"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                            >
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                                />
+                            </svg>
+                            Después de registrarte, recibirás un código de
+                            verificación en tu correo electrónico que deberás
+                            ingresar para activar tu cuenta.
+                        </p>
+                    </div>
                     <Link
-                        href={route("login")}
+                        href={route("verification.notice")}
                         className="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                     >
-                        Ir al Inicio de Sesión
+                        Verificar mi correo
                     </Link>
                 </div>
             </LoginLayout>

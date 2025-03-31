@@ -1,19 +1,16 @@
-import { AlertCircle, Bell, Bookmark, Search, User } from "lucide-react";
+import { Bookmark } from "lucide-react";
 import { Link } from "@inertiajs/react";
 import { Card } from "@/Components/Card";
 import { CardContent } from "@/Components/Card";
-import { Input } from "@/Components/Input";
 import { Button } from "@/Components/Button";
 import { TabsList, TabsTrigger, TabsContent, Tabs } from "@/Components/Tabs";
 import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
 import "swiper/css/navigation";
 import { Navigation, Autoplay } from "swiper/modules";
-import { Bookmark as BookmarkIcon } from "lucide-react";
 import MainLayout from "@/Layouts/MainLayout";
 
 // Importa las imágenes para las noticias principales
-import img1 from "@/assets/img1.jpeg";
 import img2 from "@/assets/img2.png";
 import img4 from "@/assets/img4.jpg";
 import img5 from "@/assets/img5.jpg";
