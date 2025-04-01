@@ -5,6 +5,9 @@ namespace App\Models;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Cache;
+use App\Models\Rol;
+use App\Models\Company;
+use Illuminate\Container\Attributes\Log;
 
 class User extends Authenticatable
 {
@@ -38,8 +41,6 @@ class User extends Authenticatable
 
     /**
      * Obtener los roles del usuario.
-     * Esta función intentará usar cualquiera de las tablas (user_role o user_roles)
-     * dependiendo de cuál exista.
      */
     public function roles()
     {
@@ -86,6 +87,26 @@ class User extends Authenticatable
     }
     
     /**
+     * Comprobar si es usuario institucional
+     * El rol 6 corresponde a usuario institucional
+     */
+    public function isInstitutional()
+    {
+        $userRoles = $this->roles()->pluck('id')->toArray();
+        return in_array(6, $userRoles);
+    }
+    
+    /**
+     * Comprobar si es usuario personal
+     * El rol 5 corresponde a usuario personal
+     */
+    public function isPersonal()
+    {
+        $userRoles = $this->roles()->pluck('id')->toArray();
+        return in_array(5, $userRoles);
+    }
+    
+    /**
      * Saber que rol tiene un usuario en especifico
      */
     public function hasRole($roleName)
@@ -126,22 +147,6 @@ class User extends Authenticatable
     public function isSuperAdmin()
     {
         return $this->hasRole('SuperAdministrator');
-    }
-    
-    /**
-     * Comprueba si es usuario institucional
-     */
-    public function isInstitutional()
-    {
-        return $this->hasRole('Institucional');
-    }
-    
-    /**
-     * Comprueba si es usuario personal
-     */
-    public function isPersonal()
-    {
-        return $this->hasRole('Usuario');
     }
     
     /**

@@ -44,9 +44,9 @@ class EventAttendance extends Model
     /**
      * Relación con la institución (si existe)
      */
-    public function institution()
+    public function company()
     {
-        return $this->belongsTo(Organizer::class, 'institution_id');
+        return $this->belongsTo(Company::class, 'company_id');
     }
     
     /**
@@ -62,7 +62,14 @@ class EventAttendance extends Model
      */
     public static function generarCodigoRegistro()
     {
-        return strtoupper(substr(md5(uniqid(rand(), true)), 0, 8));
+        $codigo = strtoupper(substr(md5(uniqid(rand(), true)), 0, 8));
+        
+        // Verificar que el código no exista
+        while (self::where('codigo_registro', $codigo)->exists()) {
+            $codigo = strtoupper(substr(md5(uniqid(rand(), true)), 0, 8));
+        }
+        
+        return $codigo;
     }
     
     /**
@@ -80,5 +87,16 @@ class EventAttendance extends Model
     public function estaCancelada()
     {
         return $this->status->slug === 'cancelado';
+    }
+    
+    /**
+     * Obtener la información adicional como array
+     */
+    public function getInformacionAdicionalArrayAttribute()
+    {
+        if (!$this->informacion_adicional) {
+            return [];
+        }
+        return json_decode($this->informacion_adicional, true) ?? [];
     }
 }

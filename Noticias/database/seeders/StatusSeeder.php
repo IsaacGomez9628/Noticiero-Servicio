@@ -61,6 +61,99 @@ class StatusSeeder extends Seeder
                 'active' => true,
                 'color' => '#dc3545', // rojo
                 'order' => 3
+            ],
+            [
+                'name' => 'Programado',
+                'slug' => 'programado',
+                'type' => 'evento',
+                'description' => 'El evento está programado y aún no ha ocurrido',
+                'color' => '#4F46E5', // Indigo
+                'active' => true,
+                'order' => 1
+            ],
+            [
+                'name' => 'En curso',
+                'slug' => 'en-curso',
+                'type' => 'evento',
+                'description' => 'El evento está actualmente en progreso',
+                'color' => '#10B981', // Emerald
+                'active' => true,
+                'order' => 2
+            ],
+            [
+                'name' => 'Finalizado',
+                'slug' => 'finalizado',
+                'type' => 'evento',
+                'description' => 'El evento ha finalizado',
+                'color' => '#6B7280', // Gray
+                'active' => true,
+                'order' => 3
+            ],
+            [
+                'name' => 'Cancelado',
+                'slug' => 'cancelado',
+                'type' => 'evento',
+                'description' => 'El evento ha sido cancelado',
+                'color' => '#EF4444', // Red
+                'active' => true,
+                'order' => 4
+            ],
+            [
+                'name' => 'Pospuesto',
+                'slug' => 'pospuesto',
+                'type' => 'evento',
+                'description' => 'El evento ha sido pospuesto',
+                'color' => '#F59E0B', // Amber
+                'active' => true,
+                'order' => 5
+            ]
+        ];
+
+        $attendanceStatuses = [
+            [
+                'name' => 'Confirmado',
+                'slug' => 'confirmado',
+                'type' => 'asistencia',
+                'description' => 'Asistencia confirmada',
+                'color' => '#10B981', // Emerald
+                'active' => true,
+                'order' => 1
+            ],
+            [
+                'name' => 'Pendiente',
+                'slug' => 'pendiente',
+                'type' => 'asistencia',
+                'description' => 'Asistencia registrada pero pendiente de confirmación',
+                'color' => '#F59E0B', // Amber
+                'active' => true,
+                'order' => 2
+            ],
+            [
+                'name' => 'Cancelado',
+                'slug' => 'cancelado',
+                'type' => 'asistencia',
+                'description' => 'Asistencia cancelada por el usuario',
+                'color' => '#EF4444', // Red
+                'active' => true,
+                'order' => 3
+            ],
+            [
+                'name' => 'Asistió',
+                'slug' => 'asistio',
+                'type' => 'asistencia',
+                'description' => 'El usuario asistió al evento',
+                'color' => '#10B981', // Emerald
+                'active' => true,
+                'order' => 4
+            ],
+            [
+                'name' => 'No asistió',
+                'slug' => 'no-asistio',
+                'type' => 'asistencia',
+                'description' => 'El usuario no asistió al evento',
+                'color' => '#6B7280', // Gray
+                'active' => true,
+                'order' => 5
             ]
         ];
 
@@ -84,6 +177,13 @@ class StatusSeeder extends Seeder
                     'active' => $status['active'],
                     'order' => $status['order']
                 ]
+            );
+        }
+
+        foreach ($attendanceStatuses as $status) {
+            Status::updateOrCreate(
+                ['type' => $status['type'], 'slug' => $status['slug']],
+                $status
             );
         }
     }

@@ -139,12 +139,30 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/perfil/actualizar', [ProfileController::class, 'update'])
         ->name('perfil.update');
     
-    // Asistencias y eventos
+     // Registro de eventos (formulario y procesamiento)
+     Route::get('/evento/{id}/registro', [EventoAsistenciaController::class, 'showRegistrationForm'])
+     ->name('eventos.registro.form');
+ 
+    // Procesar registro personal
+    Route::post('/evento/{id}/registro', [EventoAsistenciaController::class, 'register'])
+        ->name('eventos.registro');
+    
+    // Procesar registro institucional
+    Route::post('/evento/{id}/registro/institucional', [EventoAsistenciaController::class, 'registrarInstitucional'])
+        ->name('eventos.registro.institucional');
+    
+    // Página de confirmación de registro
+    Route::get('/evento/{id}/confirmacion', [EventoAsistenciaController::class, 'showConfirmation'])
+        ->name('eventos.confirmacion');
+    
+    // Listar mis asistencias
     Route::get('/mis-asistencias', [EventoAsistenciaController::class, 'misAsistencias'])
         ->name('eventos.mis-asistencias');
     
+    // Cancelar asistencia
     Route::post('/asistencia/{id}/cancelar', [EventoAsistenciaController::class, 'cancelarAsistencia'])
-        ->name('eventos.asistencia.cancelar');
+    ->name('eventos.asistencia.cancelar')
+    ->middleware('auth');
     
     // Cierre de sesión
     Route::post('/logout', [LoginController::class, 'logout'])
@@ -166,9 +184,8 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
         [App\Http\Controllers\EventoAsistenciaController::class, 'listarAsistentes'])
         ->name('eventos.asistentes');
     
-    Route::patch('/eventos/{id}/asistentes/{asistenciaId}', 
-        [App\Http\Controllers\EventoAsistenciaController::class, 'actualizarAsistencia'])
-        ->name('eventos.asistencia.actualizar');
+        Route::patch('/eventos/{id}/asistentes/{asistenciaId}', [EventoAsistenciaController::class, 'actualizarAsistencia'])
+        ->name('admin.eventos.asistencia.actualizar');
     
 });
 

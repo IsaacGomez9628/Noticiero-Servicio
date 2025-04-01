@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id()->primary();
             $table->foreignId('event_id')->constrained('events')->onDelete('cascade');
             $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete();
+            $table->foreignId('company_id')->nullable()->onDelete('cascade')->constrained('companies');
             $table->string('nombre')->nullable();
             $table->string('email');
             $table->string('telefono')->nullable();
@@ -25,16 +26,10 @@ return new class extends Migration
             
             // Para código QR o confirmación de registro
             $table->string('codigo_registro')->unique();
-            
-            // Información de metadatos
             $table->ipAddress('ip_registro')->nullable();
             $table->string('user_agent')->nullable();
-            
-            // Timestamps
             $table->timestamps();
-            $table->softDeletes(); // Permite "cancelación" sin eliminar datos
-            
-            // Restricción única para evitar registros duplicados
+            $table->softDeletes();
             $table->unique(['event_id', 'email', 'deleted_at'], 'unique_event_attendee');
         });
     }

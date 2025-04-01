@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Eventos;
 
 use App\Http\Controllers\Controller;
 use App\Models\Event;
+use App\Models\EventAttendance;
 use Inertia\Inertia;
 
 class EventController extends Controller
@@ -76,48 +77,19 @@ class EventController extends Controller
      */
     public function show($id)
     {
-        try {
-            $evento = Event::with(['organizer', 'location', 'status', 'categories', 'images'])
-                ->findOrFail($id);
-                
-            // Obtener imagen principal o la primera disponible
-            $mainImage = $evento->images->where('es_principal', true)->first() 
-                ?? $evento->images->first();
-                
-            // Transformar datos para el frontend
-            $eventoData = [
-                'id' => $evento->id,
-                'titulo' => $evento->titule,
-                'descripcion' => $evento->description,
-                'fecha_inicio' => $evento->start_date,
-                'fecha_fin' => $evento->end_date,
-                'hora' => $evento->start_time,
-                'hora_fin' => $evento->end_time,
-                'precio' => $evento->price,
-                'its_free' => $evento->its_free,
-                'organizador' => [
-                    'persona' => [
-                        'nombre_completo' => $evento->organizer->name,
-                    ],
-                ],
-                'direccion' => [
-                    'direccion_completa' => $evento->location->direction . ', ' . $evento->location->city,
-                ],
-                'capacidad' => $evento->capacity,
-                'multimedia' => $mainImage ? [
-                    'url' => $mainImage->ruta,
-                ] : null,
-            ];
-            
-            return Inertia::render('EventoDetalles', [
-                'evento' => $eventoData,
-            ]);
-        } catch (\Exception $e) {
-            return Inertia::render('Error', [
-                'message' => 'No se pudo encontrar el evento solicitado.',
-                'error' => $e->getMessage(),
-            ]);
-        }
+        $evento = Event::with(['location', 'organizer'])->findOrFail($id);
+        
+        // Contar asistencias confirmadas
+        $asistenciasConfirmadas = EventAttendance::where('event_id', $id)
+            ->whereHas('status', function($query) {
+                $query->where('slug', '!=', 'cancelado');
+            })
+            ->count();
+        
+        return Inertia::render('EventoDetalles', [
+            'evento' => $evento,
+            'asistenciasConfirmadas' => $asistenciasConfirmadas
+        ]);
     }
     
     /**

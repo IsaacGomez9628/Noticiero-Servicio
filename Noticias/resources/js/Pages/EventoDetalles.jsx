@@ -5,7 +5,7 @@ import { Button } from "@/Components/Button";
 import { Calendar, Clock, MapPin, Users, User, ArrowLeft } from "lucide-react";
 import MainLayout from "@/Layouts/MainLayout";
 
-export default function EventoDetalle({ evento }) {
+export default function EventoDetalle({ evento, asistenciasConfirmadas }) {
     // Función para formatear fechas
     const formatearFecha = (fecha) => {
         return new Date(fecha).toLocaleDateString("es-ES", {
@@ -144,20 +144,55 @@ export default function EventoDetalle({ evento }) {
                                     <h2 className="text-xl font-medium mb-6">
                                         Registro
                                     </h2>
+                                    // En EventoDetalles.jsx
+                                    <div className="mt-4 bg-blue-50 p-4 rounded-lg">
+                                        <h3 className="font-medium text-blue-800 mb-2">
+                                            Capacidad del evento
+                                        </h3>
+                                        <div className="flex items-center">
+                                            <div className="w-full bg-gray-200 rounded-full h-2.5">
+                                                <div
+                                                    className={`h-2.5 rounded-full ${
+                                                        asistenciasConfirmadas >=
+                                                        evento.capacidad
+                                                            ? "bg-red-600"
+                                                            : "bg-blue-600"
+                                                    }`}
+                                                    style={{
+                                                        width: `${Math.min(
+                                                            (asistenciasConfirmadas /
+                                                                evento.capacidad) *
+                                                                100,
+                                                            100
+                                                        )}%`,
+                                                    }}
+                                                ></div>
+                                            </div>
+                                            <span className="ml-3 text-sm font-medium">
+                                                {asistenciasConfirmadas}/
+                                                {evento.capacidad} lugares
+                                            </span>
+                                        </div>
 
-                                    {evento.capacidad && (
-                                        <InfoItem
-                                            icon={Users}
-                                            label="Capacidad"
-                                            value={`${evento.capacidad} personas`}
-                                        />
-                                    )}
-
+                                        {asistenciasConfirmadas >=
+                                            evento.capacidad && (
+                                            <p className="mt-2 text-red-600 text-sm">
+                                                ¡Este evento ha alcanzado su
+                                                capacidad máxima!
+                                            </p>
+                                        )}
+                                    </div>
                                     <InfoItem
                                         icon={MapPin}
                                         label="Ubicación"
                                         value={
-                                            evento.direccion.direccion_completa
+                                            evento.location?.name ||
+                                            (typeof evento.location ===
+                                                "object" &&
+                                                evento.location.name) ||
+                                            (typeof evento.location === "string"
+                                                ? evento.location
+                                                : "Ubicación por confirmar")
                                         }
                                         link={{
                                             href: route(
@@ -167,20 +202,33 @@ export default function EventoDetalle({ evento }) {
                                             text: "Ver mapa",
                                         }}
                                     />
-
                                     <p className="text-sm text-muted-foreground mt-4 mb-6">
                                         Asegura tu lugar en este evento
                                         registrándote ahora.
                                     </p>
-
                                     <Link
                                         href={route(
                                             "eventos.registro.form",
                                             evento.id
                                         )}
                                     >
-                                        <Button className="w-full">
-                                            Registrarse
+                                        <Button
+                                            type="button"
+                                            disabled={
+                                                asistenciasConfirmadas >=
+                                                evento.capacity
+                                            }
+                                            className={`px-4 py-2 rounded-md ${
+                                                asistenciasConfirmadas >=
+                                                evento.capacity
+                                                    ? "bg-gray-400 cursor-not-allowed"
+                                                    : "bg-blue-600 hover:bg-blue-700"
+                                            } text-white`}
+                                        >
+                                            {asistenciasConfirmadas >=
+                                            evento.capacidad
+                                                ? "Evento sin cupo disponible"
+                                                : "Registrarme al evento"}
                                         </Button>
                                     </Link>
                                 </CardContent>

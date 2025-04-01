@@ -1,71 +1,111 @@
 import React from "react";
-import { Head, Link } from "@inertiajs/react";
-import { Card, CardContent } from "@/Components/Card";
-import { Button } from "@/Components/Button";
+import { Link } from "@inertiajs/react";
 import MainLayout from "@/Layouts/MainLayout";
 
-export default function RegistroConfirmado({ evento, registro }) {
+export default function RegistroConfirmado({ evento, registro, success }) {
+    if (!evento) {
+        return (
+            <MainLayout>
+                <div className="container mx-auto px-4 py-12">
+                    <div className="max-w-2xl mx-auto text-center">
+                        <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-md mb-6">
+                            <p className="text-yellow-800">
+                                No se encontró información del evento. Por
+                                favor, regresa a la lista de eventos.
+                            </p>
+                        </div>
+                        <Link
+                            href="/eventos"
+                            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                        >
+                            Volver a Eventos
+                        </Link>
+                    </div>
+                </div>
+            </MainLayout>
+        );
+    }
+
     return (
         <MainLayout>
-            <Head title="Registro Confirmado" />
-
             <div className="container mx-auto px-4 py-12">
-                <div className="max-w-2xl mx-auto text-center">
-                    <div className="mb-8">
-                        <div className="inline-flex items-center justify-center h-24 w-24 rounded-full bg-green-100 mb-6">
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                strokeWidth={1.5}
-                                stroke="currentColor"
-                                className="w-12 h-12 text-green-600"
-                            >
-                                <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                                />
-                            </svg>
-                        </div>
-
-                        <h1 className="text-3xl font-bold mb-2">
-                            ¡Registro Confirmado!
-                        </h1>
-                        <p className="text-lg text-gray-600 mb-8">
-                            Tu asistencia al evento ha sido registrada
-                            correctamente.
-                        </p>
-                    </div>
-
-                    <Card>
-                        <CardContent className="p-6">
-                            <h2 className="text-xl font-semibold mb-4">
-                                Detalles del evento
-                            </h2>
-
-                            <div className="mb-6">
-                                <h3 className="font-medium text-lg">
-                                    {evento.titulo}
-                                </h3>
-                                <p className="text-gray-600">
-                                    {formatearFecha(evento.fecha_inicio)} a las{" "}
-                                    {formatearHora(evento.fecha_inicio)}
-                                </p>
-                                <p className="text-gray-600">
-                                    {evento.direccion
-                                        ? evento.direccion.direccion_completa
-                                        : "Evento virtual"}
-                                </p>
+                <div className="max-w-2xl mx-auto">
+                    <div className="bg-white shadow-md rounded-lg overflow-hidden">
+                        <div className="p-6 text-center">
+                            <div className="inline-flex items-center justify-center h-20 w-20 rounded-full bg-green-100 mb-6">
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    className="h-10 w-10 text-green-600"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                >
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M5 13l4 4L19 7"
+                                    />
+                                </svg>
                             </div>
 
-                            <div className="mb-6 p-4 bg-blue-50 rounded-lg text-left">
+                            <h1 className="text-2xl font-bold text-gray-900 mb-2">
+                                ¡Registro Confirmado!
+                            </h1>
+                            <p className="text-gray-600 mb-6">
+                                Tu asistencia al evento ha sido registrada
+                                correctamente.
+                            </p>
+
+                            <div className="bg-gray-50 p-4 rounded-lg mb-6 text-left">
+                                <h2 className="font-medium text-lg text-gray-900 mb-2">
+                                    {evento.titulo || evento.titule}
+                                </h2>
+
+                                <div className="space-y-2 text-gray-600">
+                                    <p>
+                                        <span className="font-medium">
+                                            Fecha:
+                                        </span>{" "}
+                                        {formatDate(
+                                            evento.fecha_inicio ||
+                                                evento.start_date
+                                        )}
+                                    </p>
+                                    <p>
+                                        <span className="font-medium">
+                                            Hora:
+                                        </span>{" "}
+                                        {formatTime(
+                                            evento.fecha_inicio ||
+                                                evento.start_date
+                                        )}
+                                    </p>
+                                    <p>
+                                        <span className="font-medium">
+                                            Ubicación:
+                                        </span>{" "}
+                                        {evento.location?.name ||
+                                            "Por confirmar"}
+                                    </p>
+                                    {registro && registro.codigo_registro && (
+                                        <p>
+                                            <span className="font-medium">
+                                                Código de registro:
+                                            </span>{" "}
+                                            {registro.codigo_registro}
+                                        </p>
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className="bg-blue-50 p-4 rounded-lg mb-6 text-left">
                                 <h3 className="font-medium mb-2 text-blue-800">
                                     Información importante
                                 </h3>
-                                <ul className="text-sm text-blue-700 space-y-1">
+                                <ul className="space-y-1 text-sm text-blue-700">
                                     <li>
-                                        • Hemos enviado un correo de
+                                        • Se ha enviado un correo de
                                         confirmación a tu dirección de email.
                                     </li>
                                     <li>
@@ -73,24 +113,28 @@ export default function RegistroConfirmado({ evento, registro }) {
                                         inicio del evento.
                                     </li>
                                     <li>
-                                        • Si tienes alguna pregunta, contáctanos
-                                        al correo eventos@ejemplo.com
+                                        • No olvides tu código de registro para
+                                        acceder al evento.
                                     </li>
                                 </ul>
                             </div>
 
                             <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                                <Link href={route("eventos.show", evento.id)}>
-                                    <Button variant="outline">
-                                        Ver detalles del evento
-                                    </Button>
+                                <Link
+                                    href={`/evento/${evento.id}`}
+                                    className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                                >
+                                    Ver detalles del evento
                                 </Link>
-                                <Link href={route("eventos.index")}>
-                                    <Button>Ver más eventos</Button>
+                                <Link
+                                    href="/eventos"
+                                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                                >
+                                    Explorar más eventos
                                 </Link>
                             </div>
-                        </CardContent>
-                    </Card>
+                        </div>
+                    </div>
                 </div>
             </div>
         </MainLayout>
@@ -98,8 +142,10 @@ export default function RegistroConfirmado({ evento, registro }) {
 }
 
 // Función para formatear fechas
-function formatearFecha(fecha) {
-    return new Date(fecha).toLocaleDateString("es-ES", {
+function formatDate(dateString) {
+    if (!dateString) return "Fecha por confirmar";
+    const date = new Date(dateString);
+    return date.toLocaleDateString("es-ES", {
         year: "numeric",
         month: "long",
         day: "numeric",
@@ -107,8 +153,10 @@ function formatearFecha(fecha) {
 }
 
 // Función para formatear horas
-function formatearHora(fecha) {
-    return new Date(fecha).toLocaleTimeString("es-ES", {
+function formatTime(dateString) {
+    if (!dateString) return "Hora por confirmar";
+    const date = new Date(dateString);
+    return date.toLocaleTimeString("es-ES", {
         hour: "2-digit",
         minute: "2-digit",
     });
