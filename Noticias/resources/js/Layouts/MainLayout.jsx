@@ -1,15 +1,15 @@
 import React from "react";
-import { Link } from "@inertiajs/react";
-import { Search } from "lucide-react";
+import { Link, usePage } from "@inertiajs/react";
+import { Search, User, LogOut, Settings, Bell } from "lucide-react";
 import { Input } from "@/Components/Input";
 import Secretaria from "@/assets/Logo_SecretariaDeEducacion.png";
 import Ceat from "@/assets/Logo_CEATyCC.png";
 import { useState, useRef, useEffect } from "react";
-import { User } from "lucide-react";
 import { Button } from "@/Components/Button";
 import { AnimatePresence, motion } from "framer-motion";
 
 export default function MainLayout({ children, selectedTab = null }) {
+    const { auth } = usePage().props;
     const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
     const [isSearchOpen, setIsSearchOpen] = useState(false);
     const userMenuRef = useRef(null);
@@ -57,6 +57,29 @@ export default function MainLayout({ children, selectedTab = null }) {
             document.removeEventListener("mousedown", handleClickOutside);
         };
     }, []);
+
+    const isAuthenticated = auth && auth.user;
+
+    // Función para obtener la inicial del usuario de forma segura
+    const getUserInitial = () => {
+        if (!isAuthenticated) return "U";
+
+        // Verificar si existe el nombre y tiene contenido
+        if (auth.user.name && auth.user.name.trim() !== "") {
+            return auth.user.name.charAt(0).toUpperCase();
+        }
+
+        // Si no tiene nombre o está vacío, intentar con el email
+        if (auth.user.email && auth.user.email.trim() !== "") {
+            return auth.user.email.charAt(0).toUpperCase();
+        }
+
+        // Si nada funciona, devolver U
+        return "U";
+    };
+
+    // Obtener la inicial
+    const userInitial = getUserInitial();
 
     return (
         <div className="min-h-screen bg-gray-50">
@@ -121,17 +144,35 @@ export default function MainLayout({ children, selectedTab = null }) {
 
                         {/* Menú de usuario */}
                         <div className="relative" ref={userMenuRef}>
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() =>
-                                    setIsUserMenuOpen(!isUserMenuOpen)
-                                }
-                                className="rounded-full p-2 hover:bg-blue-50 transition-colors"
-                                aria-label="Usuario"
-                            >
-                                <User className="h-5 w-5 text-gray-700" />
-                            </Button>
+                            {isAuthenticated ? (
+                                // Usuario autenticado - mostrar avatar con iniciales
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() =>
+                                        setIsUserMenuOpen(!isUserMenuOpen)
+                                    }
+                                    className="rounded-full p-0 hover:bg-blue-50 transition-colors"
+                                    aria-label="Usuario"
+                                >
+                                    <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-medium">
+                                        {userInitial}
+                                    </div>
+                                </Button>
+                            ) : (
+                                // Usuario no autenticado - mostrar icono de usuario
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() =>
+                                        setIsUserMenuOpen(!isUserMenuOpen)
+                                    }
+                                    className="rounded-full p-2 hover:bg-blue-50 transition-colors"
+                                    aria-label="Usuario"
+                                >
+                                    <User className="h-5 w-5 text-gray-700" />
+                                </Button>
+                            )}
 
                             <AnimatePresence>
                                 {isUserMenuOpen && (
@@ -142,18 +183,67 @@ export default function MainLayout({ children, selectedTab = null }) {
                                         transition={{ duration: 0.2 }}
                                         className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1 z-10 border border-gray-100 overflow-hidden"
                                     >
-                                        <Link
-                                            href={route("login")}
-                                            className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 transition-colors"
-                                        >
-                                            Iniciar sesión
-                                        </Link>
-                                        <Link
-                                            href={route("registro")}
-                                            className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 transition-colors"
-                                        >
-                                            Registrarse
-                                        </Link>
+                                        {isAuthenticated ? (
+                                            // Opciones para usuario autenticado
+                                            <>
+                                                <div className="px-4 py-3 border-b border-gray-100">
+                                                    <p className="text-sm font-medium text-gray-700">
+                                                        {auth.user.name ||
+                                                            "Usuario"}
+                                                    </p>
+                                                    <p className="text-xs text-gray-500 truncate mt-1">
+                                                        {auth.user.email}
+                                                    </p>
+                                                </div>
+                                                <Link
+                                                    href={route("dashboard")}
+                                                    className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 transition-colors"
+                                                >
+                                                    <div className="flex items-center">
+                                                        <Settings className="w-4 h-4 mr-2" />
+                                                        Dashboard
+                                                    </div>
+                                                </Link>
+                                                <Link
+                                                    href={route(
+                                                        "eventos.mis-asistencias"
+                                                    )}
+                                                    className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 transition-colors"
+                                                >
+                                                    <div className="flex items-center">
+                                                        <Bell className="w-4 h-4 mr-2" />
+                                                        Mis asistencias
+                                                    </div>
+                                                </Link>
+                                                <Link
+                                                    href={route("logout")}
+                                                    method="post"
+                                                    as="button"
+                                                    className="block w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 transition-colors border-t border-gray-100"
+                                                >
+                                                    <div className="flex items-center">
+                                                        <LogOut className="w-4 h-4 mr-2" />
+                                                        Cerrar sesión
+                                                    </div>
+                                                </Link>
+                                            </>
+                                        ) : (
+                                            // Opciones para usuario no autenticado
+                                            <>
+                                                <Link
+                                                    href={route("login")}
+                                                    className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 transition-colors"
+                                                >
+                                                    Iniciar sesión
+                                                </Link>
+                                                <Link
+                                                    href={route("registro")}
+                                                    className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 transition-colors"
+                                                >
+                                                    Registrarse
+                                                </Link>
+                                            </>
+                                        )}
                                     </motion.div>
                                 )}
                             </AnimatePresence>

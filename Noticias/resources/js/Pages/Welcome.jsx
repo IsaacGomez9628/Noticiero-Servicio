@@ -1,16 +1,20 @@
-import { Bookmark } from "lucide-react";
-import { Link } from "@inertiajs/react";
+import { useState, useEffect } from "react";
+import { AlertCircle, Bell, Bookmark, Search, User } from "lucide-react";
+import { Link, usePage } from "@inertiajs/react";
 import { Card } from "@/Components/Card";
 import { CardContent } from "@/Components/Card";
+import { Input } from "@/Components/Input";
 import { Button } from "@/Components/Button";
 import { TabsList, TabsTrigger, TabsContent, Tabs } from "@/Components/Tabs";
 import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
 import "swiper/css/navigation";
 import { Navigation, Autoplay } from "swiper/modules";
+import { Bookmark as BookmarkIcon } from "lucide-react";
 import MainLayout from "@/Layouts/MainLayout";
 
 // Importa las imágenes para las noticias principales
+import img1 from "@/assets/img1.jpeg";
 import img2 from "@/assets/img2.png";
 import img4 from "@/assets/img4.jpg";
 import img5 from "@/assets/img5.jpg";
@@ -35,6 +39,73 @@ import img14 from "@/assets/img14.jpg";
 import img15 from "@/assets/img15.jpg";
 
 export default function Welcome() {
+    // Estado para controlar la notificación de inicio de sesión
+    const [showLoginSuccess, setShowLoginSuccess] = useState(false);
+    // Nuevo estado para controlar la notificación de cierre de sesión
+    const [showLogoutSuccess, setShowLogoutSuccess] = useState(false);
+    const { flash } = usePage().props;
+
+    // Efecto para detectar mensajes flash o parámetros de URL
+    useEffect(() => {
+        // Verificar flash messages
+        console.log("Flash props:", flash);
+        if (flash && flash.success) {
+            setShowLoginSuccess(true);
+            console.log("Flash message detectado:", flash.success);
+
+            const timer = setTimeout(() => {
+                setShowLoginSuccess(false);
+            }, 5000);
+
+            return () => clearTimeout(timer);
+        }
+
+        // Verificar flash message de cierre de sesión
+        if (flash && flash.info) {
+            setShowLogoutSuccess(true);
+            console.log("Flash message de logout detectado:", flash.info);
+
+            const timer = setTimeout(() => {
+                setShowLogoutSuccess(false);
+            }, 5000);
+
+            return () => clearTimeout(timer);
+        }
+
+        // Verificar parámetros de URL para login
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get("login_success") === "true") {
+            setShowLoginSuccess(true);
+            console.log("Parámetro de URL de login detectado");
+
+            // Limpiar la URL
+            const newUrl = window.location.pathname;
+            window.history.replaceState({}, document.title, newUrl);
+
+            const timer = setTimeout(() => {
+                setShowLoginSuccess(false);
+            }, 5000);
+
+            return () => clearTimeout(timer);
+        }
+
+        // Verificar parámetros de URL para logout
+        if (urlParams.get("logout_success") === "true") {
+            setShowLogoutSuccess(true);
+            console.log("Parámetro de URL de logout detectado");
+
+            // Limpiar la URL
+            const newUrl = window.location.pathname;
+            window.history.replaceState({}, document.title, newUrl);
+
+            const timer = setTimeout(() => {
+                setShowLogoutSuccess(false);
+            }, 5000);
+
+            return () => clearTimeout(timer);
+        }
+    }, [flash]);
+
     // Noticias para la sección "Presentando"
     const newsArticles = [
         {
@@ -184,6 +255,112 @@ export default function Welcome() {
 
     return (
         <MainLayout>
+            {/* Notificación premium de inicio de sesión exitoso */}
+            {showLoginSuccess && (
+                <div className="fixed top-5 left-1/2 transform -translate-x-1/2 z-50 min-w-96">
+                    <div className="bg-white backdrop-blur-sm bg-opacity-95 border-l-4 border-green-500 rounded-lg shadow-xl px-6 py-4 flex items-center justify-between">
+                        <div className="flex items-center">
+                            <div className="bg-green-100 rounded-full p-2 mr-4">
+                                <svg
+                                    className="w-6 h-6 text-green-600"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                >
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth="2"
+                                        d="M5 13l4 4L19 7"
+                                    ></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 className="font-bold text-gray-900">
+                                    ¡Bienvenido!
+                                </h3>
+                                <p className="text-gray-600">
+                                    Inicio de sesión exitoso
+                                </p>
+                            </div>
+                        </div>
+                        <button
+                            onClick={() => setShowLoginSuccess(false)}
+                            className="text-gray-400 hover:text-gray-600 focus:outline-none transform hover:scale-110 transition-all duration-200"
+                        >
+                            <svg
+                                className="w-5 h-5"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                                xmlns="http://www.w3.org/2000/svg"
+                            >
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth="2"
+                                    d="M6 18L18 6M6 6l12 12"
+                                ></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {/* Notificación premium de cierre de sesión */}
+            {showLogoutSuccess && (
+                <div className="fixed top-5 left-1/2 transform -translate-x-1/2 z-50 min-w-96">
+                    <div className="bg-white backdrop-blur-sm bg-opacity-95 border-l-4 border-blue-500 rounded-lg shadow-xl px-6 py-4 flex items-center justify-between">
+                        <div className="flex items-center">
+                            <div className="bg-blue-100 rounded-full p-2 mr-4">
+                                <svg
+                                    className="w-6 h-6 text-blue-600"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                >
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth="2"
+                                        d="M5 13l4 4L19 7"
+                                    ></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 className="font-bold text-gray-900">
+                                    ¡Hasta pronto!
+                                </h3>
+                                <p className="text-gray-600">
+                                    Sesión cerrada correctamente
+                                </p>
+                            </div>
+                        </div>
+                        <button
+                            onClick={() => setShowLogoutSuccess(false)}
+                            className="text-gray-400 hover:text-gray-600 focus:outline-none transform hover:scale-110 transition-all duration-200"
+                        >
+                            <svg
+                                className="w-5 h-5"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                                xmlns="http://www.w3.org/2000/svg"
+                            >
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth="2"
+                                    d="M6 18L18 6M6 6l12 12"
+                                ></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            )}
+
             <div className="min-h-screen bg-gray-50">
                 <main className="container mx-auto px-4 py-8">
                     <Tabs defaultValue="featured" className="space-y-6">

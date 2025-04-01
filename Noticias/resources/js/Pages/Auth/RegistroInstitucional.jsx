@@ -433,89 +433,52 @@ export default function RegistroInstitucional({
         return truncated;
     };
 
+    // En handlePhoneChange
     const handlePhoneChange = (e) => {
-        const formattedValue = formatPhoneNumber(e.target.value);
-        setData("telefono", formattedValue);
+        const cleaned = e.target.value.replace(/\D/g, "");
+        // Limitar a 10 dígitos
+        const limited = cleaned.substring(0, 10);
+        setData("telefono", limited);
     };
 
     const submit = (e) => {
         e.preventDefault();
 
-        // Verificar si hay errores de validación frontend antes de enviar
-        const currentErrors = {};
-
-        // Validar todos los campos requeridos
-        if (!data.nombre_empresa)
-            currentErrors.nombre_empresa =
-                "El nombre de la empresa es obligatorio";
-        if (!data.nombre_responsable)
-            currentErrors.nombre_responsable =
-                "El nombre del responsable es obligatorio";
-        if (!data.apellido_paterno)
-            currentErrors.apellido_paterno =
-                "El apellido paterno es obligatorio";
-        if (!data.email)
-            currentErrors.email = "El correo electrónico es obligatorio";
-        if (!validateEmail(data.email))
-            currentErrors.email =
-                "El formato del correo electrónico no es válido";
-        if (data.telefono && !validatePhone(data.telefono))
-            currentErrors.telefono =
-                "El número telefónico debe tener 10 dígitos";
-        if (!data.password)
-            currentErrors.password = "La contraseña es obligatoria";
-        if (!validatePassword(data.password))
-            currentErrors.password =
-                "La contraseña debe incluir al menos una letra y un número";
-        if (data.password !== data.password_confirmation)
-            currentErrors.password_confirmation =
-                "Las contraseñas no coinciden";
-        if (!data.terms)
-            currentErrors.terms = "Debes aceptar los términos y condiciones";
-        if (!data.birth_date)
-            currentErrors.birth_date = "La fecha de nacimiento es obligatoria";
-        if (!data.gender_id)
-            currentErrors.gender_id = "Debes seleccionar un género";
-
-        setFormErrors(currentErrors);
-
-        // Si hay errores, mostrar notificación y detener envío
-        if (Object.keys(currentErrors).length > 0) {
-            setNotification({
-                message:
-                    "Por favor corrige los errores en el formulario antes de continuar",
-                type: "error",
-                visible: true,
-            });
-            return;
-        }
-
-        // Y agrégalo a tu formData
-        const age = calculateAge(data.birth_date);
-
-        // Preparar datos para envío
         const formData = {
             ...data,
-            // Cambiar esta línea para asegurarnos que funcione correctamente
-            telefono: data.telefono ? data.telefono.replace(/\D/g, "") : "",
-            age: age,
+            telefono: data.telefono ? data.telefono.replace(/\D/g, "") : "0",
+            age: calculateAge(data.birth_date),
         };
-
-        console.log("Teléfono limpio antes de enviar:", formData.telefono); // Agrega esto para verificar
-        console.log("Longitud del teléfono:", formData.telefono.length);
-        console.log("Enviando datos:", formData);
 
         post(route("registro.institucional.store"), formData, {
             onSuccess: () => {
-                // Método simple para redirigir
-                window.location.href = route("login") + "?success=true";
+                reset();
+                setRegistroExitoso(true);
+                setNotification({
+                    message:
+                        "Registro institucional exitoso. Serás redirigido al inicio de sesión en unos segundos.",
+                    type: "success",
+                    visible: true,
+                });
+
+                // Mostrar alerta antes de redirigir (opcional)
+                alert(
+                    "Registro institucional exitoso. Ahora puedes iniciar sesión."
+                );
+
+                // Redireccionar al login después de un breve momento
+                setTimeout(() => {
+                    window.location.href = route("login");
+                }, 2000);
             },
             onError: (errors) => {
-                // Alerta simple para ver el error
-                console.error("Error en registro:", errors);
-                alert(
-                    "Hubo un error en el registro: " + JSON.stringify(errors)
-                );
+                const errorMessages = Object.values(errors).flat();
+                setNotification({
+                    message: errorMessages.join(", "),
+                    type: "error",
+                    visible: true,
+                });
+                console.error("Error en registro institucional:", errors);
             },
         });
     };

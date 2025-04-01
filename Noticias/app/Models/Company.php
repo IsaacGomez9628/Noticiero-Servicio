@@ -12,7 +12,6 @@ class Company extends Model
     protected $table = 'companies';
 
     protected $fillable = [
-        'name',
         'list_companies_id',
         'description',
         'phone',

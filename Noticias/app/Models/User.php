@@ -9,7 +9,6 @@ use Illuminate\Support\Facades\Cache;
 class User extends Authenticatable
 {
     protected $fillable = [
-        'name',
         'email',
         'password',
         'status_id',

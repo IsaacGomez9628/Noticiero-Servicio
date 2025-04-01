@@ -272,7 +272,6 @@ class RegistroController extends Controller
                 $statusId = 1; // Suponiendo que 1 es el status "activo"
                 
                 $user = new User();
-                $user->name = $request->nombres;
                 $user->email = $request->email;
                 $user->password = Hash::make($request->password);
                 $user->email_verified = false;
@@ -324,7 +323,7 @@ class RegistroController extends Controller
                 $person->second_last_name = $request->apellido_materno ?? '';
                 $person->gender_id = $gender->id;
                 $person->user_id = $user->id;
-                $person->birthdate = $request->fecha_nacimiento ?: now()->subYears(self::MIN_AGE); // Fecha predeterminada
+                $person->birth_date = $request->fecha_nacimiento ?: now()->subYears(self::MIN_AGE); // Fecha predeterminada
                 $person->age = $age > 0 ? $age : self::MIN_AGE; // Edad mínima por defecto
                 $person->save();
                 
@@ -358,23 +357,26 @@ class RegistroController extends Controller
             Log::info('Transacción completada exitosamente. Usuario registrado:', ['email' => $request->email]);
 
             // Enviar correo de verificación si el servicio está disponible
-            if ($this->emailVerificationService) {
-                try {
-                    $this->emailVerificationService->sendVerificationEmail($user);
-                    session()->put('email', $user->email);
+            // if ($this->emailVerificationService) {
+            //     try {
+            //         $this->emailVerificationService->sendVerificationEmail($user);
+            //         session()->put('email', $user->email);
                     
-                    // Redirigir a la página de verificación
-                    return redirect()->route('login')
-                        ->with('success', 'Registro exitoso. Ahora puedes iniciar sesión con ' . $request->email);
-                } catch (\Exception $e) {
-                    Log::error('Error al enviar correo de verificación:', ['error' => $e->getMessage()]);
-                    // Continuar con la redirección normal si falla el envío del correo
-                }
-            }
+            //         // Redirigir a la página de verificación
+            //         return redirect()->route('login')
+            //             ->with('success', 'Registro exitoso. Ahora puedes iniciar sesión con ' . $request->email);
+            //     } catch (\Exception $e) {
+            //         Log::error('Error al enviar correo de verificación:', ['error' => $e->getMessage()]);
+            //         // Continuar con la redirección normal si falla el envío del correo
+            //     }
+            // }
+
+            $user->markEmailAsVerified();
+            Log::info("Email marcado como verificado automáticamente: " . $user->email);    
 
             // Redirección normal con Inertia si no hay servicio de verificación
-            return redirect()->route('login')
-                    ->with('success', 'Registro exitoso. Ahora puedes iniciar sesión con ' . $request->email);
+            session()->flash('registration_success', true);
+            session()->flash('registered_email', $request->email);
 
         } catch (\Exception $e) {
             // Revertir transacción en caso de error
@@ -451,12 +453,10 @@ class RegistroController extends Controller
             
             Log::info('Iniciando registro institucional: ' . $request->email);
 
-            // 1. Crear usuario
             try {
-                $statusId = 1; // Suponiendo que 1 es el status "activo"
+                $statusId = 1;
                 
                 $user = new User();
-                $user->name = $request->nombre_responsable;
                 $user->email = $request->email;
                 $user->password = Hash::make($request->password);
                 $user->email_verified = false;
@@ -490,7 +490,7 @@ class RegistroController extends Controller
             $person->second_last_name = $request->apellido_materno ?? '';
             $person->gender_id = $gender->id;
             $person->user_id = $user->id;
-            $person->birthdate = now()->subYears(30); // Fecha predeterminada (30 años)
+            $person->birth_date = now()->subYears(30); // Fecha predeterminada (30 años)
             $person->age = 30; // Edad predeterminada para responsable
             $person->save();
             Log::info('Persona responsable creada con ID: ' . $person->id);
@@ -523,7 +523,6 @@ class RegistroController extends Controller
             // 7. Crear empresa y asociarla con el usuario
             Log::info('Creando empresa');
             $company = new Company();
-            $company->name = $request->nombre_empresa;
             $company->description = $request->descripcion ?? '';
             $company->list_companies_id = $listCompany->id;
             
@@ -537,20 +536,13 @@ class RegistroController extends Controller
             if ($request->telefono) {
                 // Eliminar caracteres no numéricos
                 $phoneNumber = preg_replace('/\D/', '', $request->telefono);
-                // Limitar el número a 9 dígitos (para estar seguros)
+                $company->phone = intval($phoneNumber);
+            if (strlen($phoneNumber) > 9) {
                 $phoneNumber = substr($phoneNumber, -9);
-                // Si después de todo queda vacío, usar 0
-                if (empty($phoneNumber)) {
-                    $phoneNumber = '0';
-                }
-                // Asegurarse de que sea un número válido
-                $phoneNumber = intval($phoneNumber);
-                if ($phoneNumber > 999999999) {
-                    $phoneNumber = 999999999; // Máximo valor seguro
-                }
-                $company->phone = $phoneNumber;
+            } 
+                $company->phone = intval($phoneNumber);
             } else {
-                $company->phone = 0; // Valor predeterminado
+                $company->phone = 0;
             }
             
             $company->save();
@@ -571,19 +563,22 @@ class RegistroController extends Controller
             DB::commit();
 
             // Enviar correo de verificación si el servicio está disponible
-            if ($this->emailVerificationService) {
-                try {
-                    $this->emailVerificationService->sendVerificationEmail($user);
-                    session()->put('email', $user->email);
+            // if ($this->emailVerificationService) {
+            //     try {
+            //         $this->emailVerificationService->sendVerificationEmail($user);
+            //         session()->put('email', $user->email);
                     
-                    // Redirigir a la página de verificación
-                    return redirect()->route('login')
-                        ->with('success', 'Registro institucional exitoso. Ahora puedes iniciar sesión.');
-                } catch (\Exception $e) {
-                    Log::error('Error al enviar correo de verificación institucional:', ['error' => $e->getMessage()]);
-                    // Continuar con la redirección normal si falla el envío del correo
-                }
-            }
+            //         // Redirigir a la página de verificación
+            //         return redirect()->route('login')
+            //             ->with('success', 'Registro institucional exitoso. Ahora puedes iniciar sesión.');
+            //     } catch (\Exception $e) {
+            //         Log::error('Error al enviar correo de verificación institucional:', ['error' => $e->getMessage()]);
+            //         // Continuar con la redirección normal si falla el envío del correo
+            //     }
+            // }
+
+            $user->markEmailAsVerified();
+            Log::info('Correo electrónico verificado para el usuario: ' . $user->email);
 
             // Redirección normal 
             return redirect()->route('login')

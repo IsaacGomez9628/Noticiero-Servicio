@@ -9,7 +9,9 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegistroController;
 use App\Http\Controllers\Auth\VerificationController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Eventos\EventController as EventosEventController;
+use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Mail;
 
 // Rutas para vistas principales (renderizan la SPA de React)
@@ -76,11 +78,6 @@ Route::middleware('guest')->group(function () {
 // Ruta de compatibilidad (para mantener enlaces antiguos)
 // Route::get('/eventos/{id}/registro', [EventoController::class, 'showRegistrationForm'])->name('eventos.registro.form');
 
-// Rutas para historial de asistencias (requieren autenticación)
-Route::middleware(['auth'])->group(function () {
-    Route::get('/mis-asistencias', [EventoAsistenciaController::class, 'misAsistencias'])->name('eventos.mis-asistencias');
-    Route::post('/asistencia/{id}/cancelar', [EventoAsistenciaController::class, 'cancelarAsistencia'])->name('eventos.asistencia.cancelar');
-});
 
 // Rutas para administradores
 Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
@@ -90,22 +87,81 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
 // Otras rutas
 Route::get('/noticias', [NoticiaController::class, 'index'])->name('noticias');
 
-// Rutas para usuarios autenticados
-Route::middleware('auth')->group(function () {
+
+    
+ // Rutas para usuarios autenticados
+Route::middleware(['auth'])->group(function () {
+    // Dashboard y sus funcionalidades
+    Route::get('/dashboard', [DashboardController::class, 'index'])
+        ->name('dashboard');
+    
+    // Gestión de eventos - Aquí usamos DashboardController solo para las vistas
+    Route::get('/dashboard/crear-evento', [DashboardController::class, 'createEvent'])
+        ->name('dashboard.crear-evento');
+
+    Route::get('/dashboard/panel', [DashboardController::class, 'panel'])
+        ->name('dashboard.panel');
+    
+    // Si posteriormente implementas funcionalidad real:
+    Route::post('/eventos', [EventosEventController::class, 'store'])
+        ->name('eventos.store');
+    
+    Route::get('/eventos/{id}/editar', [EventosEventController::class, 'edit'])
+        ->name('eventos.edit');
+    
+    Route::put('/eventos/{id}', [EventosEventController::class, 'update'])
+        ->name('eventos.update');
+    
+    Route::delete('/eventos/{id}', [EventosEventController::class, 'destroy'])
+        ->name('eventos.destroy');
+    
+    // Gestión de noticias - Aquí usamos DashboardController para las vistas
+    Route::get('/dashboard/crear-noticia', [DashboardController::class, 'createNews'])
+        ->name('dashboard.crear-noticia');
+    
+    // Si posteriormente implementas funcionalidad real:
+    Route::post('/noticias', [NoticiaController::class, 'store'])
+        ->name('noticias.store');
+    
+    Route::get('/noticias/{id}/editar', [NoticiaController::class, 'edit'])
+        ->name('noticias.edit');
+    
+    Route::put('/noticias/{id}', [NoticiaController::class, 'update'])
+        ->name('noticias.update');
+    
+    Route::delete('/noticias/{id}', [NoticiaController::class, 'destroy'])
+        ->name('noticias.destroy');
+    
+    // Rutas para editar perfil
+    Route::get('/perfil/editar', [ProfileController::class, 'edit'])
+        ->name('perfil.edit');
+    
+    Route::post('/perfil/actualizar', [ProfileController::class, 'update'])
+        ->name('perfil.update');
+    
+    // Asistencias y eventos
+    Route::get('/mis-asistencias', [EventoAsistenciaController::class, 'misAsistencias'])
+        ->name('eventos.mis-asistencias');
+    
+    Route::post('/asistencia/{id}/cancelar', [EventoAsistenciaController::class, 'cancelarAsistencia'])
+        ->name('eventos.asistencia.cancelar');
+    
     // Cierre de sesión
     Route::post('/logout', [LoginController::class, 'logout'])
         ->name('logout');
     
-    // Dashboard personal o institucional
-    // Route::get('/dashboard', [DashboardController::class, 'index'])
-    //     ->name('dashboard');
-
     // Rutas para registro de asistentes a eventos (institucional)
     Route::post('/eventos/{id}/registro/institucional', 
         [App\Http\Controllers\EventoAsistenciaController::class, 'registrarInstitucional'])
         ->name('eventos.registro.institucional');
+});
+
+// Rutas para administradores
+Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
+    // Listado de asistentes
+    Route::get('/eventos/{id}/asistentes', [EventoAsistenciaController::class, 'listarAsistentes'])
+        ->name('admin.eventos.asistentes');
     
-    // Listado de asistentes (solo para admins)
     Route::get('/eventos/{id}/asistentes', 
         [App\Http\Controllers\EventoAsistenciaController::class, 'listarAsistentes'])
         ->name('eventos.asistentes');
@@ -113,6 +169,7 @@ Route::middleware('auth')->group(function () {
     Route::patch('/eventos/{id}/asistentes/{asistenciaId}', 
         [App\Http\Controllers\EventoAsistenciaController::class, 'actualizarAsistencia'])
         ->name('eventos.asistencia.actualizar');
+    
 });
 
 // Ruta para cualquier otra URL que debería ser manejada por React Router

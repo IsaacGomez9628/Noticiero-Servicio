@@ -8,11 +8,17 @@ use Inertia\Inertia;
 
 class AuthController extends Controller
 {
+    /**
+     * Muestra la página de inicio de sesión
+     */
     public function login() {
         return Inertia::render('Auth/Login');
     }
 
+    /**
+     * Muestra la página de registro
+     */
     public function signup() {
-        return Inertia::render('Auth/Register');
+        return Inertia::render('Auth/SignUp');
     }
 }
