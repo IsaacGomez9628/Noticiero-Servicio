@@ -1,8 +1,8 @@
 import { Bookmark } from "lucide-react";
 import { Link } from "@inertiajs/react";
 import MainLayout from "@/Layouts/MainLayout";
-import { Card, CardContent } from "@/Components/Card";
-import { Button } from "@/Components/Button";
+import { Card, CardContent } from "@/Components/ui/Card";
+import { Button } from "@/Components/ui/Button";
 
 import img1 from "@/assets/img16.jpg";
 import img2 from "@/assets/img17.jpg";

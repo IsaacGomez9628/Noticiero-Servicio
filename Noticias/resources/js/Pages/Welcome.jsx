@@ -1,17 +1,25 @@
 import { useState, useEffect } from "react";
-import { AlertCircle, Bell, Bookmark, Search, User } from "lucide-react";
+import {
+    AlertCircle,
+    Bell,
+    Bookmark,
+    Search,
+    User,
+    Flag,
+    Cloud,
+} from "lucide-react";
 import { Link, usePage } from "@inertiajs/react";
-import { Card } from "@/Components/Card";
-import { CardContent } from "@/Components/Card";
-import { Input } from "@/Components/Input";
-import { Button } from "@/Components/Button";
-import { TabsList, TabsTrigger, TabsContent, Tabs } from "@/Components/Tabs";
+import { Button } from "@/Components/ui/Button";
+import { Card } from "@/Components/ui/Card";
+import { CardContent } from "@/Components/ui/Card";
+import { TabsList, TabsTrigger, TabsContent, Tabs } from "@/Components/ui/Tabs";
 import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
 import "swiper/css/navigation";
 import { Navigation, Autoplay } from "swiper/modules";
 import { Bookmark as BookmarkIcon } from "lucide-react";
 import MainLayout from "@/Layouts/MainLayout";
+import ObjectivesSection from "@/Components/Home/ObjectivesSection";
 
 // Importa las imágenes para las noticias principales
 import img1 from "@/assets/img1.jpeg";
@@ -37,6 +45,18 @@ import img12 from "@/assets/img12.jpg";
 import img13 from "@/assets/img13.jpg";
 import img14 from "@/assets/img14.jpg";
 import img15 from "@/assets/img15.jpg";
+
+// Importa las imágenes del equipo
+import miembroImg2 from "@/assets/lira.png";
+import miembroImg5 from "@/assets/hugo.png";
+import miembroImg4 from "@/assets/mlg.png";
+import miembroImg6 from "@/assets/olmo.png";
+import miembroImg7 from "@/assets/manuel.png";
+import miembroImg8 from "@/assets/victor.png";
+import Jacinto from "@/assets/Jacinto.png";
+import Jorge from "@/assets/Jorge.png";
+import Jose from "@/assets/Jose.png";
+import Orfelinda from "@/assets/Orfelinda.jpg";
 
 export default function Welcome() {
     // Estado para controlar la notificación de inicio de sesión
@@ -253,6 +273,111 @@ export default function Welcome() {
         },
     ];
 
+    // Función para formatear la fecha y hora
+    const formatDate = (dateString) => {
+        if (!dateString) return "Fecha por definir";
+        const date = new Date(dateString);
+        return date.toLocaleDateString("es-MX", {
+            day: "numeric",
+            month: "long",
+            year: "numeric",
+        });
+    };
+
+    const formatTime = (dateString) => {
+        if (!dateString) return "Hora por definir";
+        const date = new Date(dateString);
+        return date.toLocaleTimeString("es-MX", {
+            hour: "2-digit",
+            minute: "2-digit",
+        });
+    };
+
+    // Miembros del equipo para la sección Quiénes Somos
+    const teamMembers = [
+        {
+            id: 10,
+            image: Orfelinda,
+            name: "Orfelinda Torres Rivera",
+            title: "Coordinadora ",
+            location: "Querétaro, México",
+            description:
+                "Coordinadora de Educación Superior de la Secretaría de Educación (SEDEQ).",
+        },
+        {
+            id: 1,
+            image: miembroImg2,
+            name: "Ana Laura Lira Cortes",
+            title: "Investigadora",
+            location: "Querétaro, México",
+            description:
+                "La Dra. Ana Laura Lira Cortes es una destacada académica mexicana. Estudió en la Universidad Autónoma de Querétaro, obteniendo su doctorado en Innovación, Tecnología y Hábitat. Su investigación se enfoca en problemas complejos que afectan la calidad de vida, utilizando tecnología para su abordaje. Actualmente es profesora investigadora en la Universidad Politécnica de Querétaro.",
+        },
+        {
+            id: 2,
+            image: miembroImg5,
+            name: "Hugo Rodríguez Reséndiz",
+            title: "Profesor-Investigador",
+            location: "Querétaro, México",
+            description:
+                "Hugo Rodríguez-Reséndiz, originario de Querétaro, México, tiene estudios en humanidades con enfoque en educación, filosofía de la ciencia, ética y bioética. Ha trabajado en innovación tecnológica, gestión del conocimiento y proyectos comunitarios. Es profesor-investigador en la Universidad Autónoma de Querétaro y Coordinador de Educación Colaborativa.",
+        },
+        {
+            id: 3,
+            image: miembroImg4,
+            name: "Maribel Leyva Gaxiola",
+            title: "Investigadora",
+            location: "Hidalgo, México",
+            description:
+                "La licenciada en Sistemas Computacionales por la UAEH (2004-2008) continuó su formación con una maestría y doctorado en Gestión Tecnológica e Innovación en la UAQ. Su investigación se enfoca en Prospectiva y Difusión de Tecnologías. Ha participado activamente en congresos y proyectos innovadores, además de gestionar patentes y planes de negocio.",
+        },
+        {
+            id: 4,
+            image: miembroImg6,
+            name: "Carlos Alberto Olmos Trejo",
+            title: "Director General de Bibliotecas",
+            location: "Querétaro, México",
+            description:
+                "Carlos Alberto Olmos Trejo es profesor de tiempo completo en la Facultad de Informática de la Universidad Autónoma de Querétaro. Actualmente, es Director General de Bibliotecas y Servicios Digitales de Información desde enero de 2024. Anteriormente, fue Coordinador de la Maestría en Sistemas Computacionales y Secretario Académico de la Facultad de Informática.",
+        },
+        {
+            id: 5,
+            image: miembroImg7,
+            name: "Juan Manuel Peña Aguilar",
+            title: "Coordinador de Posgrado",
+            location: "Querétaro, México",
+            description:
+                "Juan Manuel Peña Aguilar cuenta con un Doctorado en Gestión Tecnológica e Innovación y varias maestrías en ingeniería y finanzas. Ha sido reconocido con el 1er Lugar del Premio Nacional de ADIAT a la Innovación Tecnológica 2017 y el Premio Nacional de ANUIES de Innovación para la Competitividad 2012.",
+        },
+        {
+            id: 6,
+            image: miembroImg8,
+            name: "Victor Alegandro Gonzáles Huitrón",
+            title: "Profesor-Investigador",
+            location: "Querétaro, México",
+            description:
+                "El doctor Victor Alejandro obtuvo su licenciatura en Ingeniería en Comunicaciones y Electrónica en 2009, seguida de una maestría en Microelectrónica en 2013 y un doctorado en Comunicaciones y Electrónica en 2017. Ha sido docente en ingenierías electrónica, eléctrica, biomédica, mecatrónica y computación desde 2017.",
+        },
+        {
+            id: 7,
+            image: Jose,
+            name: "José Gonzalo Lugo Pérez",
+            title: "Director de la División de Tecnologías de Automatización e Información",
+            location: "Universidad Tecnológica de Querétaro",
+            description:
+                "Ingeniero en Electrónica y Maestro en Ciencias de la Computación con especialidad en redes de telecomunicaciones. Experto en telecomunicaciones y redes de datos, con experiencia docente en tecnologías de la información y matemáticas. Fundador del Programa Académico de Cisco en la Universidad Tecnológica de Querétaro, logrando su reconocimiento como “Academia Premier” en 2020. Coordinador del Congreso CITIC 2016 y promotor de proyectos tecnológicos en IoT, Inteligencia Artificial y Telecomunicaciones. Ha gestionado recursos para laboratorios de Software Embebido y formación de especialistas para sectores estratégicos.",
+        },
+        {
+            id: 9,
+            image: Jacinto,
+            name: "Jacinto E. Quintana Landaverde",
+            title: "Docente e investigador",
+            location: "Universidad Tecnológica de Querétaro",
+            description:
+                "Doctor en Sistemas Computacionales con más de 24 años de experiencia en docencia e industria. Especialista en desarrollo de aplicaciones computacionales, inteligencia artificial y programación avanzada. Ha impartido cursos en múltiples universidades y asesorado más de 15 proyectos industriales. Fundador del Club de Programación Turing y organizador de torneos de programación y eventos educativos. Coordinador del grupo de Investigación en IA y Programación Avanzada en la UTEQ. Ha desempeñado roles clave en gestión académica y asesoría en TI para instituciones como SEDEQ, USEBEQ y Santander.",
+        },
+    ];
+
     return (
         <MainLayout>
             {/* Notificación premium de inicio de sesión exitoso */}
@@ -364,14 +489,23 @@ export default function Welcome() {
             <div className="min-h-screen bg-gray-50">
                 <main className="container mx-auto px-4 py-8">
                     <Tabs defaultValue="featured" className="space-y-6">
-                        <TabsList>
-                            <TabsTrigger value="featured">
+                        <TabsList className="bg-blue-100 p-1 rounded-full">
+                            <TabsTrigger
+                                value="featured"
+                                className="rounded-full data-[state=active]:bg-blue-600 data-[state=active]:text-white"
+                            >
                                 Presentando
                             </TabsTrigger>
-                            <TabsTrigger value="latest">
+                            <TabsTrigger
+                                value="latest"
+                                className="rounded-full data-[state=active]:bg-blue-600 data-[state=active]:text-white"
+                            >
                                 Lo más nuevo
                             </TabsTrigger>
-                            <TabsTrigger value="trending">
+                            <TabsTrigger
+                                value="trending"
+                                className="rounded-full data-[state=active]:bg-blue-600 data-[state=active]:text-white"
+                            >
                                 Tendencia
                             </TabsTrigger>
                         </TabsList>
@@ -404,7 +538,9 @@ export default function Welcome() {
                                                     <p className="text-muted-foreground">
                                                         {article.description}
                                                     </p>
-                                                    <Button>Leer Más</Button>
+                                                    <Button className="mt-4">
+                                                        Leer Más
+                                                    </Button>
                                                 </CardContent>
                                             </div>
                                         </Card>
@@ -498,66 +634,205 @@ export default function Welcome() {
                                 ))}
                             </div>
                         </TabsContent>
-
-                        {/* Sección de eventos que se mantiene fija */}
-                        <section className="mt-12">
-                            <div className="flex items-center justify-between mb-6">
-                                <h2 className="text-2xl font-bold">
-                                    Próximos Eventos
-                                </h2>
-                                <Link href="/eventos">
-                                    <Button variant="outline">Ver Todos</Button>
-                                </Link>
-                            </div>
-
-                            <div className="grid md:grid-cols-2 gap-6">
-                                {/* Aquí podrías mostrar 2 eventos destacados */}
-                                <Card className="overflow-hidden">
-                                    <div className="relative h-48">
-                                        <img
-                                            src={img6}
-                                            alt="Imagen del evento"
-                                            className="object-cover h-full w-full"
-                                        />
-                                    </div>
-                                    <CardContent className="p-6">
-                                        <h3 className="text-xl font-bold mb-2">
-                                            Conferencia de Tecnología
-                                        </h3>
-                                        <p className="text-muted-foreground mb-3">
-                                            Únete a nosotros para explorar las
-                                            últimas tendencias en tecnología.
-                                        </p>
-                                        <Link href="/eventos/1">
-                                            <Button>Ver Detalles</Button>
-                                        </Link>
-                                    </CardContent>
-                                </Card>
-
-                                <Card className="overflow-hidden">
-                                    <div className="relative h-48">
-                                        <img
-                                            src={img7}
-                                            alt="Imagen del evento"
-                                            className="object-cover h-full w-full"
-                                        />
-                                    </div>
-                                    <CardContent className="p-6">
-                                        <h3 className="text-xl font-bold mb-2">
-                                            Workshop de Desarrollo Web
-                                        </h3>
-                                        <p className="text-muted-foreground mb-3">
-                                            Aprende las mejores prácticas para
-                                            el desarrollo web moderno.
-                                        </p>
-                                        <Link href="/eventos/2">
-                                            <Button>Ver Detalles</Button>
-                                        </Link>
-                                    </CardContent>
-                                </Card>
-                            </div>
-                        </section>
                     </Tabs>
+
+                    {/* Sección de eventos que se mantiene fija */}
+                    <section className="mt-12">
+                        <div className="flex items-center justify-between mb-6">
+                            <h2 className="text-2xl font-bold">
+                                Próximos Eventos
+                            </h2>
+                            <Link href="/eventos">
+                                <Button variant="outline">Ver Todos</Button>
+                            </Link>
+                        </div>
+
+                        <div className="grid md:grid-cols-2 gap-6">
+                            {/* Aquí podrías mostrar 2 eventos destacados */}
+                            <Card className="overflow-hidden">
+                                <div className="relative h-48">
+                                    <img
+                                        src={img6}
+                                        alt="Imagen del evento"
+                                        className="object-cover h-full w-full"
+                                    />
+                                </div>
+                                <CardContent className="p-6">
+                                    <h3 className="text-xl font-bold mb-2">
+                                        Conferencia de Tecnología
+                                    </h3>
+                                    <p className="text-muted-foreground mb-3">
+                                        Únete a nosotros para explorar las
+                                        últimas tendencias en tecnología.
+                                    </p>
+                                    <Link href="/eventos/1">
+                                        <Button>Ver Detalles</Button>
+                                    </Link>
+                                </CardContent>
+                            </Card>
+
+                            <Card className="overflow-hidden">
+                                <div className="relative h-48">
+                                    <img
+                                        src={img7}
+                                        alt="Imagen del evento"
+                                        className="object-cover h-full w-full"
+                                    />
+                                </div>
+                                <CardContent className="p-6">
+                                    <h3 className="text-xl font-bold mb-2">
+                                        Workshop de Desarrollo Web
+                                    </h3>
+                                    <p className="text-muted-foreground mb-3">
+                                        Aprende las mejores prácticas para el
+                                        desarrollo web moderno.
+                                    </p>
+                                    <Link href="/eventos/2">
+                                        <Button>Ver Detalles</Button>
+                                    </Link>
+                                </CardContent>
+                            </Card>
+                        </div>
+                    </section>
+
+                    {/* Sección ¿Quiénes somos? - Misión y Visión */}
+                    {/* Sección ¿Quiénes somos? - Misión y Visión */}
+                    <section className="mt-16 py-16 relative overflow-hidden">
+                        {/* Fondo con patrón sutil */}
+                        <div className="absolute inset-0 bg-gradient-to-b from-gray-50 to-white opacity-70 z-0"></div>
+                        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiMzYjgyZjYiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PHBhdGggZD0iTTM2IDM0aDR2MWgtNHYtMXptMC0yaDF2NGgtMXYtNHptMi0yaDF2MWgtMXYtMXptLTIgMmgxdjFoLTF2LTF6bS0yLTJoMXYxaC0xdi0xem0yLTJoMXYxaC0xdi0xem0tMiAyaDF2MWgtMXYtMXptLTItMmgxdjFoLTF2LTF6Ii8+PC9nPjwvZz48L3N2Zz4=')] opacity-50 z-0"></div>
+
+                        <div className="container mx-auto px-4 relative z-10">
+                            <div className="text-center mb-16">
+                                <h2 className="text-5xl font-bold text-gray-900 mb-4">
+                                    ¿Quiénes somos?
+                                </h2>
+                                <div className="w-24 h-1 bg-gradient-to-r from-blue-600 to-teal-500 mx-auto rounded-full"></div>
+                            </div>
+
+                            <div className="grid md:grid-cols-2 gap-10 mb-20">
+                                {/* Misión */}
+                                <div className="rounded-2xl overflow-hidden shadow-xl transform hover:-translate-y-2 transition-all duration-300">
+                                    <div className="bg-gradient-to-r from-blue-800 to-blue-600 p-1">
+                                        <div className="bg-gradient-to-r from-blue-800 to-blue-600 p-8 text-white">
+                                            <div className="flex items-center mb-6">
+                                                <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center mr-4">
+                                                    <Flag className="w-8 h-8" />
+                                                </div>
+                                                <h3 className="text-3xl font-bold">
+                                                    Misión
+                                                </h3>
+                                            </div>
+                                            <p className="text-lg leading-relaxed">
+                                                Fomentar la educación y el
+                                                desarrollo de habilidades en
+                                                alta tecnología y Cloud
+                                                Computing, impulsando la
+                                                innovación y el conocimiento
+                                                para preparar a estudiantes y
+                                                profesionales para un entorno
+                                                digital en constante evolución.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Visión */}
+                                <div className="rounded-2xl overflow-hidden shadow-xl transform hover:-translate-y-2 transition-all duration-300">
+                                    <div className="bg-gradient-to-r from-teal-700 to-teal-500 p-1">
+                                        <div className="bg-gradient-to-r from-teal-700 to-teal-500 p-8 text-white">
+                                            <div className="flex items-center mb-6">
+                                                <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center mr-4">
+                                                    <Cloud className="w-8 h-8" />
+                                                </div>
+                                                <h3 className="text-3xl font-bold">
+                                                    Visión
+                                                </h3>
+                                            </div>
+                                            <p className="text-lg leading-relaxed">
+                                                Ser un líder referente en la
+                                                promoción de la educación y la
+                                                adopción de alta tecnología y
+                                                Cloud Computing, contribuyendo
+                                                al crecimiento de una sociedad
+                                                preparada para enfrentar los
+                                                desafíos tecnológicos del
+                                                futuro.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <ObjectivesSection />
+
+                    {/* Sección Quiénes Somos - Miembros del equipo */}
+                    <section className="mt-16 py-16 bg-gradient-to-b from-gray-50 to-blue-50 rounded-lg">
+                        <div className="container mx-auto px-4">
+                            <div className="text-center mb-12">
+                                <h2 className="text-4xl font-bold text-gray-900 mb-4">
+                                    Nuestro Equipo
+                                </h2>
+                                <div className="w-24 h-1 bg-gradient-to-r from-blue-600 to-teal-500 mx-auto rounded-full mb-6"></div>
+                                <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+                                    Somos un grupo dinámico de individuos
+                                    apasionados por lo que hacemos y dedicados a
+                                    entregar los mejores resultados para
+                                    nuestros clientes.
+                                </p>
+                            </div>
+
+                            <Swiper
+                                modules={[Navigation, Autoplay]}
+                                navigation
+                                autoplay={{ delay: 5000 }}
+                                spaceBetween={30}
+                                slidesPerView={1}
+                                breakpoints={{
+                                    640: {
+                                        slidesPerView: 2,
+                                    },
+                                    1024: {
+                                        slidesPerView: 4,
+                                    },
+                                }}
+                                className="w-full"
+                            >
+                                {teamMembers.map((member) => (
+                                    <SwiperSlide key={member.id}>
+                                        <div className="relative overflow-hidden rounded-lg bg-white shadow-lg transform transition-transform duration-300 hover:shadow-xl hover:scale-105 h-full">
+                                            <div className="h-64 relative overflow-hidden">
+                                                <img
+                                                    src={member.image}
+                                                    alt={member.name}
+                                                    className="w-full h-full object-cover object-center transition-transform duration-500 hover:scale-110"
+                                                />
+                                                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none"></div>
+                                                <div className="absolute bottom-0 left-0 p-4 text-white">
+                                                    <h3 className="text-xl font-bold">
+                                                        {member.name}
+                                                    </h3>
+                                                    <p className="text-white/90">
+                                                        {member.title}
+                                                    </p>
+                                                    <p className="text-white/80 text-sm">
+                                                        {member.location}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div className="p-4">
+                                                <p className="text-gray-700 text-sm line-clamp-3">
+                                                    {member.description}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </SwiperSlide>
+                                ))}
+                            </Swiper>
+                        </div>
+                    </section>
                 </main>
             </div>
         </MainLayout>

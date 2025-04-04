@@ -1,11 +1,23 @@
 import React from "react";
 import { Head, Link } from "@inertiajs/react";
-import { Card, CardContent } from "@/Components/Card";
-import { Button } from "@/Components/Button";
-import { Calendar, Clock, MapPin, Users, User, ArrowLeft } from "lucide-react";
+import { Card, CardContent } from "@/Components/ui/Card";
+import { Button } from "@/Components/ui/Button";
+import {
+    Calendar,
+    Clock,
+    MapPin,
+    Users,
+    User,
+    ArrowLeft,
+    Heart,
+    Share2,
+    DownloadIcon,
+} from "lucide-react";
 import MainLayout from "@/Layouts/MainLayout";
 
-export default function EventoDetalle({ evento, asistenciasConfirmadas }) {
+export default function EventoDetalle({ evento, asistenciasConfirmadas = 0 }) {
+    // Add default value to prevent undefined errors
+
     // Función para formatear fechas
     const formatearFecha = (fecha) => {
         return new Date(fecha).toLocaleDateString("es-ES", {
@@ -16,8 +28,25 @@ export default function EventoDetalle({ evento, asistenciasConfirmadas }) {
     };
 
     // Función para formatear horas
-    const formatearHora = (fecha) => {
-        return new Date(fecha).toLocaleTimeString("es-ES", {
+    const formatearHora = (hora) => {
+        if (!hora) return "Hora no especificada";
+
+        // Check if hora is already a Date object or a string
+        if (typeof hora === "string") {
+            // If it's just a time string like "10:00:00"
+            if (hora.indexOf(":") > -1 && hora.length <= 8) {
+                const [hours, minutes] = hora.split(":");
+                return `${hours}:${minutes}`;
+            }
+
+            // Otherwise try to parse it as a full datetime
+            return new Date(hora).toLocaleTimeString("es-ES", {
+                hour: "2-digit",
+                minute: "2-digit",
+            });
+        }
+
+        return new Date(hora).toLocaleTimeString("es-ES", {
             hour: "2-digit",
             minute: "2-digit",
         });
@@ -26,15 +55,15 @@ export default function EventoDetalle({ evento, asistenciasConfirmadas }) {
     // Componente para mostrar información con icono
     const InfoItem = ({ icon: Icon, label, value, link }) => (
         <div className="flex items-start gap-3 mb-4">
-            <Icon className="h-5 w-5 text-primary mt-0.5" />
+            <Icon className="h-5 w-5 text-gray-500 mt-0.5" />
             <div>
-                <p className="text-sm text-muted-foreground">{label}</p>
-                <p className="text-base">
+                <p className="text-sm text-gray-600">{label}</p>
+                <p className="text-base font-medium">
                     {value}
                     {link && (
                         <Link
                             href={link.href}
-                            className="ml-2 text-primary hover:underline text-sm"
+                            className="ml-2 text-blue-600 hover:underline text-sm"
                         >
                             {link.text}
                         </Link>
@@ -44,195 +73,384 @@ export default function EventoDetalle({ evento, asistenciasConfirmadas }) {
         </div>
     );
 
+    // Get the capacidad safely
+    const capacidad = evento.capacidad || evento.capacity || 100;
+    // Safe access to asistenciasConfirmadas
+    const confirmedAttendees = asistenciasConfirmadas || 0;
+
     return (
         <MainLayout>
-            <Head title={evento.titulo} />
+            <Head title={evento.titulo || "Detalles del evento"} />
 
-            <div className="container mx-auto px-4 py-8 max-w-5xl">
-                <Link
-                    href={route("eventos.index")}
-                    className="text-primary hover:underline mb-6 inline-flex items-center gap-1 text-sm"
-                >
-                    <ArrowLeft className="h-4 w-4" /> Volver a eventos
-                </Link>
+            <div className="max-w-7xl mx-auto px-4 py-8">
+                {/* Event Header - Eventbrite Style */}
+                <div className="mb-8">
+                    <p className="text-gray-600 mb-2">
+                        {formatearFecha(evento.fecha_inicio)}
+                    </p>
+                    <h1 className="text-4xl font-bold text-gray-900 mb-4">
+                        {evento.titulo || "Título del evento"}
+                    </h1>
+                    <p className="text-gray-700 mb-4">
+                        {evento.descripcion &&
+                            evento.descripcion.substring(0, 140)}
+                        {evento.descripcion && evento.descripcion.length > 140
+                            ? "..."
+                            : ""}
+                    </p>
 
-                <div className="space-y-6">
-                    {/* Imagen destacada y título */}
-                    <div className="relative rounded-lg overflow-hidden bg-gray-100">
-                        <div className="h-72 w-full">
-                            {evento.multimedia ? (
+                    <div className="flex items-center mb-6">
+                        <div className="flex items-center">
+                            <div className="w-10 h-10 bg-gray-200 rounded-full overflow-hidden mr-3">
                                 <img
-                                    src={evento.multimedia.url}
-                                    alt={evento.titulo}
+                                    src={
+                                        evento.organizador?.imagen ||
+                                        "/placeholder-organizer.jpg"
+                                    }
+                                    alt="Organizador"
                                     className="w-full h-full object-cover"
+                                    onError={(e) => {
+                                        e.target.onerror = null;
+                                        e.target.src =
+                                            "/placeholder-organizer.jpg";
+                                    }}
+                                />
+                            </div>
+                            <div>
+                                <p className="text-sm text-gray-500">By</p>
+                                <p className="font-medium">
+                                    {evento.organizador?.persona?.nombres ||
+                                        evento.organizador?.persona
+                                            ?.nombre_completo ||
+                                        (evento.organizador &&
+                                            evento.organizador.name) ||
+                                        "CEATVCC"}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="ml-8">
+                            <Button className="bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-full px-5 py-2 flex items-center gap-2">
+                                <Heart className="h-5 w-5" />
+                                <span>Follow</span>
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Main Content - Two Column Layout */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    {/* Left Column - Event Details */}
+                    <div className="lg:col-span-2">
+                        {/* Event Image */}
+                        <div className="rounded-lg overflow-hidden bg-gray-100 mb-8">
+                            {evento.imagen ? (
+                                <img
+                                    src={evento.imagen}
+                                    alt={evento.titulo}
+                                    className="w-full h-auto object-cover"
                                 />
                             ) : (
                                 <img
                                     src="/placeholder-event.jpg"
                                     alt="Imagen del evento"
-                                    className="w-full h-full object-cover"
+                                    className="w-full h-96 object-cover"
                                 />
                             )}
                         </div>
-                        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/70 flex items-end">
-                            <div className="p-6 text-white">
-                                <h1 className="text-3xl font-bold">
-                                    {evento.titulo}
-                                </h1>
+
+                        {/* Date and Time Section */}
+                        <div className="mb-8">
+                            <h2 className="text-2xl font-bold mb-4">
+                                Date and time
+                            </h2>
+                            <div className="flex items-start gap-3 mb-4">
+                                <Calendar className="h-5 w-5 text-gray-500 mt-0.5" />
+                                <div>
+                                    <p className="font-medium">
+                                        {formatearFecha(evento.fecha_inicio)}
+                                    </p>
+                                    <p className="text-gray-600">
+                                        {formatearHora(
+                                            evento.hora || evento.start_time
+                                        )}{" "}
+                                        PDT
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Location Section */}
+                        <div className="mb-8">
+                            <h2 className="text-2xl font-bold mb-4">
+                                Location
+                            </h2>
+                            <div className="flex items-start gap-3 mb-4">
+                                <MapPin className="h-5 w-5 text-gray-500 mt-0.5" />
+                                <div>
+                                    {evento.modalidad === "Virtual" ? (
+                                        <p className="font-medium">
+                                            Moved to Virtual Event
+                                        </p>
+                                    ) : (
+                                        <p className="font-medium">
+                                            {evento.direccion
+                                                ?.direccion_completa ||
+                                                (evento.location &&
+                                                    (typeof evento.location ===
+                                                    "string"
+                                                        ? evento.location
+                                                        : evento.location
+                                                              .direction
+                                                        ? `${evento.location.direction}, ${evento.location.city}`
+                                                        : evento.location
+                                                              .name)) ||
+                                                "Ubicación por confirmar"}
+                                        </p>
+                                    )}
+
+                                    <Link
+                                        href={route(
+                                            "eventos.location",
+                                            evento.id
+                                        )}
+                                        className="text-blue-600 hover:underline"
+                                    >
+                                        View map
+                                    </Link>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* About Event Section */}
+                        <div className="mb-8">
+                            <h2 className="text-2xl font-bold mb-4">
+                                About this event
+                            </h2>
+
+                            <div className="flex items-center gap-2 mb-4 text-gray-600">
+                                <Clock className="h-5 w-5" />
+                                <span>
+                                    Event lasts {evento.duracion || 3} hours
+                                </span>
+                            </div>
+
+                            <div className="prose max-w-none">
+                                <p className="text-gray-700 whitespace-pre-line">
+                                    {evento.descripcion}
+                                </p>
+
+                                {/* If you have categories or tags */}
+                                {evento.categorias && (
+                                    <div className="mt-6">
+                                        <p className="font-medium mb-2">
+                                            Categories:
+                                        </p>
+                                        <div className="flex flex-wrap gap-2">
+                                            {evento.categorias.map(
+                                                (cat, index) => (
+                                                    <span
+                                                        key={index}
+                                                        className="px-3 py-1 bg-gray-100 rounded-full text-sm"
+                                                    >
+                                                        {cat.nombre}
+                                                    </span>
+                                                )
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>
 
-                    {/* Contenido principal */}
-                    <div className="grid md:grid-cols-3 gap-6">
-                        {/* Columna izquierda: Descripción */}
-                        <div className="md:col-span-2">
-                            <Card className="shadow-sm">
-                                <CardContent className="p-6">
-                                    <div className="grid grid-cols-2 gap-4 mb-8">
-                                        <InfoItem
-                                            icon={Calendar}
-                                            label="Fecha"
-                                            value={formatearFecha(
-                                                evento.fecha_inicio
-                                            )}
-                                        />
-                                        <InfoItem
-                                            icon={Clock}
-                                            label="Hora"
-                                            value={formatearHora(
-                                                evento.fecha_inicio
-                                            )}
-                                        />
-                                        <InfoItem
-                                            icon={MapPin}
-                                            label="Ubicación"
-                                            value={
-                                                evento.direccion
-                                                    ? evento.direccion
-                                                          .direccion_completa
-                                                    : "Evento virtual"
-                                            }
-                                        />
-                                        <InfoItem
-                                            icon={User}
-                                            label="Organizador"
-                                            value={
-                                                evento.organizador?.persona
-                                                    ?.nombre_completo ||
-                                                "CEATVCC"
-                                            }
-                                        />
+                    {/* Right Column - Registration Card */}
+                    <div>
+                        <div className="sticky top-4">
+                            <Card className="shadow-sm border border-gray-200 rounded-lg overflow-hidden">
+                                <CardContent className="p-0">
+                                    {/* RSVP Header */}
+                                    <div className="p-6 border-b border-gray-200">
+                                        <div className="flex justify-between items-center mb-3">
+                                            <h3 className="text-xl font-bold">
+                                                RSVP
+                                            </h3>
+                                            <div className="flex items-center">
+                                                <button className="w-8 h-8 flex items-center justify-center rounded-full border border-gray-300 mr-2">
+                                                    <span>-</span>
+                                                </button>
+                                                <span className="mx-2 text-lg">
+                                                    1
+                                                </span>
+                                                <button className="w-8 h-8 flex items-center justify-center rounded-full bg-blue-600 text-white">
+                                                    <span>+</span>
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex items-center text-gray-600">
+                                            <span className="font-medium mr-2">
+                                                {evento.its_free
+                                                    ? "Free"
+                                                    : `$${evento.precio || 0}`}
+                                            </span>
+                                            <svg
+                                                className="h-5 w-5 text-gray-400"
+                                                viewBox="0 0 24 24"
+                                                fill="none"
+                                                xmlns="http://www.w3.org/2000/svg"
+                                            >
+                                                <circle
+                                                    cx="12"
+                                                    cy="12"
+                                                    r="10"
+                                                    stroke="currentColor"
+                                                    strokeWidth="2"
+                                                />
+                                                <path
+                                                    d="M12 8V12M12 16H12.01"
+                                                    stroke="currentColor"
+                                                    strokeWidth="2"
+                                                    strokeLinecap="round"
+                                                />
+                                            </svg>
+                                        </div>
                                     </div>
 
-                                    <div className="prose max-w-none">
-                                        <h2 className="text-xl font-medium mb-3">
-                                            Descripción
-                                        </h2>
-                                        <p className="text-gray-700">
-                                            {evento.descripcion}
-                                        </p>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        </div>
-
-                        {/* Columna derecha: Registro */}
-                        <div>
-                            <Card className="shadow-sm sticky top-4">
-                                <CardContent className="p-6">
-                                    <h2 className="text-xl font-medium mb-6">
-                                        Registro
-                                    </h2>
-                                    // En EventoDetalles.jsx
-                                    <div className="mt-4 bg-blue-50 p-4 rounded-lg">
-                                        <h3 className="font-medium text-blue-800 mb-2">
-                                            Capacidad del evento
-                                        </h3>
-                                        <div className="flex items-center">
-                                            <div className="w-full bg-gray-200 rounded-full h-2.5">
+                                    {/* Capacity display */}
+                                    {capacidad && (
+                                        <div className="px-6 py-3 bg-gray-50">
+                                            <div className="flex items-center justify-between mb-1">
+                                                <span className="text-sm text-gray-600">
+                                                    Capacity
+                                                </span>
+                                                <span className="text-sm font-medium">
+                                                    {confirmedAttendees}/
+                                                    {capacidad} places
+                                                </span>
+                                            </div>
+                                            <div className="w-full bg-gray-200 rounded-full h-2">
                                                 <div
-                                                    className={`h-2.5 rounded-full ${
-                                                        asistenciasConfirmadas >=
-                                                        evento.capacidad
+                                                    className={`h-2 rounded-full ${
+                                                        confirmedAttendees >=
+                                                        capacidad
                                                             ? "bg-red-600"
                                                             : "bg-blue-600"
                                                     }`}
                                                     style={{
                                                         width: `${Math.min(
-                                                            (asistenciasConfirmadas /
-                                                                evento.capacidad) *
+                                                            (confirmedAttendees /
+                                                                capacidad) *
                                                                 100,
                                                             100
                                                         )}%`,
                                                     }}
                                                 ></div>
                                             </div>
-                                            <span className="ml-3 text-sm font-medium">
-                                                {asistenciasConfirmadas}/
-                                                {evento.capacidad} lugares
-                                            </span>
-                                        </div>
 
-                                        {asistenciasConfirmadas >=
-                                            evento.capacidad && (
-                                            <p className="mt-2 text-red-600 text-sm">
-                                                ¡Este evento ha alcanzado su
-                                                capacidad máxima!
-                                            </p>
-                                        )}
-                                    </div>
-                                    <InfoItem
-                                        icon={MapPin}
-                                        label="Ubicación"
-                                        value={
-                                            evento.location?.name ||
-                                            (typeof evento.location ===
-                                                "object" &&
-                                                evento.location.name) ||
-                                            (typeof evento.location === "string"
-                                                ? evento.location
-                                                : "Ubicación por confirmar")
-                                        }
-                                        link={{
-                                            href: route(
-                                                "eventos.location",
+                                            {confirmedAttendees >=
+                                                capacidad && (
+                                                <p className="mt-1 text-red-600 text-sm">
+                                                    ¡Este evento ha alcanzado su
+                                                    capacidad máxima!
+                                                </p>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    {/* Register button */}
+                                    <div className="p-6">
+                                        <Link
+                                            href={route(
+                                                "eventos.registro.form",
                                                 evento.id
-                                            ),
-                                            text: "Ver mapa",
-                                        }}
-                                    />
-                                    <p className="text-sm text-muted-foreground mt-4 mb-6">
-                                        Asegura tu lugar en este evento
-                                        registrándote ahora.
-                                    </p>
-                                    <Link
-                                        href={route(
-                                            "eventos.registro.form",
-                                            evento.id
-                                        )}
-                                    >
-                                        <Button
-                                            type="button"
-                                            disabled={
-                                                asistenciasConfirmadas >=
-                                                evento.capacity
-                                            }
-                                            className={`px-4 py-2 rounded-md ${
-                                                asistenciasConfirmadas >=
-                                                evento.capacity
-                                                    ? "bg-gray-400 cursor-not-allowed"
-                                                    : "bg-blue-600 hover:bg-blue-700"
-                                            } text-white`}
+                                            )}
                                         >
-                                            {asistenciasConfirmadas >=
-                                            evento.capacidad
-                                                ? "Evento sin cupo disponible"
-                                                : "Registrarme al evento"}
-                                        </Button>
-                                    </Link>
+                                            <Button
+                                                className={`w-full py-3 rounded-md ${
+                                                    confirmedAttendees >=
+                                                    capacidad
+                                                        ? "bg-gray-400 cursor-not-allowed"
+                                                        : "bg-orange-600 hover:bg-orange-700"
+                                                } text-white font-medium`}
+                                                disabled={
+                                                    confirmedAttendees >=
+                                                    capacidad
+                                                }
+                                            >
+                                                {confirmedAttendees >= capacidad
+                                                    ? "Evento sin cupo disponible"
+                                                    : "Reserve a spot"}
+                                            </Button>
+                                        </Link>
+
+                                        <div className="flex justify-center mt-4">
+                                            <Button className="bg-white text-gray-600 hover:bg-gray-50 px-4 py-2 flex items-center gap-2 mr-3">
+                                                <Share2 className="h-4 w-4" />
+                                                <span>Share</span>
+                                            </Button>
+
+                                            <Button className="bg-white text-gray-600 hover:bg-gray-50 px-4 py-2 flex items-center gap-2">
+                                                <DownloadIcon className="h-4 w-4" />
+                                                <span>Save</span>
+                                            </Button>
+                                        </div>
+                                    </div>
                                 </CardContent>
                             </Card>
+
+                            {/* Organizer Information */}
+                            <div className="mt-6">
+                                <h3 className="text-xl font-bold mb-4">
+                                    Organized by
+                                </h3>
+                                <div className="flex items-center justify-between mb-3">
+                                    <div className="flex items-center">
+                                        <div className="w-10 h-10 bg-gray-200 rounded-full overflow-hidden mr-3">
+                                            <img
+                                                src={
+                                                    evento.organizador
+                                                        ?.imagen ||
+                                                    "/placeholder-organizer.jpg"
+                                                }
+                                                alt="Organizador"
+                                                className="w-full h-full object-cover"
+                                                onError={(e) => {
+                                                    e.target.onerror = null;
+                                                    e.target.src =
+                                                        "/placeholder-organizer.jpg";
+                                                }}
+                                            />
+                                        </div>
+                                        <div>
+                                            <p className="font-medium">
+                                                {evento.organizador?.persona
+                                                    ?.nombres ||
+                                                    evento.organizador?.persona
+                                                        ?.nombre_completo ||
+                                                    (evento.organizador &&
+                                                        evento.organizador
+                                                            .name) ||
+                                                    "CEATVCC"}
+                                            </p>
+                                            <p className="text-sm text-gray-600">
+                                                {evento.organizador
+                                                    ?.eventos_organizados ||
+                                                    0}{" "}
+                                                events hosted
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <Button className="bg-blue-600 hover:bg-blue-700 text-white rounded-md px-4 py-2">
+                                        Contact
+                                    </Button>
+                                </div>
+
+                                <Button className="bg-blue-600 hover:bg-blue-700 text-white rounded-md px-4 py-2 w-full mt-2">
+                                    Follow
+                                </Button>
+                            </div>
                         </div>
                     </div>
                 </div>

@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { Head, Link, useForm } from "@inertiajs/react";
-import { Card, CardContent } from "@/Components/Card";
-import { Button } from "@/Components/Button";
-import { Input } from "@/Components/Input";
+import { Card, CardContent } from "@/Components/ui/Card";
+import { Button } from "@/Components/ui/Button";
+import { Input } from "@/Components/ui/Input";
 import MainLayout from "@/Layouts/MainLayout";
 
 export default function RegistroEvento({ evento, empresas }) {

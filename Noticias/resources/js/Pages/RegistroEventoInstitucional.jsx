@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 import { Link, useForm } from "@inertiajs/inertia-react";
 import MainLayout from "@/Layouts/MainLayout";
-import InputError from "@/Components/InputError";
-import InputLabel from "@/Components/InputLabel";
-import TextInput from "@/Components/TextInput";
-import PrimaryButton from "@/Components/PrimaryButton";
-import SecondaryButton from "@/Components/SecondaryButton";
+import InputError from "@/Components/ui/InputError";
+import InputLabel from "@/Components/ui/InputLabel";
+import TextInput from "@/Components/ui/TextInput";
+import PrimaryButton from "@/Components/ui/PrimaryButton";
+import SecondaryButton from "@/Components/ui/SecondaryButton";
 import TrashIcon from "@/Components/icons/TrashIcon";
 
 export default function RegistroEventoInstitucional({

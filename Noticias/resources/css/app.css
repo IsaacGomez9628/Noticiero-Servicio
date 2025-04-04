@@ -1,3 +1,295 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer utilities {
+    .text-contrast-light {
+        @apply text-gray-800 dark:text-gray-100;
+    }
+
+    .text-contrast-medium {
+        @apply text-gray-700 dark:text-gray-300;
+    }
+
+    .text-contrast-subtle {
+        @apply text-gray-600 dark:text-gray-400;
+    }
+
+    .bg-active {
+        @apply bg-gradient-to-r from-blue-600 to-indigo-600 text-white;
+    }
+
+    .bg-hover-adaptive {
+        @apply hover:bg-gray-100 dark:hover:bg-gray-800;
+    }
+
+    .icon-active {
+        @apply text-white;
+    }
+
+    .icon-inactive {
+        @apply text-gray-500 dark:text-gray-400;
+    }
+}
+
+@layer base {
+    :root {
+        --background: 210 40% 98%;
+        --foreground: 222 47% 11%;
+
+        --card: 0 0% 100%;
+        --card-foreground: 222 47% 11%;
+
+        --popover: 0 0% 100%;
+        --popover-foreground: 222 47% 11%;
+
+        --primary: 221 83% 53%;
+        --primary-foreground: 210 40% 98%;
+
+        --secondary: 210 40% 96%;
+        --secondary-foreground: 222 47% 11%;
+
+        --muted: 210 40% 96%;
+        --muted-foreground: 215 16% 47%;
+
+        --accent: 221 83% 53%;
+        --accent-foreground: 210 40% 98%;
+
+        --destructive: 0 84% 60%;
+        --destructive-foreground: 210 40% 98%;
+
+        --border: 214 32% 91%;
+        --input: 214 32% 91%;
+        --ring: 221 83% 53%;
+
+        --radius: 0.75rem;
+    }
+
+    .dark {
+        --background: 222 47% 11%;
+        --foreground: 210 40% 98%;
+
+        --card: 222 47% 11%;
+        --card-foreground: 210 40% 98%;
+
+        --popover: 222 47% 11%;
+        --popover-foreground: 210 40% 98%;
+
+        --primary: 217 91% 60%;
+        --primary-foreground: 222 47% 11%;
+
+        --secondary: 217 33% 17%;
+        --secondary-foreground: 210 40% 98%;
+
+        --muted: 217 33% 17%;
+        --muted-foreground: 215 20% 65%;
+
+        --accent: 217 91% 60%;
+        --accent-foreground: 210 40% 98%;
+
+        --destructive: 0 63% 31%;
+        --destructive-foreground: 210 40% 98%;
+
+        --border: 217 33% 17%;
+        --input: 217 33% 17%;
+        --ring: 224 76% 48%;
+    }
+}
+
+@layer base {
+    * {
+        @apply border-border;
+    }
+    body {
+        @apply bg-background text-foreground;
+        font-feature-settings: "rlig" 1, "calt" 1;
+    }
+}
+
+/* Clases de componentes personalizados */
+@layer components {
+    /* Clases para el dashboard */
+    .dashboard-card {
+        @apply relative overflow-hidden rounded-xl border bg-white dark:bg-gray-800 text-card-foreground shadow-sm transition-all duration-200 hover:shadow-md;
+    }
+
+    .dashboard-stat-card {
+        @apply dashboard-card flex flex-col gap-4;
+    }
+
+    .dashboard-stat-icon {
+        @apply h-14 w-14 rounded-full flex items-center justify-center;
+    }
+
+    .dashboard-event-card {
+        @apply dashboard-card overflow-hidden mb-12 hover:shadow-lg transition-all duration-300 mx-4 md:mx-6;
+    }
+
+    .dashboard-event-header {
+        @apply p-8 pt-10 border-b flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4;
+    }
+
+    .dashboard-event-content {
+        @apply p-8 pl-10 flex flex-col gap-8;
+    }
+
+    .dashboard-event-footer {
+        @apply p-8 py-10 border-t bg-gray-50 dark:bg-gray-700/50 flex justify-between;
+    }
+
+    .status-badge {
+        @apply inline-flex items-center rounded-full px-4 py-1.5 text-sm font-medium;
+    }
+
+    .status-pending {
+        @apply bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300;
+    }
+
+    .status-completed {
+        @apply bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300;
+    }
+
+    .status-cancelled {
+        @apply bg-rose-100 text-rose-800 dark:bg-rose-900/30 dark:text-rose-300;
+    }
+
+    /* Gradientes y textos */
+    .gradient-text {
+        @apply bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600;
+    }
+
+    .gradient-bg {
+        @apply bg-gradient-to-r from-blue-600 to-indigo-600 text-white;
+    }
+
+    /* Estilos para iconos */
+    .icon-wrapper {
+        @apply flex items-center justify-center rounded-full p-2 transition-all duration-200;
+    }
+
+    .icon-blue {
+        @apply bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-300;
+    }
+
+    .icon-purple {
+        @apply bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-300;
+    }
+
+    .icon-orange {
+        @apply bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-300;
+    }
+
+    .icon-green {
+        @apply bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-300;
+    }
+
+    .icon-teal {
+        @apply bg-teal-100 text-teal-600 dark:bg-teal-900/30 dark:text-teal-300;
+    }
+
+    /* Estilos para tags */
+    .tag-blue {
+        @apply bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 rounded-full;
+    }
+
+    .tag-purple {
+        @apply bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300 rounded-full;
+    }
+
+    .tag-pink {
+        @apply bg-pink-100 text-pink-800 dark:bg-pink-900/30 dark:text-pink-300 rounded-full;
+    }
+
+    .tag-orange {
+        @apply bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300 rounded-full;
+    }
+
+    .tag-green {
+        @apply bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 rounded-full;
+    }
+
+    .tag-teal {
+        @apply bg-teal-100 text-teal-800 dark:bg-teal-900/30 dark:text-teal-300 rounded-full;
+    }
+}
+
+/* Animaciones para el buscador */
+@keyframes expandSearch {
+    from {
+        width: 0;
+        opacity: 0;
+    }
+    to {
+        width: 100%;
+        opacity: 1;
+    }
+}
+
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Ocultar scrollbar pero mantener funcionalidad */
+.hide-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+
+.hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+/* Efectos para tarjetas y secciones */
+.card-hover-effect {
+    transition: all 0.3s ease;
+}
+
+.card-hover-effect:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.1),
+        0 8px 10px -6px rgba(59, 130, 246, 0.1);
+}
+
+.gradient-text {
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+    background-image: linear-gradient(to right, #3b82f6, #14b8a6);
+}
+
+.section-divider {
+    height: 4px;
+    width: 60px;
+    background: linear-gradient(to right, #3b82f6, #14b8a6);
+    border-radius: 2px;
+    margin: 1rem auto;
+}
+
+/* Animación para iconos */
+.icon-pulse {
+    animation: iconPulse 2s infinite;
+}
+
+@keyframes iconPulse {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* Animación de hover para los enlaces del navbar */
+.group:hover .group-hover\:w-full {
+    width: 100%;
+}

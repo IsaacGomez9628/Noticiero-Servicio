@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { Card, CardContent } from "@/Components/Card";
-import { Button } from "@/Components/Button";
+import { Card, CardContent } from "@/Components/ui/Card";
+import { Button } from "@/Components/ui/Button";
 import { Link } from "@inertiajs/react";
 import MainLayout from "@/Layouts/MainLayout";
-import RegistroEventoModal from "@/Components/ModalRegistro";
+import RegistroEventoModal from "@/Components/ui/ModalRegistro";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import {

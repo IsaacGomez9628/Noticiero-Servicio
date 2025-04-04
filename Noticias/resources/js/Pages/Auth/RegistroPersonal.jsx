@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { Link, useForm } from "@inertiajs/react";
 import LoginLayout from "@/Layouts/LoginLayout";
-import InputError from "@/Components/InputError";
-import InputLabel from "@/Components/InputLabel";
-import TextInput from "@/Components/TextInput";
-import Checkbox from "@/Components/Checkbox";
-import PrimaryButton from "@/Components/PrimaryButton";
-import SecondaryButton from "@/Components/SecondaryButton";
-import Notification from "@/Components/Notification";
+import InputError from "@/Components/ui/InputError";
+import InputLabel from "@/Components/ui/InputLabel";
+import TextInput from "@/Components/ui/TextInput";
+import Checkbox from "@/Components/ui/Checkbox";
+import PrimaryButton from "@/Components/ui/PrimaryButton";
+import SecondaryButton from "@/Components/ui/SecondaryButton";
+import Notification from "@/Components/ui/Notification";
 
 export default function RegistroPersonal({
     errors: pageErrors = {},

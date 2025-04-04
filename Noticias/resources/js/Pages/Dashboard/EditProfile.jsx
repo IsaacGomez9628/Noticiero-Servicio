@@ -1,8 +1,8 @@
 import React from "react";
 import { useForm, usePage } from "@inertiajs/react";
 import DashboardLayout from "@/Layouts/DashboardLayout";
-import { Input } from "@/Components/Input";
-import { Button } from "@/Components/Button";
+import { Input } from "@/Components/ui/Input";
+import { Button } from "@/Components/ui/ButtonDashboard";
 
 export default function EditProfile({ user, person, phone, genders }) {
     const { flash } = usePage().props;

@@ -77,7 +77,7 @@ class EventController extends Controller
      */
     public function show($id)
     {
-        $evento = Event::with(['location', 'organizer'])->findOrFail($id);
+        $evento = Event::with(['location.city', 'location.estate', 'organizer'])->findOrFail($id);
         
         // Contar asistencias confirmadas
         $asistenciasConfirmadas = EventAttendance::where('event_id', $id)
@@ -86,8 +86,38 @@ class EventController extends Controller
             })
             ->count();
         
+        // Transformar el evento para incluir la información de ubicación correctamente
+        $eventoData = [
+            'id' => $evento->id,
+            'titulo' => $evento->titule,
+            'descripcion' => $evento->description,
+            'fecha_inicio' => $evento->start_date,
+            'hora' => $evento->start_time,
+            'capacity' => $evento->capacity,
+            'organizador' => [
+                'persona' => [
+                    'nombre_completo' => $evento->organizer->name,
+                ],
+            ],
+            'direccion' => [
+                'direccion_completa' => $evento->location->direction . ', ' . 
+                    ($evento->location->city ? $evento->location->city->name : '') . ', ' . 
+                    ($evento->location->estate ? $evento->location->estate->name : ''),
+            ],
+            'location' => [
+                'name' => $evento->location->name,
+                'direction' => $evento->location->direction,
+                'city' => $evento->location->city ? $evento->location->city->name : '',
+                'estate' => $evento->location->estate ? $evento->location->estate->name : '',
+                'country' => $evento->location->country,
+                'latitude' => $evento->location->latitude,
+                'length' => $evento->location->length,
+                'link_google_maps' => $evento->location->link_google_maps,
+            ],
+        ];
+        
         return Inertia::render('EventoDetalles', [
-            'evento' => $evento,
+            'evento' => $eventoData,
             'asistenciasConfirmadas' => $asistenciasConfirmadas
         ]);
     }
@@ -98,14 +128,14 @@ class EventController extends Controller
     public function location($id)
     {
         try {
-            $evento = Event::with(['location', 'location.images'])->findOrFail($id);
+            $evento = Event::with(['location.city', 'location.estate', 'location.images'])->findOrFail($id);
             
             $locationData = [
                 'id' => $evento->location->id,
                 'name' => $evento->location->name,
                 'direction' => $evento->location->direction,
-                'city' => $evento->location->city,
-                'estate' => $evento->location->estate,
+                'city' => $evento->location->city ? $evento->location->city->name : '',
+                'estate' => $evento->location->estate ? $evento->location->estate->name : '',
                 'country' => $evento->location->country,
                 'zip_code' => $evento->location->zip_code,
                 'latitude' => $evento->location->latitude,

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link } from "@inertiajs/react";
 import LoginLayout from "@/Layouts/LoginLayout";
-import { Button } from "@/Components/Button";
+import { Button } from "@/Components/ui/Button";
 
 export default function Registro() {
     const [tipoRegistro, setTipoRegistro] = useState(null);

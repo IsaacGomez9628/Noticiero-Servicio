@@ -1,8 +1,8 @@
 import React from "react";
 import { Link } from "@inertiajs/inertia-react";
 import MainLayout from "@/Layouts/MainLayout";
-import EventoCard from "@/Components/EventoCard";
-import AsistenteRow from "@/Components/AsistenteRow";
+import EventoCard from "@/Components/ui/EventoCard";
+import AsistenteRow from "@/Components/ui/AsistenteRow";
 
 export default function Institucional({
     usuario,

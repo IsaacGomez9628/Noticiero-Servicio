@@ -1,12 +1,12 @@
 import React from "react";
 import { Link } from "@inertiajs/react";
 import { Search } from "lucide-react";
-import { Input } from "@/Components/Input";
+import { Input } from "@/Components/ui/Input";
 import Secretaria from "@/assets/Logo_SecretariaDeEducacion.png";
 import Ceat from "@/assets/Logo_CEATyCC.png";
 import { useState, useRef, useEffect } from "react";
 import { User } from "lucide-react";
-import { Button } from "@/Components/Button";
+import { Button } from "@/Components/ui/Button";
 import { AnimatePresence, motion } from "framer-motion";
 
 export default function MainLayout({ children, selectedTab = null }) {

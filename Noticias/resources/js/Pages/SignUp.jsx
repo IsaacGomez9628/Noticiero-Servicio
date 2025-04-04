@@ -1,8 +1,5 @@
-import { AlertCircle, Bell, Bookmark, Search, User } from "lucide-react";
-import { Link } from "@inertiajs/react";
-import { Input } from "@/Components/Input";
-import { Button } from "@/Components/Button";
-import sedeq from "@/assets/SEDEQ.jpg";
+import { Input } from "@/Components/ui/Input";
+import { Button } from "@/Components/ui/Button";
 import { useState } from "react";
 import MainLayout from "@/Layouts/MainLayout";
 
