@@ -5,17 +5,33 @@ import { Search, Menu, X } from "lucide-react";
 import Logo_CEATyCC from "@/assets/Logo_CEATyCC.png";
 import Logo_SecretariaDeEducacion from "@/assets/Logo_SecretariaDeEducacion.png";
 
-export default function Header() {
+export default function AnimatedHeader() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isSearchOpen, setIsSearchOpen] = useState(false);
     const menuRef = useRef(null);
     const searchRef = useRef(null);
+    const logoRef = useRef(null);
 
     // Usaremos auth del contexto de Inertia
     const isAuthenticated = false; // Esto debe venir de tus props o estado de autenticación
     const user = isAuthenticated
         ? { name: "Usuario", email: "usuario@ejemplo.com" }
         : null;
+
+    // Animación del logo al cargar la página
+    useEffect(() => {
+        const logoElement = logoRef.current;
+        if (logoElement) {
+            logoElement.style.transform = "translateX(-100px)";
+            logoElement.style.opacity = "0";
+
+            setTimeout(() => {
+                logoElement.style.transition = "all 0.8s ease-out";
+                logoElement.style.transform = "translateX(0)";
+                logoElement.style.opacity = "1";
+            }, 300);
+        }
+    }, []);
 
     useEffect(() => {
         function handleClickOutside(event) {
@@ -37,12 +53,13 @@ export default function Header() {
     }, []);
 
     return (
-        <header className="bg-blue-50 h-50 border-b">
+        <header className="bg-blue-50 border-b">
             {/* Parte superior: Logos, buscador e icono de usuario */}
             <div className="container mx-auto px-4 py-3 flex items-center justify-between border-b border-gray-100">
                 <Link
                     href="/"
                     className="text-2xl font-bold text-primary flex items-center space-x-3"
+                    ref={logoRef}
                 >
                     <img
                         src={Logo_SecretariaDeEducacion}
@@ -82,7 +99,6 @@ export default function Header() {
                         </AnimatePresence>
 
                         <button
-                            variant="ghost"
                             onClick={() => setIsSearchOpen(!isSearchOpen)}
                             className="rounded-full p-2 hover:bg-blue-50 transition-colors"
                             aria-label="Buscar"
@@ -94,7 +110,6 @@ export default function Header() {
                     {/* Menú hamburguesa */}
                     <div className="relative" ref={menuRef}>
                         <button
-                            variant="ghost"
                             onClick={() => setIsMenuOpen(!isMenuOpen)}
                             className="rounded-full p-2 hover:bg-blue-50 transition-colors"
                             aria-label="Menú"
@@ -143,9 +158,15 @@ export default function Header() {
                                     >
                                         Eventos
                                     </Link>
+                                    <Link
+                                        href="/noticias"
+                                        className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 transition-colors"
+                                    >
+                                        Noticias
+                                    </Link>
 
+                                    {/* Usuario autenticado */}
                                     {isAuthenticated ? (
-                                        // Opciones adicionales para usuario autenticado
                                         <>
                                             <div className="border-t border-gray-100 mt-2 pt-2">
                                                 <Link

@@ -208,9 +208,9 @@ class RegistroController extends Controller
             'fecha_nacimiento' => [
                 'nullable',
                 'date',
-                'before:today',                      // No permitir fechas futuras
-                'after:'.Carbon::now()->subYears(100)->toDateString(),  // No permitir edades irreales (> 100 años)
-                'before:'.Carbon::now()->subYears(self::MIN_AGE)->toDateString(),  // Debe tener al menos MIN_AGE años
+                'before:today',                     
+                'after:'.Carbon::now()->subYears(100)->toDateString(), 
+                'before:'.Carbon::now()->subYears(self::MIN_AGE)->toDateString(),  
             ],
             'genero' => 'nullable|in:M,F,Otro',
             'email' => [

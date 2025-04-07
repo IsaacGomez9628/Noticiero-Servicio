@@ -7,6 +7,8 @@ import {
     User,
     Flag,
     Cloud,
+    Award,
+    ChevronRight,
 } from "lucide-react";
 import { Link, usePage } from "@inertiajs/react";
 import { Button } from "@/Components/ui/Button";
@@ -20,8 +22,10 @@ import { Navigation, Autoplay } from "swiper/modules";
 import { Bookmark as BookmarkIcon } from "lucide-react";
 import MainLayout from "@/Layouts/MainLayout";
 import ObjectivesSection from "@/Components/Home/ObjectivesSection";
+// Importa el componente FadeInSection
+import FadeInSection from "@/Components/Home/FadeInSection";
 
-// Importa las imágenes para las noticias principales
+// Importaciones de imágenes (mantenidas igual que en tu código original)
 import img1 from "@/assets/img1.jpeg";
 import img2 from "@/assets/img2.png";
 import img4 from "@/assets/img4.jpg";
@@ -30,7 +34,7 @@ import img6 from "@/assets/img6.png";
 import img7 from "@/assets/img7.png";
 import sedeq from "@/assets/SEDEQ.jpg";
 
-// Importa las imágenes para "Lo más nuevo"
+// Imágenes para "Lo más nuevo"
 import img16 from "@/assets/img16.jpg";
 import img17 from "@/assets/img17.jpg";
 import img18 from "@/assets/img18.jpg";
@@ -38,7 +42,7 @@ import img19 from "@/assets/img19.jpg";
 import img20 from "@/assets/img20.jpg";
 import img21 from "@/assets/img21.jpg";
 
-// Importa las imágenes para "Tendencia"
+// Imágenes para "Tendencia"
 import img10 from "@/assets/img10.jpg";
 import img11 from "@/assets/img11.jpg";
 import img12 from "@/assets/img12.jpg";
@@ -46,7 +50,7 @@ import img13 from "@/assets/img13.jpg";
 import img14 from "@/assets/img14.jpg";
 import img15 from "@/assets/img15.jpg";
 
-// Importa las imágenes del equipo
+// Imágenes del equipo
 import miembroImg2 from "@/assets/lira.png";
 import miembroImg5 from "@/assets/hugo.png";
 import miembroImg4 from "@/assets/mlg.png";
@@ -65,7 +69,7 @@ export default function Welcome() {
     const [showLogoutSuccess, setShowLogoutSuccess] = useState(false);
     const { flash } = usePage().props;
 
-    // Efecto para detectar mensajes flash o parámetros de URL
+    // Efecto para detectar mensajes flash o parámetros de URL (mantenido igual)
     useEffect(() => {
         // Verificar flash messages
         console.log("Flash props:", flash);
@@ -126,7 +130,6 @@ export default function Welcome() {
         }
     }, [flash]);
 
-    // Noticias para la sección "Presentando"
     const newsArticles = [
         {
             id: 1,
@@ -273,7 +276,7 @@ export default function Welcome() {
         },
     ];
 
-    // Función para formatear la fecha y hora
+    // Funciones de formateo (mantenidas igual)
     const formatDate = (dateString) => {
         if (!dateString) return "Fecha por definir";
         const date = new Date(dateString);
@@ -293,7 +296,8 @@ export default function Welcome() {
         });
     };
 
-    // Miembros del equipo para la sección Quiénes Somos
+    // Datos de miembros del equipo (mantenidos igual
+
     const teamMembers = [
         {
             id: 10,
@@ -380,7 +384,7 @@ export default function Welcome() {
 
     return (
         <MainLayout>
-            {/* Notificación premium de inicio de sesión exitoso */}
+            {/* Notificaciones (mantenidas igual) */}
             {showLoginSuccess && (
                 <div className="fixed top-5 left-1/2 transform -translate-x-1/2 z-50 min-w-96">
                     <div className="bg-white backdrop-blur-sm bg-opacity-95 border-l-4 border-green-500 rounded-lg shadow-xl px-6 py-4 flex items-center justify-between">
@@ -433,7 +437,7 @@ export default function Welcome() {
                 </div>
             )}
 
-            {/* Notificación premium de cierre de sesión */}
+            {/* Notificación de cierre de sesión (mantenida igual) */}
             {showLogoutSuccess && (
                 <div className="fixed top-5 left-1/2 transform -translate-x-1/2 z-50 min-w-96">
                     <div className="bg-white backdrop-blur-sm bg-opacity-95 border-l-4 border-blue-500 rounded-lg shadow-xl px-6 py-4 flex items-center justify-between">
@@ -488,351 +492,424 @@ export default function Welcome() {
 
             <div className="min-h-screen bg-gray-50">
                 <main className="container mx-auto px-4 py-8">
-                    <Tabs defaultValue="featured" className="space-y-6">
-                        <TabsList className="bg-blue-100 p-1 rounded-full">
-                            <TabsTrigger
-                                value="featured"
-                                className="rounded-full data-[state=active]:bg-blue-600 data-[state=active]:text-white"
-                            >
-                                Presentando
-                            </TabsTrigger>
-                            <TabsTrigger
-                                value="latest"
-                                className="rounded-full data-[state=active]:bg-blue-600 data-[state=active]:text-white"
-                            >
-                                Lo más nuevo
-                            </TabsTrigger>
-                            <TabsTrigger
-                                value="trending"
-                                className="rounded-full data-[state=active]:bg-blue-600 data-[state=active]:text-white"
-                            >
-                                Tendencia
-                            </TabsTrigger>
-                        </TabsList>
+                    {/* Título principal con animación de entrada */}
+                    <FadeInSection>
+                        <div className="text-center max-w-3xl mx-auto mb-10">
+                            <h1 className="text-4xl md:text-5xl font-bold mb-6 gradient-text">
+                                Mantente informado con las últimas noticias
+                            </h1>
+                            <div className="section-divider"></div>
+                            <p className="text-lg text-gray-600 mt-6">
+                                Toda la actualidad, análisis y opinión de las
+                                noticias más relevantes a nivel nacional e
+                                internacional.
+                            </p>
+                        </div>
+                    </FadeInSection>
 
-                        {/* Contenido para "Presentando" */}
-                        <TabsContent value="featured">
-                            <Swiper
-                                modules={[Navigation, Autoplay]}
-                                navigation
-                                autoplay={{ delay: 3000 }}
-                                spaceBetween={30}
-                                slidesPerView={1}
-                                className="w-full h-80"
-                            >
-                                {newsArticles.map((article) => (
-                                    <SwiperSlide key={article.id}>
-                                        <Card className="overflow-hidden">
-                                            <div className="grid md:grid-cols-2 gap-6">
-                                                <div className="relative h-64 md:h-full">
+                    {/* Tabs con animación */}
+                    <FadeInSection delay={100}>
+                        <Tabs defaultValue="featured" className="space-y-6">
+                            <TabsList className="bg-blue-100 p-1 rounded-full">
+                                <TabsTrigger
+                                    value="featured"
+                                    className="rounded-full data-[state=active]:bg-blue-600 data-[state=active]:text-white"
+                                >
+                                    Presentando
+                                </TabsTrigger>
+                                <TabsTrigger
+                                    value="latest"
+                                    className="rounded-full data-[state=active]:bg-blue-600 data-[state=active]:text-white"
+                                >
+                                    Lo más nuevo
+                                </TabsTrigger>
+                                <TabsTrigger
+                                    value="trending"
+                                    className="rounded-full data-[state=active]:bg-blue-600 data-[state=active]:text-white"
+                                >
+                                    Tendencia
+                                </TabsTrigger>
+                            </TabsList>
+
+                            {/* Contenido para "Presentando" */}
+                            <TabsContent value="featured">
+                                <Swiper
+                                    modules={[Navigation, Autoplay]}
+                                    navigation
+                                    autoplay={{ delay: 3000 }}
+                                    spaceBetween={30}
+                                    slidesPerView={1}
+                                    className="w-full h-80"
+                                >
+                                    {newsArticles.map((article) => (
+                                        <SwiperSlide key={article.id}>
+                                            <Card className="overflow-hidden">
+                                                <div className="grid md:grid-cols-2 gap-6">
+                                                    <div className="relative h-64 md:h-full">
+                                                        <img
+                                                            src={article.image}
+                                                            alt={article.title}
+                                                            className="object-cover w-full h-full"
+                                                        />
+                                                    </div>
+                                                    <CardContent className="p-6">
+                                                        <h2 className="text-2xl font-bold">
+                                                            {article.title}
+                                                        </h2>
+                                                        <p className="text-muted-foreground">
+                                                            {
+                                                                article.description
+                                                            }
+                                                        </p>
+                                                        <Button className="mt-4">
+                                                            Leer Más
+                                                        </Button>
+                                                    </CardContent>
+                                                </div>
+                                            </Card>
+                                        </SwiperSlide>
+                                    ))}
+                                </Swiper>
+                            </TabsContent>
+
+                            {/* Contenido para "Lo más nuevo" con animaciones escalonadas */}
+                            <TabsContent value="latest">
+                                <div className="grid md:grid-cols-2 gap-6">
+                                    {latestArticles.map((article, index) => (
+                                        <FadeInSection
+                                            key={article.id}
+                                            delay={index * 100}
+                                            direction={
+                                                index % 2 === 0
+                                                    ? "left"
+                                                    : "right"
+                                            }
+                                        >
+                                            <Card className="overflow-hidden card-hover-effect">
+                                                <div className="relative h-48">
                                                     <img
                                                         src={article.image}
                                                         alt={article.title}
-                                                        className="object-cover w-full h-full"
+                                                        className="object-cover h-full w-full"
                                                     />
                                                 </div>
                                                 <CardContent className="p-6">
-                                                    <h2 className="text-2xl font-bold">
+                                                    <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                                                        <span>
+                                                            {article.category}
+                                                        </span>
+                                                        <span>
+                                                            • {article.readTime}
+                                                        </span>
+                                                    </div>
+                                                    <h3 className="text-xl font-bold mb-2">
                                                         {article.title}
-                                                    </h2>
-                                                    <p className="text-muted-foreground">
+                                                    </h3>
+                                                    <p className="text-muted-foreground mb-3">
                                                         {article.description}
                                                     </p>
-                                                    <Button className="mt-4">
-                                                        Leer Más
-                                                    </Button>
+                                                    <div className="flex items-center space-x-4">
+                                                        <Button>
+                                                            Leer Más
+                                                        </Button>
+                                                        <Button
+                                                            variant="outline"
+                                                            size="icon"
+                                                        >
+                                                            <Bookmark className="h-4 w-4" />
+                                                        </Button>
+                                                    </div>
                                                 </CardContent>
-                                            </div>
-                                        </Card>
-                                    </SwiperSlide>
-                                ))}
-                            </Swiper>
-                        </TabsContent>
+                                            </Card>
+                                        </FadeInSection>
+                                    ))}
+                                </div>
+                            </TabsContent>
 
-                        {/* Contenido para "Lo más nuevo" - CONTENIDO INTEGRADO */}
-                        <TabsContent value="latest">
-                            <div className="grid md:grid-cols-2 gap-6">
-                                {latestArticles.map((article) => (
-                                    <Card
-                                        key={article.id}
-                                        className="overflow-hidden"
+                            {/* Contenido para "Tendencia" con animaciones escalonadas */}
+                            <TabsContent value="trending">
+                                <div className="grid md:grid-cols-2 gap-6">
+                                    {trendArticles.map((article, index) => (
+                                        <FadeInSection
+                                            key={article.id}
+                                            delay={index * 100}
+                                            direction={
+                                                index % 2 === 0
+                                                    ? "left"
+                                                    : "right"
+                                            }
+                                        >
+                                            <Card className="overflow-hidden card-hover-effect">
+                                                <div className="relative h-48">
+                                                    <img
+                                                        src={article.image}
+                                                        alt={article.title}
+                                                        className="object-cover h-full w-full"
+                                                    />
+                                                </div>
+                                                <CardContent className="p-6">
+                                                    <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                                                        <span>
+                                                            {article.category}
+                                                        </span>
+                                                        <span>
+                                                            • {article.readTime}
+                                                        </span>
+                                                    </div>
+                                                    <h3 className="text-xl font-bold mb-2">
+                                                        {article.title}
+                                                    </h3>
+                                                    <p className="text-muted-foreground mb-3">
+                                                        {article.description}
+                                                    </p>
+                                                    <div className="flex items-center space-x-4">
+                                                        <Button>
+                                                            Leer Más
+                                                        </Button>
+                                                        <Button
+                                                            variant="outline"
+                                                            size="icon"
+                                                        >
+                                                            <Bookmark className="h-4 w-4" />
+                                                        </Button>
+                                                    </div>
+                                                </CardContent>
+                                            </Card>
+                                        </FadeInSection>
+                                    ))}
+                                </div>
+                            </TabsContent>
+                        </Tabs>
+                    </FadeInSection>
+
+                    {/* Sección de eventos con animación de entrada */}
+                    <FadeInSection delay={200}>
+                        <section className="mt-12">
+                            <div className="flex items-center justify-between mb-6">
+                                <div className="flex items-center gap-2">
+                                    <div className="icon-wrapper icon-blue">
+                                        <Award size={20} />
+                                    </div>
+                                    <h2 className="text-2xl font-bold">
+                                        Próximos Eventos
+                                    </h2>
+                                </div>
+                                <Link href="/eventos">
+                                    <Button
+                                        variant="outline"
+                                        className="flex items-center gap-2"
                                     >
+                                        <span>Ver Todos</span>
+                                        <ChevronRight size={16} />
+                                    </Button>
+                                </Link>
+                            </div>
+
+                            <div className="grid md:grid-cols-2 gap-6">
+                                {/* Primer evento con animación desde la izquierda */}
+                                <FadeInSection direction="left" delay={250}>
+                                    <Card className="overflow-hidden card-hover-effect">
                                         <div className="relative h-48">
                                             <img
-                                                src={article.image}
-                                                alt={article.title}
+                                                src={img6}
+                                                alt="Imagen del evento"
                                                 className="object-cover h-full w-full"
                                             />
                                         </div>
                                         <CardContent className="p-6">
-                                            <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                                                <span>{article.category}</span>
-                                                <span>
-                                                    • {article.readTime}
-                                                </span>
-                                            </div>
                                             <h3 className="text-xl font-bold mb-2">
-                                                {article.title}
+                                                Conferencia de Tecnología
                                             </h3>
                                             <p className="text-muted-foreground mb-3">
-                                                {article.description}
+                                                Únete a nosotros para explorar
+                                                las últimas tendencias en
+                                                tecnología.
                                             </p>
-                                            <div className="flex items-center space-x-4">
-                                                <Button>Leer Más</Button>
-                                                <Button
-                                                    variant="outline"
-                                                    size="icon"
-                                                >
-                                                    <Bookmark className="h-4 w-4" />
-                                                </Button>
-                                            </div>
+                                            <Link href="/eventos/1">
+                                                <Button>Ver Detalles</Button>
+                                            </Link>
                                         </CardContent>
                                     </Card>
-                                ))}
-                            </div>
-                        </TabsContent>
+                                </FadeInSection>
 
-                        {/* Contenido para "Tendencia" - CONTENIDO INTEGRADO */}
-                        <TabsContent value="trending">
-                            <div className="grid md:grid-cols-2 gap-6">
-                                {trendArticles.map((article) => (
-                                    <Card
-                                        key={article.id}
-                                        className="overflow-hidden"
-                                    >
+                                {/* Segundo evento con animación desde la derecha */}
+                                <FadeInSection direction="right" delay={300}>
+                                    <Card className="overflow-hidden card-hover-effect">
                                         <div className="relative h-48">
                                             <img
-                                                src={article.image}
-                                                alt={article.title}
+                                                src={img7}
+                                                alt="Imagen del evento"
                                                 className="object-cover h-full w-full"
                                             />
                                         </div>
                                         <CardContent className="p-6">
-                                            <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                                                <span>{article.category}</span>
-                                                <span>
-                                                    • {article.readTime}
-                                                </span>
-                                            </div>
                                             <h3 className="text-xl font-bold mb-2">
-                                                {article.title}
+                                                Workshop de Desarrollo Web
                                             </h3>
                                             <p className="text-muted-foreground mb-3">
-                                                {article.description}
+                                                Aprende las mejores prácticas
+                                                para el desarrollo web moderno.
                                             </p>
-                                            <div className="flex items-center space-x-4">
-                                                <Button>Leer Más</Button>
-                                                <Button
-                                                    variant="outline"
-                                                    size="icon"
-                                                >
-                                                    <Bookmark className="h-4 w-4" />
-                                                </Button>
-                                            </div>
+                                            <Link href="/eventos/2">
+                                                <Button>Ver Detalles</Button>
+                                            </Link>
                                         </CardContent>
                                     </Card>
-                                ))}
+                                </FadeInSection>
                             </div>
-                        </TabsContent>
-                    </Tabs>
+                        </section>
+                    </FadeInSection>
 
-                    {/* Sección de eventos que se mantiene fija */}
-                    <section className="mt-12">
-                        <div className="flex items-center justify-between mb-6">
-                            <h2 className="text-2xl font-bold">
-                                Próximos Eventos
-                            </h2>
-                            <Link href="/eventos">
-                                <Button variant="outline">Ver Todos</Button>
-                            </Link>
-                        </div>
-
-                        <div className="grid md:grid-cols-2 gap-6">
-                            {/* Aquí podrías mostrar 2 eventos destacados */}
-                            <Card className="overflow-hidden">
-                                <div className="relative h-48">
-                                    <img
-                                        src={img6}
-                                        alt="Imagen del evento"
-                                        className="object-cover h-full w-full"
-                                    />
-                                </div>
-                                <CardContent className="p-6">
-                                    <h3 className="text-xl font-bold mb-2">
-                                        Conferencia de Tecnología
-                                    </h3>
-                                    <p className="text-muted-foreground mb-3">
-                                        Únete a nosotros para explorar las
-                                        últimas tendencias en tecnología.
-                                    </p>
-                                    <Link href="/eventos/1">
-                                        <Button>Ver Detalles</Button>
-                                    </Link>
-                                </CardContent>
-                            </Card>
-
-                            <Card className="overflow-hidden">
-                                <div className="relative h-48">
-                                    <img
-                                        src={img7}
-                                        alt="Imagen del evento"
-                                        className="object-cover h-full w-full"
-                                    />
-                                </div>
-                                <CardContent className="p-6">
-                                    <h3 className="text-xl font-bold mb-2">
-                                        Workshop de Desarrollo Web
-                                    </h3>
-                                    <p className="text-muted-foreground mb-3">
-                                        Aprende las mejores prácticas para el
-                                        desarrollo web moderno.
-                                    </p>
-                                    <Link href="/eventos/2">
-                                        <Button>Ver Detalles</Button>
-                                    </Link>
-                                </CardContent>
-                            </Card>
-                        </div>
-                    </section>
-
-                    {/* Sección ¿Quiénes somos? - Misión y Visión */}
-                    {/* Sección ¿Quiénes somos? - Misión y Visión */}
+                    {/* Sección ¿Quiénes somos? - Misión y Visión con animaciones */}
                     <section className="mt-16 py-16 relative overflow-hidden">
-                        {/* Fondo con patrón sutil */}
+                        {/* Fondo con patrón sutil (mantenido igual) */}
                         <div className="absolute inset-0 bg-gradient-to-b from-gray-50 to-white opacity-70 z-0"></div>
                         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiMzYjgyZjYiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PHBhdGggZD0iTTM2IDM0aDR2MWgtNHYtMXptMC0yaDF2NGgtMXYtNHptMi0yaDF2MWgtMXYtMXptLTIgMmgxdjFoLTF2LTF6bS0yLTJoMXYxaC0xdi0xem0yLTJoMXYxaC0xdi0xem0tMiAyaDF2MWgtMXYtMXptLTItMmgxdjFoLTF2LTF6Ii8+PC9nPjwvZz48L3N2Zz4=')] opacity-50 z-0"></div>
 
                         <div className="container mx-auto px-4 relative z-10">
-                            <div className="text-center mb-16">
-                                <h2 className="text-5xl font-bold text-gray-900 mb-4">
-                                    ¿Quiénes somos?
-                                </h2>
-                                <div className="w-24 h-1 bg-gradient-to-r from-blue-600 to-teal-500 mx-auto rounded-full"></div>
-                            </div>
+                            <FadeInSection>
+                                <div className="text-center mb-16">
+                                    <h2 className="text-5xl font-bold text-gray-900 mb-4">
+                                        ¿Quiénes somos?
+                                    </h2>
+                                    <div className="w-24 h-1 bg-gradient-to-r from-blue-600 to-teal-500 mx-auto rounded-full"></div>
+                                </div>
+                            </FadeInSection>
 
                             <div className="grid md:grid-cols-2 gap-10 mb-20">
-                                {/* Misión */}
-                                <div className="rounded-2xl overflow-hidden shadow-xl transform hover:-translate-y-2 transition-all duration-300">
-                                    <div className="bg-gradient-to-r from-blue-800 to-blue-600 p-1">
-                                        <div className="bg-gradient-to-r from-blue-800 to-blue-600 p-8 text-white">
-                                            <div className="flex items-center mb-6">
-                                                <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center mr-4">
-                                                    <Flag className="w-8 h-8" />
-                                                </div>
-                                                <h3 className="text-3xl font-bold">
-                                                    Misión
-                                                </h3>
-                                            </div>
-                                            <p className="text-lg leading-relaxed">
-                                                Fomentar la educación y el
-                                                desarrollo de habilidades en
-                                                alta tecnología y Cloud
-                                                Computing, impulsando la
-                                                innovación y el conocimiento
-                                                para preparar a estudiantes y
-                                                profesionales para un entorno
-                                                digital en constante evolución.
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Visión */}
-                                <div className="rounded-2xl overflow-hidden shadow-xl transform hover:-translate-y-2 transition-all duration-300">
-                                    <div className="bg-gradient-to-r from-teal-700 to-teal-500 p-1">
-                                        <div className="bg-gradient-to-r from-teal-700 to-teal-500 p-8 text-white">
-                                            <div className="flex items-center mb-6">
-                                                <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center mr-4">
-                                                    <Cloud className="w-8 h-8" />
-                                                </div>
-                                                <h3 className="text-3xl font-bold">
-                                                    Visión
-                                                </h3>
-                                            </div>
-                                            <p className="text-lg leading-relaxed">
-                                                Ser un líder referente en la
-                                                promoción de la educación y la
-                                                adopción de alta tecnología y
-                                                Cloud Computing, contribuyendo
-                                                al crecimiento de una sociedad
-                                                preparada para enfrentar los
-                                                desafíos tecnológicos del
-                                                futuro.
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </section>
-
-                    <ObjectivesSection />
-
-                    {/* Sección Quiénes Somos - Miembros del equipo */}
-                    <section className="mt-16 py-16 bg-gradient-to-b from-gray-50 to-blue-50 rounded-lg">
-                        <div className="container mx-auto px-4">
-                            <div className="text-center mb-12">
-                                <h2 className="text-4xl font-bold text-gray-900 mb-4">
-                                    Nuestro Equipo
-                                </h2>
-                                <div className="w-24 h-1 bg-gradient-to-r from-blue-600 to-teal-500 mx-auto rounded-full mb-6"></div>
-                                <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-                                    Somos un grupo dinámico de individuos
-                                    apasionados por lo que hacemos y dedicados a
-                                    entregar los mejores resultados para
-                                    nuestros clientes.
-                                </p>
-                            </div>
-
-                            <Swiper
-                                modules={[Navigation, Autoplay]}
-                                navigation
-                                autoplay={{ delay: 5000 }}
-                                spaceBetween={30}
-                                slidesPerView={1}
-                                breakpoints={{
-                                    640: {
-                                        slidesPerView: 2,
-                                    },
-                                    1024: {
-                                        slidesPerView: 4,
-                                    },
-                                }}
-                                className="w-full"
-                            >
-                                {teamMembers.map((member) => (
-                                    <SwiperSlide key={member.id}>
-                                        <div className="relative overflow-hidden rounded-lg bg-white shadow-lg transform transition-transform duration-300 hover:shadow-xl hover:scale-105 h-full">
-                                            <div className="h-64 relative overflow-hidden">
-                                                <img
-                                                    src={member.image}
-                                                    alt={member.name}
-                                                    className="w-full h-full object-cover object-center transition-transform duration-500 hover:scale-110"
-                                                />
-                                                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none"></div>
-                                                <div className="absolute bottom-0 left-0 p-4 text-white">
-                                                    <h3 className="text-xl font-bold">
-                                                        {member.name}
+                                {/* Misión con animación desde la izquierda */}
+                                <FadeInSection direction="left" delay={100}>
+                                    <div className="rounded-2xl overflow-hidden shadow-xl transform hover:-translate-y-2 transition-all duration-300">
+                                        <div className="bg-gradient-to-r from-blue-800 to-blue-600 p-1">
+                                            <div className="bg-gradient-to-r from-blue-800 to-blue-600 p-8 text-white">
+                                                <div className="flex items-center mb-6">
+                                                    <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center mr-4">
+                                                        <Flag className="w-8 h-8" />
+                                                    </div>
+                                                    <h3 className="text-3xl font-bold">
+                                                        Misión
                                                     </h3>
-                                                    <p className="text-white/90">
-                                                        {member.title}
-                                                    </p>
-                                                    <p className="text-white/80 text-sm">
-                                                        {member.location}
-                                                    </p>
                                                 </div>
-                                            </div>
-                                            <div className="p-4">
-                                                <p className="text-gray-700 text-sm line-clamp-3">
-                                                    {member.description}
+                                                <p className="text-lg leading-relaxed">
+                                                    Fomentar la educación y el
+                                                    desarrollo de habilidades en
+                                                    alta tecnología y Cloud
+                                                    Computing, impulsando la
+                                                    innovación y el conocimiento
+                                                    para preparar a estudiantes
+                                                    y profesionales para un
+                                                    entorno digital en constante
+                                                    evolución.
                                                 </p>
                                             </div>
                                         </div>
-                                    </SwiperSlide>
-                                ))}
-                            </Swiper>
+                                    </div>
+                                </FadeInSection>
+
+                                {/* Visión con animación desde la derecha */}
+                                <FadeInSection direction="right" delay={200}>
+                                    <div className="rounded-2xl overflow-hidden shadow-xl transform hover:-translate-y-2 transition-all duration-300">
+                                        <div className="bg-gradient-to-r from-teal-700 to-teal-500 p-1">
+                                            <div className="bg-gradient-to-r from-teal-700 to-teal-500 p-8 text-white">
+                                                <div className="flex items-center mb-6">
+                                                    <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center mr-4">
+                                                        <Cloud className="w-8 h-8" />
+                                                    </div>
+                                                    <h3 className="text-3xl font-bold">
+                                                        Visión
+                                                    </h3>
+                                                </div>
+                                                <p className="text-lg leading-relaxed">
+                                                    Ser un líder referente en la
+                                                    promoción de la educación y
+                                                    la adopción de alta
+                                                    tecnología y Cloud
+                                                    Computing, contribuyendo al
+                                                    crecimiento de una sociedad
+                                                    preparada para enfrentar los
+                                                    desafíos tecnológicos del
+                                                    futuro.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </FadeInSection>
+                            </div>
                         </div>
                     </section>
+
+                    {/* Sección de objetivos con animación */}
+                    <FadeInSection delay={300}>
+                        <ObjectivesSection />
+                    </FadeInSection>
+
+                    {/* Sección del equipo con animación */}
+                    <FadeInSection delay={400}>
+                        <section className="mt-16 py-16 bg-gradient-to-b from-gray-50 to-blue-50 rounded-lg">
+                            <div className="container mx-auto px-4">
+                                <div className="text-center mb-12">
+                                    <h2 className="text-4xl font-bold text-gray-900 mb-4">
+                                        Nuestro Equipo
+                                    </h2>
+                                    <div className="w-24 h-1 bg-gradient-to-r from-blue-600 to-teal-500 mx-auto rounded-full mb-6"></div>
+                                    <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+                                        Somos un grupo dinámico de individuos
+                                        apasionados por lo que hacemos y
+                                        dedicados a entregar los mejores
+                                        resultados para nuestros clientes.
+                                    </p>
+                                </div>
+
+                                <Swiper
+                                    modules={[Navigation, Autoplay]}
+                                    navigation
+                                    autoplay={{ delay: 5000 }}
+                                    spaceBetween={30}
+                                    slidesPerView={1}
+                                    breakpoints={{
+                                        640: {
+                                            slidesPerView: 2,
+                                        },
+                                        1024: {
+                                            slidesPerView: 4,
+                                        },
+                                    }}
+                                    className="w-full"
+                                >
+                                    {teamMembers.map((member) => (
+                                        <SwiperSlide key={member.id}>
+                                            <div className="relative overflow-hidden rounded-lg bg-white shadow-lg transform transition-transform duration-300 hover:shadow-xl hover:scale-105 h-full">
+                                                <div className="h-64 relative overflow-hidden">
+                                                    <img
+                                                        src={member.image}
+                                                        alt={member.name}
+                                                        className="w-full h-full object-cover object-center transition-transform duration-500 hover:scale-110"
+                                                    />
+                                                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none"></div>
+                                                    <div className="absolute bottom-0 left-0 p-4 text-white">
+                                                        <h3 className="text-xl font-bold">
+                                                            {member.name}
+                                                        </h3>
+                                                        <p className="text-white/90">
+                                                            {member.title}
+                                                        </p>
+                                                        <p className="text-white/80 text-sm">
+                                                            {member.location}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <div className="p-4">
+                                                    <p className="text-gray-700 text-sm line-clamp-3">
+                                                        {member.description}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </SwiperSlide>
+                                    ))}
+                                </Swiper>
+                            </div>
+                        </section>
+                    </FadeInSection>
                 </main>
             </div>
         </MainLayout>

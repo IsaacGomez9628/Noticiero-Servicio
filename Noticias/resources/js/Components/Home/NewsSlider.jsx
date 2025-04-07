@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
-export default function NewsSlider({ articles }) {
+export default function AnimatedNewsSlider({ articles }) {
     const [currentIndex, setCurrentIndex] = useState(0);
 
     // Auto-rotate slides
@@ -45,18 +46,27 @@ export default function NewsSlider({ articles }) {
                                     className="object-cover w-full h-full"
                                 />
                             </div>
-                            <div className="p-6 flex flex-col justify-center bg-white">
-                                <h2 className="text-2xl font-bold">
+                            <div className="p-6 flex flex-col justify-center bg-white dark:bg-gray-800">
+                                <span
+                                    className={`status-badge tag-${
+                                        articles[currentIndex].categoryColor ||
+                                        "blue"
+                                    } px-3 py-1 mb-2 inline-flex self-start`}
+                                >
+                                    {articles[currentIndex].category}
+                                </span>
+                                <h2 className="text-2xl font-bold text-contrast-light">
                                     {articles[currentIndex].title}
                                 </h2>
-                                <p className="text-gray-600 my-4">
+                                <p className="text-contrast-medium my-4">
                                     {articles[currentIndex].description}
                                 </p>
                                 <a
-                                    href="#"
-                                    className="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:bg-blue-700 active:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150 self-start"
+                                    href={`/noticias/${articles[currentIndex].id}`}
+                                    className="gradient-bg px-4 py-2 rounded-lg text-white text-sm font-medium transition-all duration-200 hover:shadow-md self-start inline-flex items-center"
                                 >
                                     Leer Más
+                                    <ChevronRight size={16} className="ml-1" />
                                 </a>
                             </div>
                         </div>
@@ -69,19 +79,7 @@ export default function NewsSlider({ articles }) {
                 className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-black/80 text-white rounded-full p-2 shadow-md z-10 hover:bg-black transition-colors"
                 aria-label="Anterior"
             >
-                <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                >
-                    <path d="M15 18l-6-6 6-6" />
-                </svg>
+                <ChevronLeft size={24} />
             </button>
 
             <button
@@ -89,19 +87,7 @@ export default function NewsSlider({ articles }) {
                 className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-black/80 text-white rounded-full p-2 shadow-md z-10 hover:bg-black transition-colors"
                 aria-label="Siguiente"
             >
-                <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                >
-                    <path d="M9 18l6-6-6-6" />
-                </svg>
+                <ChevronRight size={24} />
             </button>
 
             <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
