@@ -29,59 +29,28 @@ class EmailVerification extends Mailable
     public $token;
 
     /**
-     * Create a new message instance.
      *
      * @param \App\Models\User $user
      * @param string $token
      * @return void
      */
-    // public function __construct(User $user, string $token)
-    // {
-    //     // $this->user = $user;
-    //     // $this->token = $token;
-    // }
+    public function __construct(User $user, string $token)
+    {
+        $this->user = $user;
+        $this->token = $token;
+    }
 
-    // /**
-    //  * Get the message envelope.
-    //  *
-    //  * @return \Illuminate\Mail\Mailables\Envelope
-    //  */
-    // public function envelope()
-    // {
-    //     return new Envelope(
-    //         subject: 'Verifica tu dirección de correo electrónico',
-    //     );
-    // }
-
-    // /**
-    //  * Get the message content definition.
-    //  *
-    //  * @return \Illuminate\Mail\Mailables\Content
-    //  */
-    // public function content()
-    // {
-    //     return new Content(
-    //         view: 'emails.verification',
-    //     );
-    // }
-
-    // /**
-    //  * Get the attachments for the message.
-    //  *
-    //  * @return array
-    //  */
-    // public function attachments()
-    // {
-    //     return [];
-    // }
-
+    /**
+     * Build the message.
+     *
+     * @return $this
+     */
     public function build()
     {
-        return $this->view('emails.email-verify');
-
-        // // ->with([
-        //     'user' => $this->user,
-        //     'token' => $this->token,
-        // // ]
+        return $this->view('emails.email-verify')
+                    ->with([
+                        'user' => $this->user,
+                        'token' => $this->token,
+                    ]);
     }
 }

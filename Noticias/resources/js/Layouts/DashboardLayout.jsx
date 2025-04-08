@@ -25,7 +25,9 @@ export default function DashboardLayout({
     currentView,
 }) {
     const { auth } = usePage().props;
-    const [userName, setUserName] = useState(auth?.user?.name || "Usuario");
+    const [userName, setUserName] = useState(
+        auth?.user?.full_name || "Usuario"
+    );
     const [userEmail, setUserEmail] = useState(
         auth?.user?.email || "usuario@ejemplo.com"
     );
@@ -46,7 +48,7 @@ export default function DashboardLayout({
 
         // Set user name and email if available
         if (auth && auth.user) {
-            setUserName(auth.user.name || "Usuario");
+            setUserName(auth.user.full_name || "Usuario");
             setUserEmail(auth.user.email || "usuario@ejemplo.com");
         }
 

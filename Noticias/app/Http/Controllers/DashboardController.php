@@ -67,6 +67,8 @@ class DashboardController extends Controller
         // Contar próximos eventos
         $upcomingEventsCount = Event::whereDate('start_date', '>=', now())
             ->count();
+
+        
         
         return Inertia::render('Dashboard', [
             'eventAttendances' => $eventAttendances,
@@ -110,9 +112,8 @@ class DashboardController extends Controller
         }
 
         // Obtener el nombre del usuario
-        $userName = Auth::person()->name;
-        
-        $user = User::find(Auth::id());
+        $user = Auth::user();
+        $userName = $user->person ? $user->person->getFullNameAttribute() : $user->email;
         
         // Obtener las asistencias del usuario
         $eventAttendances = EventAttendance::where('user_id', $user->id)

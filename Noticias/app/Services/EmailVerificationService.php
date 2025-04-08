@@ -2,41 +2,49 @@
 
 namespace App\Services;
 
-use App\Models\EmailVerificationToken;
 use App\Models\User;
+use App\Models\EmailVerificationToken;
+use App\Mail\EmailVerification;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
-use Illuminate\View\View;
 
 class EmailVerificationService
 {
     /**
-     * Generate a new verification token for the user.
+     * Generate a random 5-digit token
      *
-     * @param User $user
      * @return string
      */
-    public function generateToken(User $user): string
+    public function generateToken(): string
     {
-        // Delete any existing tokens for this user
+        return str_pad(mt_rand(1, 99999), 5, '0', STR_PAD_LEFT);
+    }
+
+    /**
+     *
+     * @param User $user
+     * @return string Token created
+     */
+    public function createToken(User $user): string
+    {
+        $token = $this->generateToken();
+
+        $expiresAt = Carbon::now()->addHours(24);
+
         EmailVerificationToken::where('user_id', $user->id)->delete();
-        
-        // Generate a random 5-digit token
-        $token = str_pad(random_int(0, 99999), 5, '0', STR_PAD_LEFT);
-        
-        // Store the token with an expiration time (24 hours)
+
         EmailVerificationToken::create([
             'user_id' => $user->id,
             'token' => $token,
-            'expires_at' => Carbon::now()->addHours(24),
+            'expires_at' => $expiresAt
         ]);
         
         return $token;
     }
-    
+
     /**
-     * Send the verification email to the user.
+     * Send a verification email to the user
      *
      * @param User $user
      * @return void
@@ -44,81 +52,54 @@ class EmailVerificationService
     public function sendVerificationEmail(User $user): void
     {
         try {
-            $token = $this->generateToken($user);
+
+            $token = $this->createToken($user);
             
-            // Log token for development/debugging (remove in production)
-            Log::info("Verification token for {$user->email}: {$token}");
+            Mail::to($user->email)
+                ->send(new EmailVerification($user, $token));
             
-            // Verificar si la vista existe antes de intentar enviar el correo
-            if (!view()->exists('emails.verification')) {
-                Log::error("La vista 'emails.verification' no existe. Usando respaldo.");
-                
-                // En lugar de fallar, guardamos el token y continuamos
-                session()->put('verification_token', $token);
-                session()->put('user_email', $user->email);
-                
-                return;
-            }
-            
-            // Enviar correo con el token
-            Mail::send('emails.verification', ['user' => $user, 'token' => $token], function($message) use ($user) {
-                $message->to($user->email, $user->name)
-                        ->subject('Verifica tu dirección de correo electrónico');
-            });
+            Log::info("Verification email sent to {$user->email} with token {$token}");
         } catch (\Exception $e) {
-            Log::error("Error sending verification email: " . $e->getMessage());
-            
-            // Guardamos el token en la sesión como respaldo
-            session()->put('verification_token', $token);
-            session()->put('user_email', $user->email);
+            Log::error("Failed to send verification email to {$user->email}: {$e->getMessage()}");
+            throw $e;
         }
     }
-    
+
     /**
-     * Verify the token for the given user.
+     * Verify a token for a user
      *
-     * @param User $user
-     * @param string $token
-     * @return bool
+     * @param string $email User's email
+     * @param string $token Token to verify
+     * @return bool Whether verification was successful
      */
-    public function verifyToken(User $user, string $token): bool
+    public function verifyToken(string $email, string $token): bool
     {
+        $user = User::where('email', $email)->first();
+        
+        if (!$user) {
+            Log::warning("Verification attempt failed: User with email {$email} not found");
+            return false;
+        }
+        
         $verificationToken = EmailVerificationToken::where('user_id', $user->id)
             ->where('token', $token)
             ->first();
-            
+        
         if (!$verificationToken) {
-            // Verificar si estamos usando el token de respaldo en sesión
-            $sessionToken = session('verification_token');
-            $sessionEmail = session('user_email');
-            
-            if ($sessionToken && $sessionEmail === $user->email && $sessionToken === $token) {
-                // El token coincide con el almacenado en sesión
-                // Marcamos el email como verificado
-                $user->email_verified = true;
-                $user->email_verified_at = now();
-                $user->save();
-                
-                // Limpiamos la sesión
-                session()->forget(['verification_token', 'user_email']);
-                
-                return true;
-            }
-            
+            Log::warning("Verification attempt failed: Invalid token for user {$email}");
             return false;
         }
         
         if ($verificationToken->isExpired()) {
+            Log::warning("Verification attempt failed: Token expired for user {$email}");
             return false;
         }
         
-        // Mark email as verified
-        $user->email_verified = true;
-        $user->email_verified_at = now();
-        $user->save();
-        
-        // Delete token after successful verification
+        $user->markEmailAsVerified();
+  
         $verificationToken->delete();
+        
+        Log::info("User {$email} verified successfully");
         
         return true;
     }

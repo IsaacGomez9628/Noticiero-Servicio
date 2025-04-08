@@ -6,9 +6,9 @@ import {
     DialogHeader,
     DialogTitle,
     DialogFooter,
-} from "@/Components/Dialog";
-import { Button } from "@/Components/Button";
-import InputError from "@/Components/InputError";
+} from "@/Components/ui/Dialog";
+import { Button } from "@/Components/ui/Button";
+import InputError from "@/Components/ui/InputError";
 
 export default function VerificationModal({
     isOpen,
@@ -18,10 +18,9 @@ export default function VerificationModal({
 }) {
     const { data, setData, post, processing, errors, reset } = useForm({
         email: email || "",
-        token: ["", "", "", "", ""], // 5-digit token as array for better input handling
+        token: ["", "", "", "", ""],
     });
 
-    // References for each digit input
     const inputRefs = [
         useRef(null),
         useRef(null),
@@ -103,20 +102,41 @@ export default function VerificationModal({
     const handleSubmit = (e) => {
         e.preventDefault();
 
-        // Combine token digits into a single string
+        if (!Array.isArray(data.token)) {
+            console.error("Token no es un array:", data.token);
+            return;
+        }
+
+        // Combina los dígitos en un único string
         const tokenString = data.token.join("");
 
-        // Verify the token
+        // Verifica que tokenString sea un string no vacío de 5 caracteres
+        if (typeof tokenString !== "string" || tokenString.length !== 5) {
+            console.error("Token inválido:", tokenString);
+            return;
+        }
+
+        console.log(
+            "Enviando token:",
+            tokenString,
+            "Tipo:",
+            typeof tokenString
+        );
+
+        // Envía la verificación
         post(
             route("verification.verify"),
             {
                 email: data.email,
-                token: tokenString,
+                token: String(tokenString),
             },
             {
                 onSuccess: () => {
                     reset();
                     if (onSuccess) onSuccess();
+                },
+                onError: (errors) => {
+                    console.error("Error de verificación:", errors);
                 },
             }
         );

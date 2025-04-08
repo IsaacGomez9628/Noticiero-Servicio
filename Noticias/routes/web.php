@@ -66,8 +66,8 @@ Route::middleware('guest')->group(function () {
         ->name('login.store');
         
     // Rutas de verificación de correo - IMPORTANTE: estas deberían ser accesibles para usuarios no autenticados
-    Route::get('/email/verify', [VerificationController::class, 'notice'])
-        ->name('verification.notice');
+    // Route::get('/email/verify', [VerificationController::class, 'notice'])
+    //     ->name('verification.notice');
         
     Route::post('/email/verify', [VerificationController::class, 'verify'])
         ->name('verification.verify');
@@ -191,9 +191,9 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
 });
 
 // Ruta para cualquier otra URL que debería ser manejada por React Router
-// Route::get('/{any}', [HomeController::class, 'index'])->where('any', '.*');
+Route::get('/{any}', [HomeController::class, 'index'])->where('any', '.*');
 
-Route::get('/test-mail', function () {
-    Mail::to('gr27271593@gmail.com')->send(new EmailVerification());
-    return 'Correo enviado';
-});
+// Route::get('/test-mail', function () {
+//     Mail::to('gr27271593@gmail.com')->send(new EmailVerification());
+//     return 'Correo enviado';
+// });

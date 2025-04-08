@@ -8,6 +8,7 @@ import Checkbox from "@/Components/ui/Checkbox";
 import PrimaryButton from "@/Components/ui/PrimaryButton";
 import SecondaryButton from "@/Components/ui/SecondaryButton";
 import Notification from "@/Components/ui/Notification";
+import VerificationModal from "@/Components/ui/VerificationModal";
 
 export default function RegistroPersonal({
     errors: pageErrors = {},
@@ -18,6 +19,7 @@ export default function RegistroPersonal({
     const [showPassword, setShowPassword] = useState(false);
     const totalSteps = 3;
     const [registroExitoso, setRegistroExitoso] = useState(false);
+    const [showVerificationModal, setShowVerificationModal] = useState(false);
     const [passwordError, setPasswordError] = useState("");
     const [notification, setNotification] = useState({
         message: pageSuccess || pageError || "",
@@ -30,7 +32,7 @@ export default function RegistroPersonal({
     const [paso2Valido, setPaso2Valido] = useState(false);
     const [paso3Valido, setPaso3Valido] = useState(false);
 
-    const { data, setData, post, processing, errors, reset } = useForm({
+    const { data, setData, post, processing, errors } = useForm({
         nombres: "",
         apellido_paterno: "",
         apellido_materno: "",
@@ -142,35 +144,13 @@ export default function RegistroPersonal({
 
     const submit = (e) => {
         e.preventDefault();
-
-        // Validar la contraseña antes de enviar
-        const passwordValidationError = validarPassword(data.password);
-        if (passwordValidationError) {
-            setPasswordError(passwordValidationError);
-            return;
-        }
-
         post(route("registro.personal.store"), {
-            onSuccess: () => {
-                reset();
-                setRegistroExitoso(true);
+            onSuccess: (page) => {
+                setShowVerificationModal(true);
                 setNotification({
                     message:
-                        "Registro exitoso. Serás redirigido al inicio de sesión en unos segundos.",
+                        "Registro exitoso. Por favor verifica tu correo electrónico con el código enviado.",
                     type: "success",
-                    visible: true,
-                });
-
-                // Redireccionar al login después de 5 segundos
-                setTimeout(() => {
-                    window.location.href = route("login");
-                }, 5000);
-            },
-            onError: (errors) => {
-                const errorMessages = Object.values(errors).flat();
-                setNotification({
-                    message: errorMessages.join(", "),
-                    type: "error",
                     visible: true,
                 });
             },
@@ -240,6 +220,18 @@ export default function RegistroPersonal({
                         Ir al inicio de sesión
                     </Link>
                 </div>
+
+                {showVerificationModal && (
+                    <VerificationModal
+                        isOpen={showVerificationModal}
+                        email={data.email}
+                        onClose={() => setShowVerificationModal(false)}
+                        onSuccess={() => {
+                            setShowVerificationModal(false);
+                            window.location.href = route("login");
+                        }}
+                    />
+                )}
             </LoginLayout>
         );
     }
@@ -863,6 +855,19 @@ export default function RegistroPersonal({
                     </Link>
                 </p>
             </div>
+
+            {/* Modal de verificación */}
+            {showVerificationModal && (
+                <VerificationModal
+                    isOpen={showVerificationModal}
+                    email={data.email}
+                    onClose={() => setShowVerificationModal(false)}
+                    onSuccess={() => {
+                        setShowVerificationModal(false);
+                        window.location.href = route("login");
+                    }}
+                />
+            )}
         </LoginLayout>
     );
 }

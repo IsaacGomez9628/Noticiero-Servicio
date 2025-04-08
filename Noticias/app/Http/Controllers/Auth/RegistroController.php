@@ -40,7 +40,7 @@ class RegistroController extends Controller
      * @param EmailVerificationService $emailVerificationService
      * @return void
      */
-    public function __construct(EmailVerificationService $emailVerificationService = null)
+    public function __construct(EmailVerificationService $emailVerificationService)
     {
         $this->emailVerificationService = $emailVerificationService;
         $this->middleware('guest');
@@ -355,28 +355,32 @@ class RegistroController extends Controller
             // Confirmar la transacción
             DB::commit();
             Log::info('Transacción completada exitosamente. Usuario registrado:', ['email' => $request->email]);
-
-            // Enviar correo de verificación si el servicio está disponible
-            // if ($this->emailVerificationService) {
-            //     try {
-            //         $this->emailVerificationService->sendVerificationEmail($user);
-            //         session()->put('email', $user->email);
-                    
-            //         // Redirigir a la página de verificación
-            //         return redirect()->route('login')
-            //             ->with('success', 'Registro exitoso. Ahora puedes iniciar sesión con ' . $request->email);
-            //     } catch (\Exception $e) {
-            //         Log::error('Error al enviar correo de verificación:', ['error' => $e->getMessage()]);
-            //         // Continuar con la redirección normal si falla el envío del correo
-            //     }
-            // }
-
-            $user->markEmailAsVerified();
-            Log::info("Email marcado como verificado automáticamente: " . $user->email);    
-
-            // Redirección normal con Inertia si no hay servicio de verificación
-            session()->flash('registration_success', true);
-            session()->flash('registered_email', $request->email);
+            try {
+                $this->emailVerificationService->sendVerificationEmail($user);
+                
+                // En vez de redireccionar, devolver una respuesta JSON
+                if ($request->wantsJson()) {
+                    return response()->json([
+                        'success' => true,
+                        'email' => $user->email,
+                        'message' => 'Cuenta creada exitosamente. Por favor verifica tu correo electrónico.'
+                    ]);
+                }
+                
+                // Si el cliente no espera JSON, almacenar datos en la sesión y volver a la página anterior
+                return back()->with([
+                    'success' => 'Cuenta creada exitosamente. Por favor verifica tu correo electrónico.',
+                    'registered_email' => $user->email,
+                    'show_verification_modal' => true
+                ]);
+            } catch (\Exception $e) {
+                Log::error('Error al enviar correo de verificación: ' . $e->getMessage());
+                
+                // Si falla el envío, mostrar la página de verificación con una advertencia
+                return redirect()->route('verification.notice')
+                    ->with('warning', 'Tu cuenta ha sido creada, pero hubo un problema al enviar el correo de verificación.')
+                    ->with('email', $user->email);
+            }
 
         } catch (\Exception $e) {
             // Revertir transacción en caso de error
@@ -562,27 +566,31 @@ class RegistroController extends Controller
 
             DB::commit();
 
-            // Enviar correo de verificación si el servicio está disponible
-            // if ($this->emailVerificationService) {
-            //     try {
-            //         $this->emailVerificationService->sendVerificationEmail($user);
-            //         session()->put('email', $user->email);
-                    
-            //         // Redirigir a la página de verificación
-            //         return redirect()->route('login')
-            //             ->with('success', 'Registro institucional exitoso. Ahora puedes iniciar sesión.');
-            //     } catch (\Exception $e) {
-            //         Log::error('Error al enviar correo de verificación institucional:', ['error' => $e->getMessage()]);
-            //         // Continuar con la redirección normal si falla el envío del correo
-            //     }
-            // }
-
-            $user->markEmailAsVerified();
-            Log::info('Correo electrónico verificado para el usuario: ' . $user->email);
-
-            // Redirección normal 
-            return redirect()->route('login')
-                ->with('success', 'Registro institucional exitoso. Ahora puedes iniciar sesión.');
+            // Enviar correo de verificación
+        try {
+            $this->emailVerificationService->sendVerificationEmail($user);
+    
+            // Si la solicitud espera JSON (es una solicitud AJAX/Inertia)
+            if ($request->expectsJson() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Cuenta creada exitosamente. Por favor verifica tu correo electrónico.',
+                    'email' => $user->email
+                ]);
+            }
+            
+            // Si no es una solicitud JSON, redireccionar como antes
+            return redirect()->route('verification.notice')
+                ->with('success', 'Cuenta creada exitosamente. Por favor, verifica tu correo electrónico.')
+                ->with('email', $user->email);
+        } catch (\Exception $e) {
+            Log::error('Error al enviar correo de verificación institucional: ' . $e->getMessage());
+            
+            // Si falla el envío, mostrar la página de verificación con una advertencia
+            return redirect()->route('verification.notice')
+                ->with('warning', 'Tu cuenta institucional ha sido creada, pero hubo un problema al enviar el correo de verificación.')
+                ->with('email', $user->email);
+        }
 
         } catch (\Exception $e) {
             // Revertir transacción en caso de error
