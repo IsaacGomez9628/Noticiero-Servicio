@@ -12,6 +12,7 @@ use App\Http\Controllers\Auth\VerificationController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Eventos\EventController as EventosEventController;
 use App\Http\Controllers\ProfileController;
+use App\Mail\EmailVerification;
 use Illuminate\Support\Facades\Mail;
 
 // Rutas para vistas principales (renderizan la SPA de React)
@@ -193,12 +194,6 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
 // Route::get('/{any}', [HomeController::class, 'index'])->where('any', '.*');
 
 Route::get('/test-mail', function () {
-    $destinatario = 'gr27271593@gmail.com'; // Cambia esto por tu email autorizado en Mailgun
-    
-    Mail::raw('Este es un mensaje de prueba para verificar la configuración SMTP de Mailgun', function ($message) use ($destinatario) {
-        $message->to($destinatario)
-            ->subject('Prueba de configuración SMTP');
-    });
-    
-    return 'Correo enviado a ' . $destinatario . '. Por favor revisa tu bandeja de entrada.';
+    Mail::to('gr27271593@gmail.com')->send(new EmailVerification());
+    return 'Correo enviado';
 });

@@ -60,6 +60,18 @@ class User extends Authenticatable
     {
         return $this->hasOne(Person::class);
     }
+
+    /**
+     * Obtener el nombre completo del usuario
+     */
+    public function getFullNameAttribute()
+    {
+        if ($this->person) {
+            return $this->person->full_name;
+        }
+        
+        return $this->email;
+    }
     
     /**
      * Relación con el estado del usuario

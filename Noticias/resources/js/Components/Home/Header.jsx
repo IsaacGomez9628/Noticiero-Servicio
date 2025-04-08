@@ -1,22 +1,42 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Link } from "@inertiajs/react";
+import { Link, usePage, router } from "@inertiajs/react"; // Añadimos router
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, Menu, X } from "lucide-react";
+import {
+    Search,
+    Menu,
+    X,
+    User,
+    Bell,
+    Calendar,
+    Newspaper,
+    Settings,
+    LogOut,
+} from "lucide-react";
 import Logo_CEATyCC from "@/assets/Logo_CEATyCC.png";
 import Logo_SecretariaDeEducacion from "@/assets/Logo_SecretariaDeEducacion.png";
 
 export default function AnimatedHeader() {
+    // Usar usePage para obtener la información de autenticación
+    const { auth } = usePage().props;
+
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isSearchOpen, setIsSearchOpen] = useState(false);
     const menuRef = useRef(null);
     const searchRef = useRef(null);
     const logoRef = useRef(null);
 
-    // Usaremos auth del contexto de Inertia
-    const isAuthenticated = false; // Esto debe venir de tus props o estado de autenticación
-    const user = isAuthenticated
-        ? { name: "Usuario", email: "usuario@ejemplo.com" }
-        : null;
+    // Usamos auth para determinar si el usuario está autenticado
+    // Hacemos una verificación más estricta para asegurar que realmente tenemos un usuario
+    const isAuthenticated = auth?.user !== undefined && auth?.user !== null;
+    const userName = isAuthenticated
+        ? auth.user.full_name || auth.user.email || "Usuario"
+        : "Invitado";
+
+    // Log para depuración
+    useEffect(() => {
+        console.log("Estado de autenticación:", isAuthenticated);
+        console.log("Datos de usuario:", auth?.user);
+    }, [auth, isAuthenticated]);
 
     // Animación del logo al cargar la página
     useEffect(() => {
@@ -51,6 +71,23 @@ export default function AnimatedHeader() {
             document.removeEventListener("mousedown", handleClickOutside);
         };
     }, []);
+
+    // Función mejorada para el cierre de sesión usando Inertia.js
+    const handleLogout = (e) => {
+        e.preventDefault();
+
+        // Usamos router.post de Inertia.js para hacer un cierre de sesión más controlado
+        router.post(
+            route("logout"),
+            {},
+            {
+                onSuccess: () => {
+                    // Forzar recarga completa para asegurar actualización del estado
+                    window.location.href = "/";
+                },
+            }
+        );
+    };
 
     return (
         <header className="bg-blue-50 border-b">
@@ -124,6 +161,7 @@ export default function AnimatedHeader() {
                         <AnimatePresence>
                             {isMenuOpen && (
                                 <motion.div
+                                    key="menu-dropdown"
                                     initial={{ opacity: 0, y: -10 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     exit={{ opacity: 0, y: -10 }}
@@ -135,10 +173,10 @@ export default function AnimatedHeader() {
                                         <>
                                             <div className="px-4 py-3 border-b border-gray-100">
                                                 <p className="text-sm font-medium text-gray-700">
-                                                    {user?.name || "Usuario"}
+                                                    {userName}
                                                 </p>
                                                 <p className="text-xs text-gray-500 truncate mt-1">
-                                                    {user?.email}
+                                                    {auth?.user?.email}
                                                 </p>
                                             </div>
                                         </>
@@ -154,14 +192,16 @@ export default function AnimatedHeader() {
                                     {/* Opciones comunes para todos los usuarios */}
                                     <Link
                                         href="/eventos"
-                                        className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 transition-colors"
+                                        className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 transition-colors flex items-center"
                                     >
+                                        <Calendar className="h-4 w-4 mr-2" />
                                         Eventos
                                     </Link>
                                     <Link
                                         href="/noticias"
-                                        className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 transition-colors"
+                                        className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 transition-colors flex items-center"
                                     >
+                                        <Newspaper className="h-4 w-4 mr-2" />
                                         Noticias
                                     </Link>
 
@@ -171,23 +211,35 @@ export default function AnimatedHeader() {
                                             <div className="border-t border-gray-100 mt-2 pt-2">
                                                 <Link
                                                     href="/dashboard"
-                                                    className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 transition-colors"
+                                                    className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 transition-colors flex items-center"
                                                 >
-                                                    Dashboard
+                                                    <User className="h-4 w-4 mr-2" />
+                                                    Mi Perfil
                                                 </Link>
                                                 <Link
                                                     href="/mis-asistencias"
-                                                    className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 transition-colors"
+                                                    className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 transition-colors flex items-center"
                                                 >
+                                                    <Bell className="h-4 w-4 mr-2" />
                                                     Mis asistencias
                                                 </Link>
-                                                <button className="block w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 transition-colors">
+                                                <Link
+                                                    href="/preferencias"
+                                                    className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 transition-colors flex items-center"
+                                                >
+                                                    <Settings className="h-4 w-4 mr-2" />
+                                                    Preferencias
+                                                </Link>
+                                                <button
+                                                    onClick={handleLogout}
+                                                    className="block w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 transition-colors flex items-center"
+                                                >
+                                                    <LogOut className="h-4 w-4 mr-2" />
                                                     Cerrar sesión
                                                 </button>
                                             </div>
                                         </>
                                     ) : (
-                                        // Opciones de autenticación para usuario no autenticado
                                         <div className="border-t border-gray-100 mt-2 pt-2">
                                             <Link
                                                 href="/login"

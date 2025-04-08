@@ -69,8 +69,13 @@ class LoginController extends Controller
         
         $request->session()->invalidate();
         $request->session()->regenerateToken();
+
+        if ($request->wantsJson() || $request->header('X-Inertia')) {
+            return redirect()->route('welcome');
+        }
         
         return redirect()->route('welcome', ['logout_success' => 'true'])
-                     ->with('info', 'Sesión cerrada correctamente');
+                     ->with('success', 'Has cerrado sesión correctamente.')
+                     ->with('auth.user', null);;
     }
 }

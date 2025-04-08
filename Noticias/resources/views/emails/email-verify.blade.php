@@ -68,12 +68,12 @@
         </div>
         
         <div class="content">
-            <p>Hola {{ $user->name }},</p>
+            <p>Hola usuario,</p>
             
             <p>Gracias por registrarte. Para completar tu registro y activar tu cuenta, por favor utiliza el siguiente código de verificación:</p>
             
             <div class="verification-code">
-                {{ $token }}
+                token aqui va
             </div>
             
             <p>Este código expirará en 24 horas por razones de seguridad.</p>

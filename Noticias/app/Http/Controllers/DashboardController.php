@@ -108,6 +108,9 @@ class DashboardController extends Controller
             // Redirigir al login si no hay usuario autenticado
             return redirect()->route('login');
         }
+
+        // Obtener el nombre del usuario
+        $userName = Auth::person()->name;
         
         $user = User::find(Auth::id());
         
@@ -174,6 +177,7 @@ class DashboardController extends Controller
             'eventAttendances' => $eventAttendances,
             'stats' => $stats,
             'user' => $user,
+            'userName' => $userName,
         ]);
     }
 }

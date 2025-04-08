@@ -35,43 +35,53 @@ class EmailVerification extends Mailable
      * @param string $token
      * @return void
      */
-    public function __construct(User $user, string $token)
-    {
-        $this->user = $user;
-        $this->token = $token;
-    }
+    // public function __construct(User $user, string $token)
+    // {
+    //     // $this->user = $user;
+    //     // $this->token = $token;
+    // }
 
-    /**
-     * Get the message envelope.
-     *
-     * @return \Illuminate\Mail\Mailables\Envelope
-     */
-    public function envelope()
-    {
-        return new Envelope(
-            subject: 'Verifica tu dirección de correo electrónico',
-        );
-    }
+    // /**
+    //  * Get the message envelope.
+    //  *
+    //  * @return \Illuminate\Mail\Mailables\Envelope
+    //  */
+    // public function envelope()
+    // {
+    //     return new Envelope(
+    //         subject: 'Verifica tu dirección de correo electrónico',
+    //     );
+    // }
 
-    /**
-     * Get the message content definition.
-     *
-     * @return \Illuminate\Mail\Mailables\Content
-     */
-    public function content()
-    {
-        return new Content(
-            view: 'emails.verification',
-        );
-    }
+    // /**
+    //  * Get the message content definition.
+    //  *
+    //  * @return \Illuminate\Mail\Mailables\Content
+    //  */
+    // public function content()
+    // {
+    //     return new Content(
+    //         view: 'emails.verification',
+    //     );
+    // }
 
-    /**
-     * Get the attachments for the message.
-     *
-     * @return array
-     */
-    public function attachments()
+    // /**
+    //  * Get the attachments for the message.
+    //  *
+    //  * @return array
+    //  */
+    // public function attachments()
+    // {
+    //     return [];
+    // }
+
+    public function build()
     {
-        return [];
+        return $this->view('emails.email-verify');
+
+        // // ->with([
+        //     'user' => $this->user,
+        //     'token' => $this->token,
+        // // ]
     }
 }
