@@ -12,6 +12,7 @@ use App\Http\Controllers\Auth\VerificationController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Eventos\EventController as EventosEventController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Middleware\EnsureEmailIsVerified;
 use App\Mail\EmailVerification;
 use Illuminate\Support\Facades\Mail;
 
@@ -91,7 +92,7 @@ Route::get('/noticias', [NoticiaController::class, 'index'])->name('noticias');
 
     
  // Rutas para usuarios autenticados
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', EnsureEmailIsVerified::class])->group(function () {
     // Dashboard y sus funcionalidades
     Route::get('/dashboard', [DashboardController::class, 'index'])
         ->name('dashboard');

@@ -15,9 +15,9 @@
         </div>
         
         <div class="content">
-            <p>Hola {{ $user->person ? $user->person->name : 'usuario' }},</p>
+            <p>Hola {{ is_object($user) && method_exists($user, 'person') && $user->person ? $user->person->name : (is_object($user) && isset($user->email) ? 'usuario' : $user) }},</p>
             
-            <p>Gracias por registrarte. Para completar tu registro y activar tu cuenta, por favor utiliza el siguiente código de verificación:</p>
+            </p>Gracias por registrarte. Para completar tu registro y activar tu cuenta, por favor utiliza el siguiente código de verificación:</p>
             
             <div class="verification-code">
                 {{ $token }}

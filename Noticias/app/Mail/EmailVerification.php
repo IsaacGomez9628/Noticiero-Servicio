@@ -2,7 +2,6 @@
 
 namespace App\Mail;
 
-use App\Models\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
@@ -15,9 +14,9 @@ class EmailVerification extends Mailable
     use Queueable, SerializesModels;
 
     /**
-     * El usuario al que se le envía el email.
+     * El usuario o email al que se le envía el correo.
      *
-     * @var \App\Models\User
+     * @var mixed
      */
     public $user;
 
@@ -29,12 +28,13 @@ class EmailVerification extends Mailable
     public $token;
 
     /**
+     * Crear una nueva instancia del mensaje.
      *
-     * @param \App\Models\User $user
+     * @param mixed $user  Usuario o email para verificación
      * @param string $token
      * @return void
      */
-    public function __construct(User $user, string $token)
+    public function __construct($user, string $token)
     {
         $this->user = $user;
         $this->token = $token;

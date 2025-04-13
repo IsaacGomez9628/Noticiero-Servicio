@@ -25,6 +25,10 @@ import ObjectivesSection from "@/Components/Home/ObjectivesSection";
 // Importa el componente FadeInSection
 import FadeInSection from "@/Components/Home/FadeInSection";
 
+import Logo_CEATyCC from "@/assets/Logo_CEATyCC.png";
+import Fondo_CEATyCC from "@/assets/fondo3.jpg";
+import Fondo_CEATyCC2 from "@/assets/Fondo_electronica2.jpg";
+
 // Importaciones de imágenes (mantenidas igual que en tu código original)
 import img1 from "@/assets/img1.jpeg";
 import img2 from "@/assets/img2.png";
@@ -300,15 +304,6 @@ export default function Welcome() {
 
     const teamMembers = [
         {
-            id: 10,
-            image: Orfelinda,
-            name: "Orfelinda Torres Rivera",
-            title: "Coordinadora ",
-            location: "Querétaro, México",
-            description:
-                "Coordinadora de Educación Superior de la Secretaría de Educación (SEDEQ).",
-        },
-        {
             id: 1,
             image: miembroImg2,
             name: "Ana Laura Lira Cortes",
@@ -493,39 +488,45 @@ export default function Welcome() {
             <div className="min-h-screen bg-gray-50">
                 <main className="container mx-auto px-4 py-8">
                     {/* Título principal con animación de entrada */}
-                    <FadeInSection>
-                        <div className="text-center max-w-3xl mx-auto mb-10">
-                            <h1 className="text-4xl md:text-5xl font-bold mb-6 gradient-text">
-                                Mantente informado con las últimas noticias
-                            </h1>
-                            <div className="section-divider"></div>
-                            <p className="text-lg text-gray-600 mt-6">
-                                Toda la actualidad, análisis y opinión de las
-                                noticias más relevantes a nivel nacional e
-                                internacional.
-                            </p>
+                    <FadeInSection className="flex justify-center items-center px-4 rounded-lg shadow-sm mb-8 relative overflow-hidden">
+                        {/* Background image positioned to fill the entire container width */}
+                        <img
+                            src={Fondo_CEATyCC}
+                            alt="Fondo CEATyCC"
+                            className="absolute inset-0 w-full h-full object-cover opacity-75"
+                        />
+
+                        {/* Subtle glow effect */}
+                        <div className="absolute inset-0 bg-blue-100 blur-md opacity-30"></div>
+
+                        {/* Logo positioned on top */}
+                        <div className="relative z-10 w-full flex justify-center py-8">
+                            <img
+                                src={Logo_CEATyCC}
+                                alt="Logo Comisión de Educación en Alta Tecnología y Cloud Computing"
+                                className="h-auto w-72 object-contain"
+                            />
                         </div>
                     </FadeInSection>
-
                     {/* Tabs con animación */}
                     <FadeInSection delay={100}>
                         <Tabs defaultValue="featured" className="space-y-6">
-                            <TabsList className="bg-blue-100 p-1 rounded-full">
+                            <TabsList className="rounded-full flex justify-end bg-transparent">
                                 <TabsTrigger
                                     value="featured"
-                                    className="rounded-full data-[state=active]:bg-blue-600 data-[state=active]:text-white"
+                                    className="rounded-full p-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white"
                                 >
                                     Presentando
                                 </TabsTrigger>
                                 <TabsTrigger
                                     value="latest"
-                                    className="rounded-full data-[state=active]:bg-blue-600 data-[state=active]:text-white"
+                                    className="rounded-full p-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white"
                                 >
                                     Lo más nuevo
                                 </TabsTrigger>
                                 <TabsTrigger
                                     value="trending"
-                                    className="rounded-full data-[state=active]:bg-blue-600 data-[state=active]:text-white"
+                                    className="rounded-full p-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white"
                                 >
                                     Tendencia
                                 </TabsTrigger>
@@ -845,11 +846,11 @@ export default function Welcome() {
 
                     {/* Sección del equipo con animación */}
                     <FadeInSection delay={400}>
-                        <section className="mt-16 py-16 bg-gradient-to-b from-gray-50 to-blue-50 rounded-lg">
+                        <section className="mt-1 py-16 bg-gradient-to-b from-gray-50 to-blue-50 rounded-lg">
                             <div className="container mx-auto px-4">
                                 <div className="text-center mb-12">
                                     <h2 className="text-4xl font-bold text-gray-900 mb-4">
-                                        Nuestro Equipo
+                                        Miembros de la comisión
                                     </h2>
                                     <div className="w-24 h-1 bg-gradient-to-r from-blue-600 to-teal-500 mx-auto rounded-full mb-6"></div>
                                     <p className="text-xl text-gray-600 max-w-3xl mx-auto">
@@ -858,6 +859,34 @@ export default function Welcome() {
                                         dedicados a entregar los mejores
                                         resultados para nuestros clientes.
                                     </p>
+
+                                    <div className="flex justify-center mt-10">
+                                        <div className="relative overflow-hidden rounded-lg bg-white shadow-lg transform transition-transform duration-300 hover:shadow-xl hover:scale-105 h-full w-[300px]">
+                                            <div className="h-64 relative overflow-hidden">
+                                                <img
+                                                    src={Orfelinda}
+                                                    alt="Maestra Orfelinda"
+                                                    className="w-full h-full object-cover object-center transition-transform duration-500 hover:scale-110"
+                                                />
+                                                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none"></div>
+                                                <div className="absolute bottom-0 left-0 p-4 text-white">
+                                                    <h3 className="text-xl font-bold">
+                                                        Orfelinda Torres Rivera
+                                                    </h3>
+                                                    <p className="text-white/90">
+                                                        Coordinadora
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div className="p-4">
+                                                <p className="text-gray-700 text-sm line-clamp-3">
+                                                    Coordinadora de Educación
+                                                    Superior de la Secretaría de
+                                                    Educación (SEDEQ).
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
 
                                 <Swiper

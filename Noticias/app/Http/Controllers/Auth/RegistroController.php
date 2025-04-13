@@ -9,6 +9,7 @@ use App\Models\Company;
 use App\Models\Contact;
 use App\Models\Gender;
 use App\Models\ListCompany;
+use App\Models\PendingRegistration;
 use App\Services\EmailVerificationService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -16,6 +17,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Schema;
 use Inertia\Inertia;
@@ -216,21 +218,22 @@ class RegistroController extends Controller
             'email' => [
                 'required',
                 'string',
-                'email:rfc,dns',                     // Validación RFC y DNS de correo electrónico
+                'email:rfc,dns',           // Validación RFC y DNS de correo electrónico
                 'max:100',
-                'unique:users,email',
+                'unique:users,email',      // Sólo verificamos usuarios confirmados
+                // Eliminamos 'unique:pending_registrations,email' para permitir reintento
             ],
             'telefono' => [
                 'nullable',
                 'string',
-                'regex:/^[0-9]{10}$/',               // Exactamente 10 dígitos numéricos
+                'regex:/^[0-9]{10}$/',     // Exactamente 10 dígitos numéricos
             ],
             'password' => [
                 'required',
                 'string', 
-                'min:8',                             // Mínimo 8 caracteres
-                'regex:/[a-zA-Z]/',                  // Al menos una letra
-                'regex:/[0-9]/',                     // Al menos un número
+                'min:8',                   // Mínimo 8 caracteres
+                'regex:/[a-zA-Z]/',        // Al menos una letra
+                'regex:/[0-9]/',           // Al menos un número
                 'confirmed'
             ],
         ];
@@ -244,7 +247,7 @@ class RegistroController extends Controller
             'fecha_nacimiento.before' => 'Debes tener al menos ' . self::MIN_AGE . ' años para registrarte.',
             'email.required' => 'El correo electrónico es obligatorio.',
             'email.email' => 'El formato del correo electrónico no es válido.',
-            'email.unique' => 'Este correo electrónico ya está registrado.',
+            'email.unique' => 'Este correo electrónico ya está registrado en el sistema.',
             'telefono.regex' => 'El número telefónico debe tener 10 dígitos.',
             'password.required' => 'La contraseña es obligatoria.',
             'password.min' => 'La contraseña debe tener al menos 8 caracteres.',
@@ -262,348 +265,79 @@ class RegistroController extends Controller
         }
 
         try {
-            // Iniciar transacción
-            DB::beginTransaction();
+            // Verificar si existe un registro pendiente con este email y eliminarlo
+            $existingPending = PendingRegistration::where('email', $request->email)->first();
             
-            Log::info('Iniciando registro de usuario personal: ' . $request->email);
-
-            // 1. Crear el usuario
+            if ($existingPending) {
+                Log::info('Eliminando registro pendiente existente para: ' . $request->email);
+                $existingPending->delete();
+            }
+            
+            // Generar token de 5 dígitos para verificación
+            $token = str_pad(mt_rand(1, 99999), 5, '0', STR_PAD_LEFT);
+            
+            Log::info('Iniciando registro pendiente para usuario personal: ' . $request->email);
+            
+            // Crear registro pendiente con todos los datos del formulario
+            // Excluimos _token, password_confirmation y guardamos password en hash
+            $formData = $request->except(['_token', 'password_confirmation']);
+            $formData['password'] = Hash::make($request->password);
+            
+            $pendingRegistration = PendingRegistration::create([
+                'email' => $request->email,
+                'token' => $token,
+                'registration_data' => $formData,
+                'registration_type' => 'personal',
+                'expires_at' => now()->addHours(24)
+            ]);
+            
+            Log::info('Registro pendiente creado con ID: ' . $pendingRegistration->id);
+            
+            // Enviar correo con token
             try {
-                $statusId = 1; // Suponiendo que 1 es el status "activo"
+                Mail::to($request->email)->send(new \App\Mail\EmailVerification(
+                    (object)['email' => $request->email], // Simulamos un objeto User para compatibilidad
+                    $token
+                ));
                 
-                $user = new User();
-                $user->email = $request->email;
-                $user->password = Hash::make($request->password);
-                $user->email_verified = false;
-                $user->status_id = $statusId;
-                $user->salt = bin2hex(random_bytes(16)); // Generar salt aleatoria
-                $user->save();
+                Log::info('Correo de verificación enviado a ' . $request->email . ' con token ' . $token);
                 
-                Log::info('Usuario creado exitosamente:', ['id' => $user->id, 'email' => $user->email]);
-            } catch (\Exception $e) {
-                Log::error('Error al crear usuario:', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
-                throw new \Exception('Error al crear usuario: ' . $e->getMessage());
-            }
-
-            // 2. Asignar rol personal (5)
-            try {
-                $this->assignUserRole($user->id, 5); // 5 es el ID del rol "Usuario"
-                Log::info('Rol personal (5) asignado al usuario');
-            } catch (\Exception $e) {
-                Log::error('Error al asignar rol personal:', ['error' => $e->getMessage()]);
-                throw new \Exception('Error al asignar rol: ' . $e->getMessage());
-            }
-
-            // 3. Obtener o crear Gender
-            try {
-                $genderCode = $request->genero ?: 'M';
-                $gender = Gender::firstOrCreate(['name' => $genderCode]);
-                Log::info('Gender encontrado/creado:', ['id' => $gender->id, 'name' => $gender->name]);
-            } catch (\Exception $e) {
-                Log::error('Error al obtener/crear gender:', ['error' => $e->getMessage()]);
-                throw new \Exception('Error al obtener género: ' . $e->getMessage());
-            }
-
-            // 4. Calcular la edad
-            $age = 0;
-            if ($request->fecha_nacimiento) {
-                $birthdate = new \DateTime($request->fecha_nacimiento);
-                $today = new \DateTime();
-                $age = $birthdate->diff($today)->y;
-                Log::info('Edad calculada:', ['age' => $age]);
-            }
-
-            // 5. Crear persona
-            try {
-                Log::info('Creando persona...');
-                
-                $person = new Person();
-                $person->name = $request->nombres;
-                $person->last_name = $request->apellido_paterno;
-                $person->second_last_name = $request->apellido_materno ?? '';
-                $person->gender_id = $gender->id;
-                $person->user_id = $user->id;
-                $person->birth_date = $request->fecha_nacimiento ?: now()->subYears(self::MIN_AGE); // Fecha predeterminada
-                $person->age = $age > 0 ? $age : self::MIN_AGE; // Edad mínima por defecto
-                $person->save();
-                
-                Log::info('Persona creada exitosamente:', ['id' => $person->id, 'name' => $person->name]);
-            } catch (\Exception $e) {
-                Log::error('Error al crear persona:', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
-                throw new \Exception('Error al crear persona: ' . $e->getMessage());
-            }
-
-            // 6. Crear contacto si hay teléfono
-            if ($request->telefono) {
-                try {
-                    Log::info('Creando contacto...');
-                    
-                    $contact = new Contact();
-                    $contact->person_id = $person->id;
-                    $contact->email = $request->email;
-                    $contact->phone = $request->telefono;
-                    $contact->deleted = false;
-                    $contact->save();
-                    
-                    Log::info('Contacto creado exitosamente:', ['id' => $contact->id]);
-                } catch (\Exception $e) {
-                    Log::error('Error al crear contacto:', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
-                    throw new \Exception('Error al crear contacto: ' . $e->getMessage());
-                }
-            }
-
-            // Confirmar la transacción
-            DB::commit();
-            Log::info('Transacción completada exitosamente. Usuario registrado:', ['email' => $request->email]);
-            try {
-                $this->emailVerificationService->sendVerificationEmail($user);
-                
-                // En vez de redireccionar, devolver una respuesta JSON
+                // Si el cliente espera JSON (Inertia/AJAX), enviar respuesta adecuada
                 if ($request->wantsJson()) {
                     return response()->json([
                         'success' => true,
-                        'email' => $user->email,
-                        'message' => 'Cuenta creada exitosamente. Por favor verifica tu correo electrónico.'
+                        'email' => $request->email,
+                        'message' => 'Registro iniciado. Por favor verifica tu correo electrónico con el código enviado.'
                     ]);
                 }
                 
-                // Si el cliente no espera JSON, almacenar datos en la sesión y volver a la página anterior
+                // Si no es JSON, mostrar modal de verificación
                 return back()->with([
-                    'success' => 'Cuenta creada exitosamente. Por favor verifica tu correo electrónico.',
-                    'registered_email' => $user->email,
+                    'success' => 'Registro iniciado. Por favor verifica tu correo electrónico.',
+                    'registered_email' => $request->email,
                     'show_verification_modal' => true
                 ]);
+                
             } catch (\Exception $e) {
                 Log::error('Error al enviar correo de verificación: ' . $e->getMessage());
                 
-                // Si falla el envío, mostrar la página de verificación con una advertencia
+                // Si falla el envío, informar al usuario
                 return redirect()->route('verification.notice')
-                    ->with('warning', 'Tu cuenta ha sido creada, pero hubo un problema al enviar el correo de verificación.')
-                    ->with('email', $user->email);
+                    ->with('warning', 'Tu registro ha sido iniciado, pero hubo un problema al enviar el correo de verificación.')
+                    ->with('email', $request->email);
             }
 
         } catch (\Exception $e) {
-            // Revertir transacción en caso de error
-            DB::rollBack();
-            
             // Registrar el error detallado
-            Log::error('Error en registro:', ['message' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+            Log::error('Error en registro pendiente personal:', ['message' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
             
             // Redireccionar con mensaje de error
             return redirect()->back()
-                ->with('error', 'Error al registrar: ' . $e->getMessage())
+                ->with('error', 'Error al iniciar registro: ' . $e->getMessage())
                 ->withInput();
         }
     }
 
-    /**
-     * Procesa el registro de institución/empresa
-     */
-    public function storeInstitucional(Request $request)
-    {
-        // Reglas de validación mejoradas
-        $rules = [
-            'nombre_empresa' => 'required|string|max:100',
-            'descripcion' => 'nullable|string',
-            'nombre_responsable' => 'required|string|max:100',
-            'apellido_paterno' => 'required|string|max:100',
-            'apellido_materno' => 'nullable|string|max:100',
-            'email' => [
-                'required',
-                'string',
-                'email:rfc,dns',                     // Validación RFC y DNS de correo electrónico
-                'max:100',
-                'unique:users,email',
-            ],
-            'telefono' => [
-                'nullable',
-                'string',
-                'regex:/^[0-9]{10}$/',               // Exactamente 10 dígitos numéricos
-            ],
-            'password' => [
-                'required',
-                'string', 
-                'min:8',                             // Mínimo 8 caracteres
-                'regex:/[a-zA-Z]/',                  // Al menos una letra
-                'regex:/[0-9]/',                     // Al menos un número
-                'confirmed'
-            ],
-        ];
-        
-        // Mensajes personalizados
-        $messages = [
-            'nombre_empresa.required' => 'El nombre de la empresa es obligatorio.',
-            'nombre_responsable.required' => 'El nombre del responsable es obligatorio.',
-            'apellido_paterno.required' => 'El apellido paterno es obligatorio.',
-            'email.required' => 'El correo electrónico es obligatorio.',
-            'email.email' => 'El formato del correo electrónico no es válido.',
-            'email.unique' => 'Este correo electrónico ya está registrado.',
-            'telefono.regex' => 'El número telefónico debe tener 10 dígitos.',
-            'password.required' => 'La contraseña es obligatoria.',
-            'password.min' => 'La contraseña debe tener al menos 8 caracteres.',
-            'password.regex' => 'La contraseña debe incluir al menos una letra y un número.',
-            'password.confirmed' => 'Las contraseñas no coinciden.',
-        ];
-        
-        $validator = Validator::make($request->all(), $rules, $messages);
-
-        if ($validator->fails()) {
-            return redirect()->back()->withErrors($validator)->withInput();
-        }
-
-        try {
-            // Iniciar transacción
-            DB::beginTransaction();
-            
-            Log::info('Iniciando registro institucional: ' . $request->email);
-
-            try {
-                $statusId = 1;
-                
-                $user = new User();
-                $user->email = $request->email;
-                $user->password = Hash::make($request->password);
-                $user->email_verified = false;
-                $user->status_id = $statusId;
-                $user->salt = bin2hex(random_bytes(16)); // Generar salt aleatoria
-                $user->save();
-                
-                Log::info('Usuario institucional creado con ID: ' . $user->id);
-            } catch (\Exception $e) {
-                Log::error('Error al crear usuario institucional:', ['error' => $e->getMessage()]);
-                throw new \Exception('Error al crear usuario: ' . $e->getMessage());
-            }
-            
-            // 2. Asignar rol institucional (6)
-            try {
-                $this->assignUserRole($user->id, 6); // 6 es el ID del rol "Institucional"
-                Log::info('Rol institucional (6) asignado al usuario');
-            } catch (\Exception $e) {
-                Log::error('Error al asignar rol institucional:', ['error' => $e->getMessage()]);
-                throw new \Exception('Error al asignar rol: ' . $e->getMessage());
-            }
-
-            // 3. Obtener o crear un género (predeterminado M)
-            $gender = Gender::firstOrCreate(['name' => 'M']);
-
-            // 4. Crear persona (responsable de la empresa)
-            Log::info('Creando persona responsable');
-            $person = new Person();
-            $person->name = $request->nombre_responsable;
-            $person->last_name = $request->apellido_paterno;
-            $person->second_last_name = $request->apellido_materno ?? '';
-            $person->gender_id = $gender->id;
-            $person->user_id = $user->id;
-            $person->birth_date = now()->subYears(30); // Fecha predeterminada (30 años)
-            $person->age = 30; // Edad predeterminada para responsable
-            $person->save();
-            Log::info('Persona responsable creada con ID: ' . $person->id);
-
-            // 5. Crear contacto
-            Log::info('Creando contacto');
-            $contact = new Contact();
-            $contact->person_id = $person->id;
-            $contact->email = $request->email;
-            $contact->phone = $request->telefono;
-            $contact->deleted = false;
-            $contact->save();
-            Log::info('Contacto creado con ID: ' . $contact->id);
-
-            // 6. Obtener o crear el tipo de empresa
-            // Si se recibió un ID de institución existente, usarlo
-            if ($request->institucion_id && $request->institucion_id != 'OTRO') {
-                // Intentar encontrar la institución por ID
-                $listCompany = ListCompany::find($request->institucion_id);
-                
-                // Si no existe, crear una nueva
-                if (!$listCompany) {
-                    $listCompany = ListCompany::create(['name' => $request->nombre_empresa]);
-                }
-            } else {
-                // Buscar o crear por el nombre proporcionado
-                $listCompany = ListCompany::firstOrCreate(['name' => $request->nombre_empresa]);
-            }
-
-            // 7. Crear empresa y asociarla con el usuario
-            Log::info('Creando empresa');
-            $company = new Company();
-            $company->description = $request->descripcion ?? '';
-            $company->list_companies_id = $listCompany->id;
-            
-            // Verificar si el modelo Company tiene la columna user_id
-            if (Schema::hasColumn('companies', 'user_id')) {
-                $company->user_id = $user->id; // Asociar con el usuario
-                Log::info('Empresa asociada al usuario: ' . $user->id);
-            }
-            
-            // Solución para el problema del teléfono
-            if ($request->telefono) {
-                // Eliminar caracteres no numéricos
-                $phoneNumber = preg_replace('/\D/', '', $request->telefono);
-                $company->phone = intval($phoneNumber);
-            if (strlen($phoneNumber) > 9) {
-                $phoneNumber = substr($phoneNumber, -9);
-            } 
-                $company->phone = intval($phoneNumber);
-            } else {
-                $company->phone = 0;
-            }
-            
-            $company->save();
-            Log::info('Empresa creada con ID: ' . $company->id);
-
-            // 8. Crear relación entre empresa y contacto
-            DB::table('company_contacts')->insert([
-                'company_id' => $company->id, 
-                'contact_id' => $contact->id,
-                'created_at' => now(),
-                'updated_at' => now()
-            ]);
-            Log::info('Relación empresa-contacto creada');
-
-            // Almacenar el ID de la empresa en la sesión (para uso posterior)
-            session(['company_id' => $company->id]);
-
-            DB::commit();
-
-            // Enviar correo de verificación
-        try {
-            $this->emailVerificationService->sendVerificationEmail($user);
-    
-            // Si la solicitud espera JSON (es una solicitud AJAX/Inertia)
-            if ($request->expectsJson() || $request->wantsJson()) {
-                return response()->json([
-                    'success' => true,
-                    'message' => 'Cuenta creada exitosamente. Por favor verifica tu correo electrónico.',
-                    'email' => $user->email
-                ]);
-            }
-            
-            // Si no es una solicitud JSON, redireccionar como antes
-            return redirect()->route('verification.notice')
-                ->with('success', 'Cuenta creada exitosamente. Por favor, verifica tu correo electrónico.')
-                ->with('email', $user->email);
-        } catch (\Exception $e) {
-            Log::error('Error al enviar correo de verificación institucional: ' . $e->getMessage());
-            
-            // Si falla el envío, mostrar la página de verificación con una advertencia
-            return redirect()->route('verification.notice')
-                ->with('warning', 'Tu cuenta institucional ha sido creada, pero hubo un problema al enviar el correo de verificación.')
-                ->with('email', $user->email);
-        }
-
-        } catch (\Exception $e) {
-            // Revertir transacción en caso de error
-            DB::rollBack();
-            
-            Log::error('Error en registro institucional: ' . $e->getMessage());
-            Log::error('Stack trace: ' . $e->getTraceAsString());
-            
-            return redirect()->back()
-                ->with('error', 'Error al registrar institución: ' . $e->getMessage())
-                ->withInput();
-        }
-    }
     
     /**
      * Asigna un rol al usuario

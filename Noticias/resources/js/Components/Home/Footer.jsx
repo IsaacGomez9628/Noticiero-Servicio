@@ -10,9 +10,6 @@ export default function EnhancedFooter() {
                     {/* Logo y descripción */}
                     <div className="mb-8 md:mb-0">
                         <div className="flex items-center gap-2">
-                            <div className="gradient-bg p-2 rounded-lg">
-                                <TrendingUp size={24} className="text-white" />
-                            </div>
                             <h2 className="text-xl font-bold gradient-text">
                                 CEATyCC
                             </h2>

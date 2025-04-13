@@ -10,7 +10,7 @@ use App\Models\Company;
 use App\Models\User;
 use Inertia\Inertia;
 
-class DashboardController extends Controller
+class DashboardController extends BaseController
 {
     /**
      * Muestra el dashboard principal del usuario.

@@ -46,6 +46,11 @@ export default function ObjectivesSection() {
             icon: <Lightbulb className="w-8 h-8 text-white" />,
             color: "from-orange-600 to-orange-400",
         },
+        {
+            title: "Crear una red de expertos y comunidad de aprendizaje",
+            icon: <Lightbulb className="w-8 h-8 text-white" />,
+            color: "from-orange-600 to-orange-200",
+        },
     ];
 
     return (

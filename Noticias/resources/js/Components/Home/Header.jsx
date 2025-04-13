@@ -12,7 +12,6 @@ import {
     Settings,
     LogOut,
 } from "lucide-react";
-import Logo_CEATyCC from "@/assets/Logo_CEATyCC.png";
 import Logo_SecretariaDeEducacion from "@/assets/Logo_SecretariaDeEducacion.png";
 
 export default function AnimatedHeader() {
@@ -102,11 +101,6 @@ export default function AnimatedHeader() {
                         src={Logo_SecretariaDeEducacion}
                         alt="Logo Secretaría de Educación"
                         className="h-17 w-60 object-contain"
-                    />
-                    <img
-                        src={Logo_CEATyCC}
-                        alt="Logo CEATyCC"
-                        className="h-17 w-28 object-contain"
                     />
                 </Link>
 
