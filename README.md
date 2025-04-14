@@ -9,4 +9,4 @@ php artisan serve --port=8080
 npm run dev 
 
 Base de datos
-php artisan migrate
+php artisan migrate --seed

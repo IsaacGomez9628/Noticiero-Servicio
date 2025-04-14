@@ -244,7 +244,6 @@ class RegistroController extends Controller
             'apellido_paterno.required' => 'El apellido paterno es obligatorio.',
             'fecha_nacimiento.before' => 'La fecha de nacimiento no puede ser en el futuro.',
             'fecha_nacimiento.after' => 'La fecha de nacimiento no es válida.',
-            'fecha_nacimiento.before' => 'Debes tener al menos ' . self::MIN_AGE . ' años para registrarte.',
             'email.required' => 'El correo electrónico es obligatorio.',
             'email.email' => 'El formato del correo electrónico no es válido.',
             'email.unique' => 'Este correo electrónico ya está registrado en el sistema.',
@@ -338,6 +337,169 @@ class RegistroController extends Controller
         }
     }
 
+    /**
+     * Procesa el registro de institución/empresa
+     */
+    public function storeInstitucional(Request $request)
+    {
+        Log::info('Iniciando storeInstitucional con datos:', $request->all());
+        
+        // Reglas de validación para registro institucional
+        $rules = [
+            'nombre_empresa' => 'required|string|max:200',
+            'descripcion' => 'nullable|string|max:500',
+            'nombre_responsable' => 'required|string|max:100',
+            'apellido_paterno' => 'required|string|max:100',
+            'apellido_materno' => 'nullable|string|max:100',
+            'birth_date' => [
+                'nullable',
+                'date',
+                'before:today',
+            ],
+            'gender_id' => 'nullable',
+            'email' => [
+                'required',
+                'string',
+                'email:rfc,dns',
+                'max:100',
+                'unique:users,email',
+            ],
+            'telefono' => [
+                'nullable',
+                'string',
+                'regex:/^[0-9]{10}$/',
+            ],
+            'password' => [
+                'required',
+                'string', 
+                'min:8',
+                'regex:/[a-zA-Z]/',
+                'regex:/[0-9]/',
+                'confirmed'
+            ],
+            'institucion_id' => 'nullable',
+        ];
+        
+        // Mensajes personalizados
+        $messages = [
+            'nombre_empresa.required' => 'El nombre de la empresa es obligatorio.',
+            'nombre_responsable.required' => 'El nombre del responsable es obligatorio.',
+            'apellido_paterno.required' => 'El apellido paterno es obligatorio.',
+            'birth_date.before' => 'La fecha de nacimiento no puede ser en el futuro.',
+            'email.required' => 'El correo electrónico es obligatorio.',
+            'email.email' => 'El formato del correo electrónico no es válido.',
+            'email.unique' => 'Este correo electrónico ya está registrado en el sistema.',
+            'telefono.regex' => 'El número telefónico debe tener 10 dígitos.',
+            'password.required' => 'La contraseña es obligatoria.',
+            'password.min' => 'La contraseña debe tener al menos 8 caracteres.',
+            'password.regex' => 'La contraseña debe incluir al menos una letra y un número.',
+            'password.confirmed' => 'Las contraseñas no coinciden.',
+        ];
+
+        $validator = Validator::make($request->all(), $rules, $messages);
+
+        if ($validator->fails()) {
+            Log::warning('Validación fallida en storeInstitucional:', $validator->errors()->toArray());
+            return redirect()->back()
+                ->withErrors($validator)
+                ->withInput()
+                ->with('error_message', 'Error de validación: ' . implode(', ', $validator->errors()->all()));
+        }
+
+        try {
+            // Verificar si existe un registro pendiente con este email y eliminarlo
+            $existingPending = PendingRegistration::where('email', $request->email)->first();
+            
+            if ($existingPending) {
+                Log::info('Eliminando registro pendiente existente para: ' . $request->email);
+                $existingPending->delete();
+            }
+            
+            // Generar token de 5 dígitos para verificación
+            $token = str_pad(mt_rand(1, 99999), 5, '0', STR_PAD_LEFT);
+            
+            Log::info('Iniciando registro pendiente para usuario institucional: ' . $request->email);
+            Log::info('Token generado: ' . $token);
+            
+            // Crear registro pendiente con todos los datos del formulario
+            // Excluimos _token, password_confirmation y guardamos password en hash
+            $formData = $request->except(['_token', 'password_confirmation']);
+            $formData['password'] = Hash::make($request->password);
+            
+            Log::info('Datos a guardar en pendingRegistration:', $formData);
+            
+            // Intenta crear el registro y captura cualquier excepción
+            try {
+                $pendingRegistration = PendingRegistration::create([
+                    'email' => $request->email,
+                    'token' => $token,
+                    'registration_data' => $formData,
+                    'registration_type' => 'institucional',
+                    'expires_at' => now()->addHours(24)
+                ]);
+                
+                Log::info('Registro pendiente creado con ID: ' . $pendingRegistration->id);
+            } catch (\Exception $e) {
+                Log::error('Error al crear registro pendiente: ' . $e->getMessage(), [
+                    'trace' => $e->getTraceAsString()
+                ]);
+                throw $e;
+            }
+            
+            // Enviar correo con token
+            try {
+                Log::info('Intentando enviar correo de verificación a: ' . $request->email);
+                
+                Mail::to($request->email)->send(new \App\Mail\EmailVerification(
+                    (object)['email' => $request->email], // Simulamos un objeto User para compatibilidad
+                    $token
+                ));
+                
+                Log::info('Correo de verificación enviado a ' . $request->email . ' con token ' . $token);
+                
+                // Si el cliente espera JSON (Inertia/AJAX), enviar respuesta adecuada
+                if ($request->wantsJson()) {
+                    Log::info('Enviando respuesta JSON para: ' . $request->email);
+                    return response()->json([
+                        'success' => true,
+                        'email' => $request->email,
+                        'message' => 'Registro iniciado. Por favor verifica tu correo electrónico con el código enviado.'
+                    ]);
+                }
+                
+                // Si no es JSON, mostrar modal de verificación
+                Log::info('Redirigiendo de vuelta con show_verification_modal para: ' . $request->email);
+                return back()->with([
+                    'success' => 'Registro iniciado. Por favor verifica tu correo electrónico.',
+                    'registered_email' => $request->email,
+                    'show_verification_modal' => true
+                ]);
+                
+            } catch (\Exception $e) {
+                Log::error('Error al enviar correo de verificación: ' . $e->getMessage(), [
+                    'trace' => $e->getTraceAsString()
+                ]);
+                
+                // Si falla el envío, informar al usuario
+                return redirect()->route('verification.notice')
+                    ->with('warning', 'Tu registro ha sido iniciado, pero hubo un problema al enviar el correo de verificación.')
+                    ->with('email', $request->email);
+            }
+
+        } catch (\Exception $e) {
+            // Registrar el error detallado
+            Log::error('Error en registro pendiente institucional:', [
+                'message' => $e->getMessage(), 
+                'trace' => $e->getTraceAsString(),
+                'request_data' => $request->all()
+            ]);
+            
+            // Redireccionar con mensaje de error
+            return redirect()->back()
+                ->with('error', 'Error al iniciar registro: ' . $e->getMessage())
+                ->withInput();
+        }
+    }
     
     /**
      * Asigna un rol al usuario

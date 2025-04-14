@@ -67,8 +67,8 @@ Route::middleware('guest')->group(function () {
         ->name('login.store');
         
     // Rutas de verificación de correo - IMPORTANTE: estas deberían ser accesibles para usuarios no autenticados
-    // Route::get('/email/verify', [VerificationController::class, 'notice'])
-    //     ->name('verification.notice');
+    Route::get('/email/verify', [VerificationController::class, 'notice'])
+        ->name('verification.notice');
         
     Route::post('/email/verify', [VerificationController::class, 'verify'])
         ->name('verification.verify');

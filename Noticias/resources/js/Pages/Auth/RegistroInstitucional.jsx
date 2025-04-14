@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link, useForm } from "@inertiajs/react";
+import { Link, useForm, usePage } from "@inertiajs/react";
 import LoginLayout from "@/Layouts/LoginLayout";
 import InputError from "@/Components/ui/InputError";
 import InputLabel from "@/Components/ui/InputLabel";
@@ -9,6 +9,7 @@ import Checkbox from "@/Components/ui/Checkbox";
 import PrimaryButton from "@/Components/ui/PrimaryButton";
 import SecondaryButton from "@/Components/ui/SecondaryButton";
 import Notification from "@/Components/ui/Notification";
+import VerificationModal from "@/Components/ui/VerificationModal";
 
 export default function RegistroInstitucional({
     institucion,
@@ -17,6 +18,8 @@ export default function RegistroInstitucional({
     errors: pageErrors = {},
     success: pageSuccess = null,
     error: pageError = null,
+    show_verification_modal = false,
+    registered_email = null,
 }) {
     const [currentStep, setCurrentStep] = useState(1);
     const [showPassword, setShowPassword] = useState(false);
@@ -31,6 +34,7 @@ export default function RegistroInstitucional({
     // Estados para validación frontend
     const [formErrors, setFormErrors] = useState({});
     const [validationTimer, setValidationTimer] = useState(null);
+    const [showVerificationModal, setShowVerificationModal] = useState(show_verification_modal);
 
     // Estados para validar cada paso
     const [paso1Valido, setPaso1Valido] = useState(false);
@@ -51,7 +55,7 @@ export default function RegistroInstitucional({
         nombre_responsable: "",
         apellido_paterno: "",
         apellido_materno: "",
-        email: "",
+        email: registered_email || "",
         telefono: "",
         password: "",
         password_confirmation: "",
@@ -110,8 +114,6 @@ export default function RegistroInstitucional({
     const validatePhone = (phone) => {
         if (!phone) return true; // Si no hay teléfono (es opcional)
         const digitsOnly = phone.replace(/\D/g, "");
-        console.log("Dígitos del teléfono:", digitsOnly);
-        console.log("Longitud:", digitsOnly.length);
         return digitsOnly.length === 10;
     };
 
@@ -441,44 +443,33 @@ export default function RegistroInstitucional({
         setData("telefono", limited);
     };
 
+    
+    // Reemplazar la función submit existente con esta versión corregida
     const submit = (e) => {
         e.preventDefault();
-
+    
+        // Preparar los datos del formulario
         const formData = {
             ...data,
-            telefono: data.telefono ? data.telefono.replace(/\D/g, "") : "0",
+            telefono: data.telefono ? data.telefono.replace(/\D/g, "") : "",
             age: calculateAge(data.birth_date),
         };
-
+    
         post(route("registro.institucional.store"), formData, {
-            onSuccess: () => {
-                reset();
-                setRegistroExitoso(true);
-                setNotification({
-                    message:
-                        "Registro institucional exitoso. Serás redirigido al inicio de sesión en unos segundos.",
-                    type: "success",
-                    visible: true,
-                });
-
-                // Mostrar alerta antes de redirigir (opcional)
-                alert(
-                    "Registro institucional exitoso. Ahora puedes iniciar sesión."
-                );
-
-                // Redireccionar al login después de un breve momento
-                setTimeout(() => {
-                    window.location.href = route("login");
-                }, 2000);
+            onSuccess: (response) => {
+                console.log("Respuesta de registro exitoso:", response);
+                
+                // Alternativa: redireccionar a la página de verificación
+                window.location.href = route("verification.notice") + "?email=" + encodeURIComponent(data.email);
             },
             onError: (errors) => {
+                console.error('Errores de respuesta:', errors);
                 const errorMessages = Object.values(errors).flat();
                 setNotification({
                     message: errorMessages.join(", "),
                     type: "error",
                     visible: true,
                 });
-                console.error("Error en registro institucional:", errors);
             },
         });
     };
@@ -601,6 +592,7 @@ export default function RegistroInstitucional({
                         Ir al inicio de sesión
                     </Link>
                 </div>
+                
             </LoginLayout>
         );
     }
@@ -975,19 +967,12 @@ export default function RegistroInstitucional({
                                             type="text"
                                             inputMode="numeric"
                                             maxLength="10"
-                                            value={data.telefono.replace(
-                                                /\D/g,
-                                                ""
-                                            )}
+                                            value={data.telefono.replace(/\D/g, "")}
                                             className="block w-full md:w-1/2 pl-10"
                                             autoComplete="tel"
                                             placeholder="1234567890"
                                             handleChange={(e) => {
-                                                const cleaned =
-                                                    e.target.value.replace(
-                                                        /\D/g,
-                                                        ""
-                                                    );
+                                                const cleaned = e.target.value.replace(/\D/g, "");
                                                 setData("telefono", cleaned);
                                             }}
                                         />
@@ -1161,6 +1146,14 @@ export default function RegistroInstitucional({
                                 </div>
                             </div>
 
+                            <button 
+                                type="button" 
+                                onClick={() => setShowVerificationModal(true)} 
+                                className="bg-blue-500 text-white p-2 mt-4 rounded"
+                            >
+                                Abrir Modal de Verificación (Prueba)
+                            </button>
+
                             {/* Términos y condiciones */}
                             <div className="mt-8">
                                 <div className="flex items-start">
@@ -1301,6 +1294,22 @@ export default function RegistroInstitucional({
                     </Link>
                 </p>
             </div>
+            {/* Modal de verificación */}
+            {showVerificationModal && (
+                <VerificationModal
+                    isOpen={true} // Forzar a que esté abierto para probar
+                    email={data.email}
+                    onClose={() => {
+                        console.log("Cerrando modal");
+                        setShowVerificationModal(false);
+                    }}
+                    onSuccess={() => {
+                        console.log("Éxito en la verificación");
+                        setShowVerificationModal(false);
+                        window.location.href = route("login");
+                    }}
+                />
+            )}
         </LoginLayout>
     );
 }
