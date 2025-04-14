@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Head, Link, usePage } from "@inertiajs/react";
 import { Card, CardContent } from "@/Components/ui/Card";
 import { Button } from "@/Components/ui/Button";
@@ -18,6 +18,7 @@ import GoogleMapsLocation from "@/Components/ui/GoogleMapsLocation";
 
 export default function EventoDetalle({ evento, asistenciasConfirmadas = 0 }) {
     // Add default value to prevent undefined errors
+    const [counter, setCounter] = useState(1);
 
     // Función para formatear fechas
     const formatearFecha = (fecha) => {
@@ -53,6 +54,13 @@ export default function EventoDetalle({ evento, asistenciasConfirmadas = 0 }) {
             hour: "2-digit",
             minute: "2-digit",
         });
+    };
+
+    // Función para disminuir contador
+    const decreaseCounter = () => {
+        if (counter > 0) {
+            setCounter(0);
+        }
     };
 
     // Componente para mostrar información con icono
@@ -279,22 +287,24 @@ export default function EventoDetalle({ evento, asistenciasConfirmadas = 0 }) {
                         <div className="sticky top-4">
                             <Card className="shadow-sm border border-gray-200 rounded-lg overflow-hidden">
                                 <CardContent className="p-0">
-                                    {/* RSVP Header */}
+                                    {/* RSVP Header - MODIFICADO: solo permite un registro */}
                                     <div className="p-6 border-b border-gray-200">
                                         <div className="flex justify-between items-center mb-3">
                                             <h3 className="text-xl font-bold">
                                                 RSVP
                                             </h3>
                                             <div className="flex items-center">
-                                                <button className="w-8 h-8 flex items-center justify-center rounded-full border border-gray-300 mr-2">
+                                                <button
+                                                    className="w-8 h-8 flex items-center justify-center rounded-full border border-gray-300 mr-2"
+                                                    onClick={decreaseCounter}
+                                                    disabled={counter === 0}
+                                                >
                                                     <span>-</span>
                                                 </button>
                                                 <span className="mx-2 text-lg">
-                                                    1
+                                                    {counter}
                                                 </span>
-                                                <button className="w-8 h-8 flex items-center justify-center rounded-full bg-blue-600 text-white">
-                                                    <span>+</span>
-                                                </button>
+                                                {/* Botón + eliminado */}
                                             </div>
                                         </div>
 

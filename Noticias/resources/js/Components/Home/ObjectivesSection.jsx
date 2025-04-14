@@ -14,42 +14,38 @@ export default function ObjectivesSection() {
         {
             title: "Desarrollar programas de formación especializados",
             icon: <GraduationCap className="w-8 h-8 text-white" />,
-            color: "from-blue-600 to-blue-400",
         },
         {
             title: "Fomentar la colaboración con la industria",
             icon: <Network className="w-8 h-8 text-white" />,
-            color: "from-purple-600 to-purple-400",
         },
         {
             title: "Impulsar la Investigación y el Desarrollo",
             icon: <Microscope className="w-8 h-8 text-white" />,
-            color: "from-teal-600 to-teal-400",
         },
         {
             title: "Facilitar el acceso a recursos y tecnologías",
             icon: <ArrowRightCircle className="w-8 h-8 text-white" />,
-            color: "from-amber-600 to-amber-400",
         },
         {
             title: "Fomentar la inclusión y diversidad en la Tecnología",
             icon: <Users className="w-8 h-8 text-white" />,
-            color: "from-pink-600 to-pink-400",
         },
         {
             title: "Establecer estándares de calidad y mejora continua",
             icon: <CheckCircle2 className="w-8 h-8 text-white" />,
-            color: "from-green-600 to-green-400",
         },
         {
             title: "Difundir conocimientos y buenas prácticas",
             icon: <Lightbulb className="w-8 h-8 text-white" />,
-            color: "from-orange-600 to-orange-400",
         },
         {
             title: "Crear una red de expertos y comunidad de aprendizaje",
             icon: <Lightbulb className="w-8 h-8 text-white" />,
-            color: "from-orange-600 to-orange-200",
+        },
+        {
+            title: "Colobarar con organísmos del sector de las TI a nivel regional",
+            icon: <Lightbulb className="w-8 h-8 text-white" />,
         },
     ];
 
@@ -75,12 +71,13 @@ export default function ObjectivesSection() {
 
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                     {objectives.map((objective, index) => (
-                        <div key={index} className="group">
-                            <div className="bg-white rounded-xl shadow-lg overflow-hidden transform transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 h-full flex flex-col">
-                                <div
-                                    className={`bg-gradient-to-r ${objective.color} p-4 flex items-center`}
-                                >
-                                    <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
+                        <div
+                            key={index}
+                            className="group transition-all duration-300 hover:scale-[1.015]"
+                        >
+                            <div className="bg-white rounded-xl overflow-hidden shadow-[0_8px_30px_rgba(0,0,0,0.06)] flex flex-col h-full hover:ring-[2.5px] hover:ring-cyan-300/50 transition duration-500">
+                                <div className="bg-gradient-to-r from-[#2563eb] to-[#06b6d4] p-4 flex items-center">
+                                    <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-inner">
                                         {objective.icon}
                                     </div>
                                 </div>
@@ -88,7 +85,7 @@ export default function ObjectivesSection() {
                                     <h3 className="text-xl font-bold text-gray-800 mb-2">
                                         {objective.title}
                                     </h3>
-                                    <div className="w-12 h-1 bg-gradient-to-r from-blue-500 to-teal-500 rounded-full mb-4 transition-all duration-300 group-hover:w-20"></div>
+                                    <div className="w-12 h-1 bg-gradient-to-r from-[#2563eb] to-[#06b6d4] rounded-full mb-4 transition-all duration-300 group-hover:w-20"></div>
                                 </div>
                             </div>
                         </div>

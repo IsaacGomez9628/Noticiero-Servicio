@@ -25,7 +25,7 @@ export default function EnhancedFooter() {
                             </h3>
                             <div className="flex items-center space-x-4">
                                 <a
-                                    href="#"
+                                    href="https://www.facebook.com/CEATYCC"
                                     className="bg-blue-600 text-white p-2 rounded-full hover:bg-blue-700 transition-colors duration-300 hover:scale-110 transform"
                                     aria-label="Facebook"
                                 >
@@ -38,7 +38,7 @@ export default function EnhancedFooter() {
                                     </svg>
                                 </a>
                                 <a
-                                    href="#"
+                                    href="https://twitter.com/tuUsuario"
                                     className="bg-black text-white p-2 rounded-full hover:bg-blue-500 transition-colors duration-300 hover:scale-110 transform"
                                     aria-label="Twitter"
                                 >
@@ -51,7 +51,7 @@ export default function EnhancedFooter() {
                                     </svg>
                                 </a>
                                 <a
-                                    href="#"
+                                    href="https://www.instagram.com/tuUsuario"
                                     className="bg-pink-600 text-white p-2 rounded-full hover:bg-pink-700 transition-colors duration-300 hover:scale-110 transform"
                                     aria-label="Instagram"
                                 >
@@ -65,119 +65,6 @@ export default function EnhancedFooter() {
                                 </a>
                                 {/* Se podría añadir más iconos aquí */}
                             </div>
-                        </div>
-                    </div>
-
-                    {/* Enlaces útiles */}
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 md:gap-12 w-full md:w-auto">
-                        <div>
-                            <h3 className="font-medium text-contrast-light mb-3">
-                                Secciones
-                            </h3>
-                            <ul className="space-y-2">
-                                <li>
-                                    <a
-                                        href="#"
-                                        className="text-contrast-subtle hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-                                    >
-                                        Política
-                                    </a>
-                                </li>
-                                <li>
-                                    <a
-                                        href="#"
-                                        className="text-contrast-subtle hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-                                    >
-                                        Economía
-                                    </a>
-                                </li>
-                                <li>
-                                    <a
-                                        href="#"
-                                        className="text-contrast-subtle hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-                                    >
-                                        Deportes
-                                    </a>
-                                </li>
-                                <li>
-                                    <a
-                                        href="#"
-                                        className="text-contrast-subtle hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-                                    >
-                                        Tecnología
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>
-                        <div>
-                            <h3 className="font-medium text-contrast-light mb-3">
-                                Empresa
-                            </h3>
-                            <ul className="space-y-2">
-                                <li>
-                                    <a
-                                        href="#"
-                                        className="text-contrast-subtle hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-                                    >
-                                        Sobre nosotros
-                                    </a>
-                                </li>
-                                <li>
-                                    <a
-                                        href="#"
-                                        className="text-contrast-subtle hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-                                    >
-                                        Contacto
-                                    </a>
-                                </li>
-                                <li>
-                                    <a
-                                        href="#"
-                                        className="text-contrast-subtle hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-                                    >
-                                        Trabaja con nosotros
-                                    </a>
-                                </li>
-                                <li>
-                                    <a
-                                        href="#"
-                                        className="text-contrast-subtle hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-                                    >
-                                        Publicidad
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>
-                        <div>
-                            <h3 className="font-medium text-contrast-light mb-3">
-                                Legal
-                            </h3>
-                            <ul className="space-y-2">
-                                <li>
-                                    <a
-                                        href="#"
-                                        className="text-contrast-subtle hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-                                    >
-                                        Privacidad
-                                    </a>
-                                </li>
-                                <li>
-                                    <a
-                                        href="#"
-                                        className="text-contrast-subtle hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-                                    >
-                                        Términos
-                                    </a>
-                                </li>
-                                <li>
-                                    <a
-                                        href="#"
-                                        className="text-contrast-subtle hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-                                    >
-                                        Cookies
-                                    </a>
-                                </li>
-                            </ul>
                         </div>
                     </div>
                 </div>

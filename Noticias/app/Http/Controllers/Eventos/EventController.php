@@ -13,11 +13,15 @@ class EventController extends Controller
     /**
      * Display a listing of events.
      */
+    /**
+ * Display a listing of events.
+ */
     public function index()
     {
         try {
             // Obtener eventos activos ordenados por fecha
-            $eventos = Event::with(['organizer', 'location', 'status', 'categories', 'images'])
+            // Añadí location.city y location.estate para cargar estas relaciones
+            $eventos = Event::with(['organizer', 'location.city', 'location.estate', 'status', 'categories', 'images'])
                 ->whereHas('status', function($query) {
                     $query->where('active', true);
                 })
@@ -46,8 +50,10 @@ class EventController extends Controller
                             'nombres' => $evento->organizer->name,
                         ],
                     ],
+                    // Corregido: Acceder correctamente al nombre de la ciudad
                     'direccion' => [
-                        'direccion_completa' => $evento->location->direction . ', ' . $evento->location->city,
+                        'direccion_completa' => $evento->location->direction . ', ' . 
+                            ($evento->location->city ? $evento->location->city->name : ''),
                     ],
                     'modalidad' => 'Presencial', // Podría determinarse por alguna lógica si es necesario
                     'capacidad' => $evento->capacity,
@@ -78,7 +84,11 @@ class EventController extends Controller
      */
     public function show($id)
     {
-        $evento = Event::with(['location.city', 'location.estate', 'organizer'])->findOrFail($id);
+        $evento = Event::with(['location.city', 'location.estate', 'organizer', 'images'])->findOrFail($id);
+        
+        // Buscar la imagen principal
+        $mainImage = $evento->images->where('es_principal', true)->first() 
+            ?? $evento->images->first();
         
         // Contar asistencias confirmadas
         $asistenciasConfirmadas = EventAttendance::where('event_id', $id)
@@ -115,17 +125,18 @@ class EventController extends Controller
                 'length' => $evento->location->length,
                 'link_google_maps' => $evento->location->link_google_maps,
             ],
+            // Añadir la imagen del evento
+            'imagen' => $mainImage ? $mainImage->ruta : null,
         ];
         
         return Inertia::render('EventoDetalles', [
             'evento' => $eventoData,
             'asistenciasConfirmadas' => $asistenciasConfirmadas,
             'auth' => [ // Añadir información de autenticación
-            'user' => Auth::user()
+                'user' => Auth::user()
             ]
         ]);
     }
-    
     /**
      * Display the event location details.
      */
@@ -170,11 +181,11 @@ class EventController extends Controller
     
     /**
      * Show the registration form for the event.
-     */
+    */
     public function showRegistrationForm($id)
     {
         try {
-            $evento = Event::with(['organizer', 'location'])->findOrFail($id);
+            $evento = Event::with(['organizer', 'location.city'])->findOrFail($id);
             
             $eventoData = [
                 'id' => $evento->id,
@@ -182,7 +193,8 @@ class EventController extends Controller
                 'fecha_inicio' => $evento->start_date,
                 'hora' => $evento->start_time,
                 'organizador' => $evento->organizer->name,
-                'direccion' => $evento->location->direction . ', ' . $evento->location->city,
+                'direccion' => $evento->location->direction . ', ' . 
+                    ($evento->location->city ? $evento->location->city->name : ''),
             ];
             
             return Inertia::render('EventoRegistro', [

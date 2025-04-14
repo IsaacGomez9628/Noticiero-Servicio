@@ -1,7 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { usePage, router } from "@inertiajs/react";
-import { Link } from "@inertiajs/inertia-react"; // Añadimos router
-import { Inertia } from "@inertiajs/inertia";
+import { Link, usePage, router } from "@inertiajs/react"; // Añadimos router
 import { motion, AnimatePresence } from "framer-motion";
 import {
     Search,
@@ -185,37 +183,35 @@ export default function AnimatedHeader() {
                                         </div>
                                     )}
 
-                                    {/* Opciones comunes para todos los usuarios */}
-                                    <Link
-                                        href="/eventos"
-                                        className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 transition-colors flex items-center"
-                                    >
-                                        <Calendar className="h-4 w-4 mr-2" />
-                                        Eventos
-                                    </Link>
-                                    <Link
-                                        href="/noticias"
-                                        className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 transition-colors flex items-center"
-                                    >
-                                        <Newspaper className="h-4 w-4 mr-2" />
-                                        Noticias
-                                    </Link>
-
                                     {/* Usuario autenticado */}
                                     {isAuthenticated ? (
                                         <>
+                                            {/* Opciones comunes para todos los usuarios */}
+                                            <Link
+                                                href="/eventos"
+                                                className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 transition-colors flex items-center"
+                                            >
+                                                <Calendar className="h-4 w-4 mr-2" />
+                                                Eventos
+                                            </Link>
+                                            <Link
+                                                href="/noticias"
+                                                className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 transition-colors flex items-center"
+                                            >
+                                                <Newspaper className="h-4 w-4 mr-2" />
+                                                Noticias
+                                            </Link>
+
                                             <div className="border-t border-gray-100 mt-2 pt-2">
                                                 <Link
-                                                    href={route("dashboard")}
+                                                    href="/dashboard"
                                                     className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 transition-colors flex items-center"
                                                 >
                                                     <User className="h-4 w-4 mr-2" />
                                                     Mi Perfil
                                                 </Link>
                                                 <Link
-                                                    href={route(
-                                                        "eventos.mis-asistencias"
-                                                    )}
+                                                    href="/mis-asistencias"
                                                     className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 transition-colors flex items-center"
                                                 >
                                                     <Bell className="h-4 w-4 mr-2" />

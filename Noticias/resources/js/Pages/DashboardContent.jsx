@@ -1,50 +1,85 @@
-import React from "react";
-import { usePage } from "@inertiajs/react";
-import { Card, CardFooter, CardTitle } from "@/Components/ui/Card";
+// Dashboard-Content.jsx
+import React, { useState, useEffect } from "react";
+import { usePage, Link } from "@inertiajs/react";
+import { Calendar, momentLocalizer } from "react-big-calendar";
+import moment from "moment";
+import "moment/locale/es";
+import "react-big-calendar/lib/css/react-big-calendar.css";
+import { Card, CardContent, CardFooter, CardTitle } from "@/Components/ui/Card";
 import { Button } from "@/Components/ui/ButtonDashboard";
 import {
-    Calendar,
+    Calendar as CalendarIcon,
     Users,
     FileText,
     Clock,
     MapPin,
     ArrowRight,
 } from "lucide-react";
-import { Badge } from "@/Components/ui/Badge";
+
+moment.locale("es");
+const localizer = momentLocalizer(moment);
 
 export function DashboardContent() {
     const { auth, eventAttendances = [] } = usePage().props;
+    const [calendarEvents, setCalendarEvents] = useState([]);
 
-    const stats = [
-        {
-            title: "Eventos Disponibles",
-            value: "12", // Idealmente esto vendría del backend
-            icon: <Calendar className="h-6 w-6" />,
-            description: "+2 desde la semana pasada",
-            color: "blue",
-        },
-        {
-            title: "Mis Asistencias",
-            value: eventAttendances.length || "0",
-            icon: <Users className="h-6 w-6" />,
-            description: "Próximo evento: 25 de mayo",
-            color: "purple",
-        },
-        {
-            title: "Noticias Recientes",
-            value: "8", // Idealmente esto vendría del backend
-            icon: <FileText className="h-6 w-6" />,
-            description: "Última actualización: hoy",
-            color: "orange",
-        },
-        {
-            title: "Próximos Eventos",
-            value: "3", // Idealmente esto vendría del backend
-            icon: <Clock className="h-6 w-6" />,
-            description: "En los próximos 30 días",
-            color: "green",
-        },
-    ];
+    // Dividir eventos entre próximos y pasados
+    const now = new Date();
+    const upcomingEvents = eventAttendances.filter((attendance) => {
+        const eventDate = new Date(
+            attendance.event?.fecha_inicio || attendance.event?.start_date
+        );
+        return eventDate >= now;
+    });
+
+    const pastEvents = eventAttendances.filter((attendance) => {
+        const eventDate = new Date(
+            attendance.event?.fecha_inicio || attendance.event?.start_date
+        );
+        return eventDate < now;
+    });
+
+    // Preparar eventos para el calendario
+    useEffect(() => {
+        if (eventAttendances.length > 0) {
+            const formattedEvents = eventAttendances.map((attendance) => {
+                const startDate = new Date(
+                    attendance.event?.fecha_inicio ||
+                        attendance.event?.start_date
+                );
+                // Añadir la hora si está disponible
+                if (attendance.event?.hora) {
+                    const [hours, minutes] = attendance.event.hora.split(":");
+                    startDate.setHours(
+                        parseInt(hours, 10),
+                        parseInt(minutes, 10)
+                    );
+                }
+
+                // Crear fecha de fin (2 horas después por defecto)
+                const endDate = new Date(startDate);
+                endDate.setHours(endDate.getHours() + 2);
+
+                return {
+                    id: attendance.id,
+                    title:
+                        attendance.event?.titulo ||
+                        attendance.event?.titule ||
+                        "Evento sin título",
+                    start: startDate,
+                    end: endDate,
+                    status:
+                        attendance.status?.nombre || attendance.status?.name,
+                    location:
+                        attendance.event?.location?.name ||
+                        attendance.event?.direccion?.direccion_completa ||
+                        "Ubicación por confirmar",
+                };
+            });
+
+            setCalendarEvents(formattedEvents);
+        }
+    }, [eventAttendances]);
 
     // Función para formatear fechas
     const formatDate = (dateString) => {
@@ -57,76 +92,70 @@ export function DashboardContent() {
         });
     };
 
-    // Mostrar los eventos a los que el usuario está registrado
-    const userEvents = eventAttendances.slice(0, 2).map((attendance) => {
-        return {
-            title:
-                attendance.event.titulo ||
-                attendance.event.titule ||
-                "Evento sin título",
-            date: formatDate(
-                attendance.event.fecha_inicio || attendance.event.start_date
-            ),
-            time: attendance.event.hora_inicio || "10:00 AM - 6:00 PM",
-            location:
-                attendance.event.location?.name || "Ubicación por confirmar",
-            tags: [
-                {
-                    name: attendance.event.categoria || "Evento",
-                    color: "orange",
-                },
-                { name: "Cultural", color: "purple" },
-                { name: "Networking", color: "blue" },
-            ],
-            status: attendance.status?.nombre || "Pendiente",
+    // Estadísticas para mostrar
+    const stats = [
+        {
+            title: "Eventos Disponibles",
+            value: "12", // Idealmente esto vendría del backend
+            icon: <CalendarIcon className="h-6 w-6" />,
+            description: "Explora eventos actuales",
+            color: "blue",
+            route: route("eventos.index"),
+        },
+        {
+            title: "Mis Asistencias",
+            value: eventAttendances.length.toString(),
+            icon: <Users className="h-6 w-6" />,
+            description:
+                upcomingEvents.length > 0
+                    ? `Próximo: ${formatDate(
+                          upcomingEvents[0]?.event?.fecha_inicio
+                      )}`
+                    : "No hay eventos próximos",
+            color: "purple",
+            route: route("eventos.mis-asistencias"),
+        },
+        {
+            title: "Eventos Pasados",
+            value: pastEvents.length.toString(),
+            icon: <FileText className="h-6 w-6" />,
+            description: "Historial de eventos",
             color: "orange",
-        };
-    });
+            route: route("eventos.mis-asistencias"),
+        },
+        {
+            title: "Próximos Eventos",
+            value: upcomingEvents.length.toString(),
+            icon: <Clock className="h-6 w-6" />,
+            description: "Eventos por asistir",
+            color: "green",
+            route: route("eventos.mis-asistencias"),
+        },
+    ];
 
-    // Si no hay eventos registrados, mostrar ejemplos
-    if (userEvents.length === 0) {
-        userEvents.push(
-            {
-                title: "Encuentro Gastronómico de Querétaro",
-                date: "25 de mayo de 2025",
-                time: "10:00 AM - 6:00 PM",
-                location: "Centro Cultural de San Juan del Río",
-                tags: [
-                    { name: "Gastronomía", color: "orange" },
-                    { name: "Cultural", color: "purple" },
-                    { name: "Networking", color: "blue" },
-                ],
-                status: "Pendiente",
-                color: "orange",
-            },
-            {
-                title: "Querétaro Tech Summit",
-                date: "25 de abril de 2025",
-                time: "9:00 AM - 5:00 PM",
-                location: "Centro Cultural de Tequisquiapan",
-                tags: [
-                    { name: "Tecnología", color: "blue" },
-                    { name: "Innovación", color: "green" },
-                    { name: "Conferencias", color: "teal" },
-                ],
-                status: "Pendiente",
-                color: "blue",
-            }
+    // Componente para el evento en el calendario
+    const EventComponent = ({ event }) => {
+        return (
+            <div className="p-1 overflow-hidden h-full">
+                <div className="text-xs font-bold truncate">{event.title}</div>
+                <div className="text-xs truncate">{event.location}</div>
+            </div>
         );
-    }
+    };
 
     return (
         <div className="space-y-12 px-2 md:px-4">
             <div className="mt-6">
                 <h2 className="text-3xl font-bold tracking-tight mb-3 text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">
-                    Bienvenido, {auth.user?.name || "Usuario"}
+                    Bienvenido,{" "}
+                    {auth.user?.name || auth.user?.full_name || "Usuario"}
                 </h2>
                 <p className="text-muted-foreground">
-                    Aquí puedes administrar tus eventos, noticias y más.
+                    Administra tus eventos, revisa tus inscripciones, y más.
                 </p>
             </div>
 
-            <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
                 {stats.map((stat, index) => (
                     <StatCard
                         key={index}
@@ -135,46 +164,184 @@ export function DashboardContent() {
                         icon={stat.icon}
                         description={stat.description}
                         color={stat.color}
+                        route={stat.route}
                     />
                 ))}
             </div>
 
-            <div className="mt-12">
-                <h3 className="text-2xl font-semibold mb-8 text-blue-600 dark:text-teal-400">
-                    Mis Registros a Eventos
+            {/* Calendario de eventos */}
+            <div className="mt-10">
+                <h3 className="text-2xl font-semibold mb-6 text-blue-600 dark:text-teal-400">
+                    Calendario de Eventos
                 </h3>
-                <div className="space-y-12">
-                    {userEvents.map((event, index) => (
-                        <EventCard
-                            key={index}
-                            title={event.title}
-                            date={event.date}
-                            time={event.time}
-                            location={event.location}
-                            tags={event.tags}
-                            status={event.status}
-                            color={event.color}
-                        />
-                    ))}
-                </div>
 
-                <div className="mt-12 flex justify-end space-x-3">
-                    <Button
-                        className="gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:opacity-90 transition-opacity"
-                        onClick={() =>
-                            (window.location.href = route("eventos.index"))
-                        }
-                    >
-                        <span>Ver todos los eventos</span>
-                        <ArrowRight className="h-4 w-4" />
-                    </Button>
-                </div>
+                <Card className="shadow-md border border-gray-200 rounded-lg overflow-hidden">
+                    <CardContent className="p-6">
+                        <div className="h-[500px]">
+                            <Calendar
+                                localizer={localizer}
+                                events={calendarEvents}
+                                startAccessor="start"
+                                endAccessor="end"
+                                style={{ height: "100%" }}
+                                messages={{
+                                    next: "Siguiente",
+                                    previous: "Anterior",
+                                    today: "Hoy",
+                                    month: "Mes",
+                                    week: "Semana",
+                                    day: "Día",
+                                    agenda: "Agenda",
+                                    date: "Fecha",
+                                    time: "Hora",
+                                    event: "Evento",
+                                    noEventsInRange:
+                                        "No hay eventos en este rango",
+                                }}
+                                components={{
+                                    event: EventComponent,
+                                }}
+                                eventPropGetter={(event) => {
+                                    let style = {
+                                        backgroundColor: "#3B82F6", // azul por defecto
+                                        borderRadius: "4px",
+                                        color: "white",
+                                        border: "none",
+                                    };
+
+                                    // Cambia el color según el estado
+                                    if (
+                                        event.status === "Completado" ||
+                                        event.status === "Asistido"
+                                    ) {
+                                        style.backgroundColor = "#10B981"; // verde
+                                    } else if (event.status === "Cancelado") {
+                                        style.backgroundColor = "#EF4444"; // rojo
+                                    } else if (
+                                        new Date(event.start) < new Date()
+                                    ) {
+                                        style.backgroundColor = "#6B7280"; // gris para eventos pasados
+                                    }
+
+                                    return { style };
+                                }}
+                            />
+                        </div>
+                    </CardContent>
+                </Card>
             </div>
+
+            {/* Próximos eventos */}
+            {upcomingEvents.length > 0 && (
+                <div className="mt-8">
+                    <h3 className="text-2xl font-semibold mb-6 text-blue-600 dark:text-teal-400">
+                        Próximos Eventos
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {upcomingEvents.slice(0, 3).map((attendance) => (
+                            <Card
+                                key={attendance.id}
+                                className="overflow-hidden border border-gray-200 rounded-lg shadow-md"
+                            >
+                                <div className="h-32 bg-gradient-to-r from-blue-500 to-indigo-600 relative">
+                                    {attendance.event.imagen && (
+                                        <img
+                                            src={attendance.event.imagen}
+                                            alt={
+                                                attendance.event.titulo ||
+                                                "Evento"
+                                            }
+                                            className="w-full h-full object-cover opacity-50"
+                                        />
+                                    )}
+                                    <div className="absolute inset-0 p-4 flex flex-col justify-end">
+                                        <h4 className="text-white font-bold text-lg truncate">
+                                            {attendance.event.titulo ||
+                                                attendance.event.titule ||
+                                                "Evento sin título"}
+                                        </h4>
+                                    </div>
+                                </div>
+                                <CardContent className="p-4">
+                                    <div className="flex items-center text-gray-600 my-2">
+                                        <CalendarIcon className="h-4 w-4 mr-2" />
+                                        <span className="text-sm">
+                                            {formatDate(
+                                                attendance.event.fecha_inicio ||
+                                                    attendance.event.start_date
+                                            )}
+                                        </span>
+                                    </div>
+                                    <div className="flex items-center text-gray-600 mb-2">
+                                        <Clock className="h-4 w-4 mr-2" />
+                                        <span className="text-sm">
+                                            {attendance.event.hora ||
+                                                attendance.event.start_time ||
+                                                "Hora no especificada"}
+                                        </span>
+                                    </div>
+                                    <div className="flex items-center text-gray-600">
+                                        <MapPin className="h-4 w-4 mr-2" />
+                                        <span className="text-sm truncate">
+                                            {attendance.event.location?.name ||
+                                                attendance.event.direccion
+                                                    ?.direccion_completa ||
+                                                "Ubicación por confirmar"}
+                                        </span>
+                                    </div>
+                                </CardContent>
+                                <CardFooter className="p-4 pt-0 flex justify-between">
+                                    <span
+                                        className={`text-xs px-2 py-1 rounded-full font-medium ${
+                                            attendance.status?.slug ===
+                                            "confirmado"
+                                                ? "bg-green-100 text-green-800"
+                                                : attendance.status?.slug ===
+                                                  "cancelado"
+                                                ? "bg-red-100 text-red-800"
+                                                : "bg-yellow-100 text-yellow-800"
+                                        }`}
+                                    >
+                                        {attendance.status?.nombre ||
+                                            attendance.status?.name ||
+                                            "Pendiente"}
+                                    </span>
+
+                                    <Link
+                                        href={route(
+                                            "eventos.show",
+                                            attendance.event.id
+                                        )}
+                                    >
+                                        <Button
+                                            variant="link"
+                                            className="text-blue-600 p-0 h-auto text-sm"
+                                        >
+                                            Ver detalles
+                                        </Button>
+                                    </Link>
+                                </CardFooter>
+                            </Card>
+                        ))}
+                    </div>
+
+                    {upcomingEvents.length > 3 && (
+                        <div className="mt-4 flex justify-end">
+                            <Link href={route("eventos.mis-asistencias")}>
+                                <Button className="gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:opacity-90 transition-opacity">
+                                    <span>Ver todos mis eventos</span>
+                                    <ArrowRight className="h-4 w-4" />
+                                </Button>
+                            </Link>
+                        </div>
+                    )}
+                </div>
+            )}
         </div>
     );
 }
 
-function StatCard({ title, value, icon, description, color }) {
+function StatCard({ title, value, icon, description, color, route }) {
     const colorMap = {
         blue: {
             bg: "bg-gradient-to-br from-blue-500 to-indigo-600",
@@ -208,179 +375,35 @@ function StatCard({ title, value, icon, description, color }) {
 
     return (
         <Card
-            className={`relative overflow-hidden rounded-xl border bg-white dark:bg-gray-800 text-card-foreground shadow-sm transition-all duration-200 hover:shadow-md p-8 flex flex-col gap-4 ${colorMap[color].border} ${colorMap[color].shadow} hover:shadow-lg transition-all duration-300`}
+            className={`relative overflow-hidden rounded-xl border bg-white dark:bg-gray-800 text-card-foreground shadow-sm transition-all duration-200 hover:shadow-md p-6 flex flex-col gap-3 ${colorMap[color].border} ${colorMap[color].shadow} hover:shadow-lg transition-all duration-300`}
         >
             <div className="flex items-center justify-between">
                 <CardTitle className="text-sm font-medium">{title}</CardTitle>
                 <div
-                    className={`h-14 w-14 rounded-full flex items-center justify-center ${colorMap[color].bg} text-white`}
+                    className={`h-12 w-12 rounded-full flex items-center justify-center ${colorMap[color].bg} text-white`}
                 >
                     <div>{icon}</div>
                 </div>
             </div>
-            <div className="mt-3">
-                <div className={`text-4xl font-bold ${colorMap[color].text}`}>
+            <div className="mt-2">
+                <div className={`text-3xl font-bold ${colorMap[color].text}`}>
                     {value}
                 </div>
                 <p className="text-xs text-muted-foreground mt-2">
                     <span>{description}</span>
                 </p>
             </div>
-            <CardFooter className="p-0 pt-4">
-                <Button
-                    variant="link"
-                    className={`h-auto p-0 text-sm ${colorMap[color].text}`}
-                >
-                    Ver detalles
-                    <ArrowRight className="h-3 w-3 ml-1" />
-                </Button>
+            <CardFooter className="p-0 pt-3">
+                <Link href={route}>
+                    <Button
+                        variant="link"
+                        className={`h-auto p-0 text-sm ${colorMap[color].text}`}
+                    >
+                        Ver detalles
+                        <ArrowRight className="h-3 w-3 ml-1" />
+                    </Button>
+                </Link>
             </CardFooter>
-        </Card>
-    );
-}
-
-function EventCard({ title, date, time, location, tags, status, color }) {
-    const statusClass =
-        status === "Pendiente"
-            ? "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300"
-            : status === "Completado"
-            ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300"
-            : "bg-rose-100 text-rose-800 dark:bg-rose-900/30 dark:text-rose-300";
-
-    const colorMap = {
-        blue: {
-            accent: "border-l-8 border-l-blue-500",
-            title: "text-blue-700 dark:text-blue-400",
-            lightBg: "bg-blue-50 dark:bg-blue-900/20",
-            icon: "bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-300",
-        },
-        purple: {
-            accent: "border-l-8 border-l-purple-500",
-            title: "text-purple-700 dark:text-purple-400",
-            lightBg: "bg-purple-50 dark:bg-purple-900/20",
-            icon: "bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-300",
-        },
-        orange: {
-            accent: "border-l-8 border-l-orange-500",
-            title: "text-orange-700 dark:text-orange-400",
-            lightBg: "bg-orange-50 dark:bg-orange-900/20",
-            icon: "bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-300",
-        },
-        green: {
-            accent: "border-l-8 border-l-emerald-500",
-            title: "text-emerald-700 dark:text-emerald-400",
-            lightBg: "bg-emerald-50 dark:bg-emerald-900/20",
-            icon: "bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-300",
-        },
-        teal: {
-            accent: "border-l-8 border-l-teal-500",
-            title: "text-teal-700 dark:text-teal-400",
-            lightBg: "bg-teal-50 dark:bg-teal-900/20",
-            icon: "bg-teal-100 text-teal-600 dark:bg-teal-900/30 dark:text-teal-300",
-        },
-    };
-
-    return (
-        <Card
-            className={`relative overflow-hidden rounded-xl border bg-white dark:bg-gray-800 text-card-foreground shadow-sm transition-all duration-200 hover:shadow-md hover:shadow-lg transition-all duration-300 mx-4 md:mx-6 mb-12 ml-10 ${colorMap[color].accent}`}
-        >
-            <div className="p-8 pt-10 border-b flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                <div className="flex flex-col">
-                    <h4
-                        className={`text-xl font-medium ${colorMap[color].title} mb-4`}
-                    >
-                        {title}
-                    </h4>
-                    <div className="flex items-center text-sm text-muted-foreground mt-3 space-x-6">
-                        <div className="flex items-center">
-                            <div
-                                className={`flex items-center justify-center rounded-full p-2 transition-all duration-200 ${colorMap[color].icon} mr-3`}
-                            >
-                                <Calendar className="h-4 w-4" />
-                            </div>
-                            <span>{date}</span>
-                        </div>
-                        <div className="flex items-center">
-                            <div
-                                className={`flex items-center justify-center rounded-full p-2 transition-all duration-200 ${colorMap[color].icon} mr-3`}
-                            >
-                                <Clock className="h-4 w-4" />
-                            </div>
-                            <span>{time}</span>
-                        </div>
-                    </div>
-                </div>
-                <div className="flex items-center">
-                    <span
-                        className={`inline-flex items-center rounded-full px-4 py-1.5 text-sm font-medium ${statusClass}`}
-                    >
-                        {status}
-                    </span>
-                </div>
-            </div>
-            <div className="p-8 pl-10 flex flex-col gap-8">
-                <div className="flex flex-col sm:flex-row sm:items-center gap-8">
-                    <div className="flex items-center text-sm text-muted-foreground">
-                        <div
-                            className={`flex items-center justify-center rounded-full p-2 transition-all duration-200 ${colorMap[color].icon} mr-3`}
-                        >
-                            <MapPin className="h-4 w-4 flex-shrink-0" />
-                        </div>
-                        <span>{location}</span>
-                    </div>
-                    <div className="flex items-center text-sm text-muted-foreground">
-                        <div
-                            className={`flex items-center justify-center rounded-full p-2 transition-all duration-200 ${colorMap[color].icon} mr-3`}
-                        >
-                            <Users className="h-4 w-4 flex-shrink-0" />
-                        </div>
-                        <span>
-                            {tags.length > 2 ? "120" : "250"} asistentes
-                            confirmados
-                        </span>
-                    </div>
-                </div>
-                <div className="flex flex-wrap gap-5 mt-6">
-                    {tags.map((tag, index) => (
-                        <Badge
-                            key={index}
-                            className={`px-5 py-2 text-sm rounded-full
-                ${
-                    tag.color === "blue"
-                        ? "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300"
-                        : tag.color === "purple"
-                        ? "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300"
-                        : tag.color === "orange"
-                        ? "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300"
-                        : tag.color === "green"
-                        ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300"
-                        : tag.color === "teal"
-                        ? "bg-teal-100 text-teal-800 dark:bg-teal-900/30 dark:text-teal-300"
-                        : "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300"
-                }`}
-                        >
-                            {tag.name}
-                        </Badge>
-                    ))}
-                </div>
-            </div>
-            <div className="p-8 py-10 border-t bg-gray-50 dark:bg-gray-700/50 flex justify-between">
-                <Button
-                    variant="outline"
-                    size="lg"
-                    className="px-8 py-6 mt-2 mb-2"
-                    onClick={() => {
-                        if (window.location.href.includes("/evento/")) {
-                            return; // Ya estamos en la página del evento
-                        } else {
-                            // Redirigir a la página de eventos
-                            window.location.href = route("eventos.index");
-                        }
-                    }}
-                >
-                    Ver detalles
-                </Button>
-            </div>
         </Card>
     );
 }
