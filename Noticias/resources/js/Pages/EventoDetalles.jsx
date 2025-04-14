@@ -1,5 +1,5 @@
 import React from "react";
-import { Head, Link } from "@inertiajs/react";
+import { Head, Link, usePage } from "@inertiajs/react";
 import { Card, CardContent } from "@/Components/ui/Card";
 import { Button } from "@/Components/ui/Button";
 import {
@@ -14,6 +14,7 @@ import {
     DownloadIcon,
 } from "lucide-react";
 import MainLayout from "@/Layouts/MainLayout";
+import GoogleMapsLocation from "@/Components/ui/GoogleMapsLocation";
 
 export default function EventoDetalle({ evento, asistenciasConfirmadas = 0 }) {
     // Add default value to prevent undefined errors
@@ -26,6 +27,8 @@ export default function EventoDetalle({ evento, asistenciasConfirmadas = 0 }) {
             day: "numeric",
         });
     };
+
+    const { auth } = usePage().props;
 
     // Función para formatear horas
     const formatearHora = (hora) => {
@@ -210,16 +213,23 @@ export default function EventoDetalle({ evento, asistenciasConfirmadas = 0 }) {
                                     )}
 
                                     <Link
-                                        href={route(
-                                            "eventos.location",
-                                            evento.id
-                                        )}
+                                        href={`https://www.openstreetmap.org/search?query=${encodeURIComponent(
+                                            evento.location?.direction
+                                                ? `${evento.location.direction}, ${evento.location.city}`
+                                                : "Ubicación por confirmar"
+                                        )}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
                                         className="text-blue-600 hover:underline"
                                     >
                                         View map
                                     </Link>
                                 </div>
                             </div>
+                            <GoogleMapsLocation
+                                location={evento.location}
+                                className="mt-4"
+                            />
                         </div>
 
                         {/* About Event Section */}
@@ -360,29 +370,54 @@ export default function EventoDetalle({ evento, asistenciasConfirmadas = 0 }) {
 
                                     {/* Register button */}
                                     <div className="p-6">
-                                        <Link
-                                            href={route(
-                                                "eventos.registro.form",
-                                                evento.id
-                                            )}
-                                        >
-                                            <Button
-                                                className={`w-full py-3 rounded-md ${
-                                                    confirmedAttendees >=
-                                                    capacidad
-                                                        ? "bg-gray-400 cursor-not-allowed"
-                                                        : "bg-orange-600 hover:bg-orange-700"
-                                                } text-white font-medium`}
-                                                disabled={
-                                                    confirmedAttendees >=
-                                                    capacidad
-                                                }
+                                        {auth && auth.user ? (
+                                            <Link
+                                                href={route(
+                                                    "eventos.registro.form",
+                                                    evento.id
+                                                )}
                                             >
-                                                {confirmedAttendees >= capacidad
-                                                    ? "Evento sin cupo disponible"
-                                                    : "Reserve a spot"}
-                                            </Button>
-                                        </Link>
+                                                <Button
+                                                    className={`w-full py-3 rounded-md ${
+                                                        confirmedAttendees >=
+                                                        capacidad
+                                                            ? "bg-gray-400 cursor-not-allowed"
+                                                            : "bg-orange-600 hover:bg-orange-700"
+                                                    } text-white font-medium`}
+                                                    disabled={
+                                                        confirmedAttendees >=
+                                                        capacidad
+                                                    }
+                                                >
+                                                    {confirmedAttendees >=
+                                                    capacidad
+                                                        ? "Evento sin cupo disponible"
+                                                        : "Reserve a spot"}
+                                                </Button>
+                                            </Link>
+                                        ) : (
+                                            <div>
+                                                <Button
+                                                    onClick={() =>
+                                                        (window.location.href =
+                                                            route("login", {
+                                                                redirect: route(
+                                                                    "eventos.show",
+                                                                    evento.id
+                                                                ),
+                                                            }))
+                                                    }
+                                                    className="w-full py-3 rounded-md bg-blue-600 hover:bg-blue-700 text-white font-medium"
+                                                >
+                                                    Inicia sesión para
+                                                    registrarte
+                                                </Button>
+                                                <p className="text-sm text-gray-500 mt-2 text-center">
+                                                    Necesitas una cuenta para
+                                                    registrarte a este evento
+                                                </p>
+                                            </div>
+                                        )}
 
                                         <div className="flex justify-center mt-4">
                                             <Button className="bg-white text-gray-600 hover:bg-gray-50 px-4 py-2 flex items-center gap-2 mr-3">

@@ -692,16 +692,38 @@ export default function EventosPage({
                                                                     Ver más
                                                                 </Button>
                                                             </Link>
-                                                            <Button
-                                                                variant="outline"
-                                                                onClick={() =>
-                                                                    abrirModalRegistro(
-                                                                        evento
-                                                                    )
-                                                                }
-                                                            >
-                                                                Registrarse
-                                                            </Button>
+                                                            {auth &&
+                                                            auth.user ? (
+                                                                <Button
+                                                                    variant="outline"
+                                                                    onClick={() =>
+                                                                        abrirModalRegistro(
+                                                                            evento
+                                                                        )
+                                                                    }
+                                                                >
+                                                                    Registrarse
+                                                                </Button>
+                                                            ) : (
+                                                                <Button
+                                                                    variant="outline"
+                                                                    onClick={() =>
+                                                                        (window.location.href =
+                                                                            route(
+                                                                                "login",
+                                                                                {
+                                                                                    redirect:
+                                                                                        route(
+                                                                                            "eventos.index"
+                                                                                        ),
+                                                                                }
+                                                                            ))
+                                                                    }
+                                                                >
+                                                                    Iniciar
+                                                                    sesión
+                                                                </Button>
+                                                            )}
                                                         </>
                                                     ) : (
                                                         <Button>Ver más</Button>
@@ -811,17 +833,36 @@ export default function EventosPage({
                                                                             detalles
                                                                         </Button>
                                                                     </Link>
-                                                                    <Button
-                                                                        variant="outline"
-                                                                        onClick={() =>
-                                                                            abrirModalRegistro(
-                                                                                evento
-                                                                            )
-                                                                        }
-                                                                        className="w-full md:w-auto"
-                                                                    >
-                                                                        Registrarse
-                                                                    </Button>
+                                                                    {auth &&
+                                                                    auth.user ? (
+                                                                        <Button
+                                                                            variant="outline"
+                                                                            onClick={() =>
+                                                                                abrirModalRegistro(
+                                                                                    evento
+                                                                                )
+                                                                            }
+                                                                            className="w-full md:w-auto"
+                                                                        >
+                                                                            Registrarse
+                                                                        </Button>
+                                                                    ) : (
+                                                                        <Button
+                                                                            variant="outline"
+                                                                            onClick={() =>
+                                                                                (window.location.href =
+                                                                                    route(
+                                                                                        "login"
+                                                                                    ))
+                                                                            }
+                                                                            className="w-full md:w-auto"
+                                                                        >
+                                                                            Iniciar
+                                                                            sesión
+                                                                            para
+                                                                            registrarse
+                                                                        </Button>
+                                                                    )}
                                                                 </>
                                                             ) : (
                                                                 <Button className="w-full md:w-auto">
