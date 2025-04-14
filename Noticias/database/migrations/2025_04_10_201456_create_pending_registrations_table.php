@@ -15,8 +15,8 @@ return new class extends Migration
             $table->id();
             $table->string('email')->unique();
             $table->string('token', 10);
-            $table->text('registration_data'); // JSON con todos los datos del formulario
-            $table->string('registration_type')->default('personal'); // personal o institucional
+            $table->text('registration_data'); 
+            $table->string('registration_type')->default('personal');
             $table->timestamp('expires_at');
             $table->timestamps();
         });
