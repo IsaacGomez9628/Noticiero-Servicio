@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Eventos;
 use App\Http\Controllers\Controller;
 use App\Models\Event;
 use App\Models\EventAttendance;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
 class EventController extends Controller
@@ -118,7 +119,10 @@ class EventController extends Controller
         
         return Inertia::render('EventoDetalles', [
             'evento' => $eventoData,
-            'asistenciasConfirmadas' => $asistenciasConfirmadas
+            'asistenciasConfirmadas' => $asistenciasConfirmadas,
+            'auth' => [ // Añadir información de autenticación
+            'user' => Auth::user()
+            ]
         ]);
     }
     

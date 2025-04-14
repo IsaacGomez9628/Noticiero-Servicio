@@ -29,18 +29,39 @@ Route::get('/home/Quienes-Somos', [QuienesSomosController::class, 'index'])->nam
 Route::get('/eventos', [EventosEventController::class, 'index'])->name('eventos.index');
 
 // Nuevas rutas con el formato solicitado
-Route::get('/evento/{id}/detalles', [EventosEventController::class, 'show'])->name('eventos.show');
-Route::get('/evento/{id}/ubicacion', [EventosEventController::class, 'location'])->name('eventos.location');
-Route::get('/evento/{id}/registro', [EventosEventController::class, 'showRegistrationForm'])->name('eventos.registro.form');
+
+// Rutas que requieren autenticación
+Route::middleware(['auth'])->group(function () {
+    // Formulario de registro a eventos (con verificación manual en el controlador)
+    Route::get('/evento/{id}/registro', [EventoAsistenciaController::class, 'showRegistrationForm'])
+        ->name('eventos.registro.form');
+
+    // Procesar registros
+    Route::post('/evento/{id}/registro', [EventoAsistenciaController::class, 'register'])
+        ->name('eventos.registro');
+
+    Route::post('/evento/{id}/registro/institucional', [EventoAsistenciaController::class, 'registrarInstitucional'])
+        ->name('eventos.registro.institucional');
+
+    // Ver asistencias del usuario
+    Route::get('/mis-asistencias', [EventoAsistenciaController::class, 'misAsistencias'])
+        ->name('eventos.mis-asistencias');
+
+    // Cancelar asistencia
+    Route::post('/asistencia/{id}/cancelar', [EventoAsistenciaController::class, 'cancelarAsistencia'])
+        ->name('eventos.asistencia.cancelar');
+
+    // Página de confirmación
+    Route::get('/evento/{id}/confirmacion', [EventoAsistenciaController::class, 'showConfirmation'])
+        ->name('eventos.confirmacion');
+});
+
 
 // Rutas de compatibilidad (para mantener enlaces antiguos)
 Route::get('/eventos/{id}', function($id) {
     return redirect()->route('eventos.show', $id);
 });
-Route::get('/eventos/{id}/registro', function($id) {
-    return redirect()->route('eventos.registro.form', $id);
-});
-
+Route::get('/evento/{id}/detalles', [EventosEventController::class, 'show'])->name('eventos.show');
 // Rutas para registro
 Route::middleware('guest')->group(function () {
     // Rutas de registro
@@ -69,8 +90,8 @@ Route::middleware('guest')->group(function () {
         ->name('login.store');
 
     // Rutas de verificación de correo - IMPORTANTE: estas deberían ser accesibles para usuarios no autenticados
-    // Route::get('/email/verify', [VerificationController::class, 'notice'])
-    //     ->name('verification.notice');
+    Route::get('/email/verify', [VerificationController::class, 'notice'])
+        ->name('verification.notice');
 
     Route::post('/email/verify', [VerificationController::class, 'verify'])
         ->name('verification.verify');

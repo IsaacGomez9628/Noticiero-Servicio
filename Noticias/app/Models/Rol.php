@@ -12,6 +12,13 @@ class Rol extends Model
     
     // Especificar el nombre de la tabla ya que no sigue la convención
     protected $table = 'rols';
+
+    protected $fillable = [
+        'name',
+        'slug',
+        'description',
+        'active'
+    ];
     
     // Relación con Admins (un rol puede tener muchos administradores)
     public function admins()
@@ -30,5 +37,10 @@ class Rol extends Model
     public function activities()
     {
         return $this->morphMany(ActivityLog::class, 'object');
+    }
+
+    public function users()
+    {
+        return $this->belongsToMany(User::class, 'user_rols', 'rol_id', 'user_id');
     }
 }

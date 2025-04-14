@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Schema;
 use Inertia\Inertia;
+use Carbon\Carbon;
 
 class VerificationController extends Controller
 {
@@ -286,8 +287,28 @@ class VerificationController extends Controller
         // Asignar rol institucional (6)
         $this->assignUserRole($user->id, 6);
         
-        // Obtener o crear un género (predeterminado M)
-        $gender = Gender::firstOrCreate(['name' => 'M']);
+        // Obtener género (usamos gender_id si viene, sino predeterminado M)
+        $genderId = $data['gender_id'] ?? null;
+        if ($genderId) {
+            $gender = Gender::find($genderId);
+            if (!$gender) {
+                $gender = Gender::firstOrCreate(['name' => 'M']);
+            }
+        } else {
+            $gender = Gender::firstOrCreate(['name' => 'M']);
+        }
+
+        // Calcular edad si hay fecha de nacimiento
+        $age = 30; // Valor por defecto
+        $birthDate = $data['birth_date'] ?? null;
+        if ($birthDate) {
+            $birthdate = new \DateTime($birthDate);
+            $today = new \DateTime();
+            $calculatedAge = $birthdate->diff($today)->y;
+            if ($calculatedAge > 0) {
+                $age = $calculatedAge;
+            }
+        }
 
         // Crear persona (responsable de la empresa)
         $person = new Person();
@@ -296,8 +317,8 @@ class VerificationController extends Controller
         $person->second_last_name = $data['apellido_materno'] ?? '';
         $person->gender_id = $gender->id;
         $person->user_id = $user->id;
-        $person->birth_date = now()->subYears(30);
-        $person->age = 30;
+        $person->birth_date = $birthDate ?? now()->subYears($age);
+        $person->age = $age;
         $person->save();
         
         Log::info('Persona responsable creada con ID: ' . $person->id);
@@ -356,6 +377,95 @@ class VerificationController extends Controller
         Log::info('Relación empresa-contacto creada');
         
         return $user;
+    }
+
+    /**
+     * Reenvía el correo de verificación con un nuevo token.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Http\JsonResponse
+     */
+    public function resend(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email',
+        ]);
+
+        if ($validator->fails()) {
+            if ($request->expectsJson() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false, 
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+            
+            return back()
+                ->withErrors($validator)
+                ->withInput();
+        }
+
+        // Buscar el registro pendiente
+        $pendingRegistration = PendingRegistration::where('email', $request->email)
+            ->first();
+        
+        if (!$pendingRegistration) {
+            $errorMessage = 'No se encontró ningún registro pendiente para este correo electrónico.';
+            
+            if ($request->expectsJson() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false, 
+                    'errors' => ['email' => [$errorMessage]]
+                ], 422);
+            }
+            
+            return back()
+                ->with('error', $errorMessage);
+        }
+
+        // Generar nuevo token
+        $token = str_pad(mt_rand(1, 99999), 5, '0', STR_PAD_LEFT);
+        
+        // Actualizar token y expiración
+        $pendingRegistration->token = $token;
+        $pendingRegistration->expires_at = \Carbon\Carbon::now()->addHours(24);
+        $pendingRegistration->save();
+        
+        Log::info('Nuevo token generado para: ' . $request->email . ' - Token: ' . $token);
+        
+        // Enviar correo con nuevo token
+        try {
+            Mail::to($request->email)->send(new \App\Mail\EmailVerification(
+                (object)['email' => $request->email],
+                $token
+            ));
+            
+            $successMessage = 'Se ha enviado un nuevo código de verificación a tu correo electrónico.';
+            
+            if ($request->expectsJson() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => $successMessage
+                ]);
+            }
+            
+            return back()
+                ->with('success', $successMessage);
+                
+        } catch (\Exception $e) {
+            Log::error('Error al enviar nuevo correo de verificación: ' . $e->getMessage());
+            
+            $errorMessage = 'Hubo un problema al enviar el correo con el nuevo código.';
+            
+            if ($request->expectsJson() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $errorMessage
+                ], 500);
+            }
+            
+            return back()
+                ->with('error', $errorMessage);
+        }
     }
 
     /**
@@ -426,5 +536,4 @@ class VerificationController extends Controller
             throw $e;
         }
     }
-
 }

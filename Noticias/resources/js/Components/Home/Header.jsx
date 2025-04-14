@@ -1,7 +1,9 @@
 // C:\Noticiero-Servicio\Noticias\resources\js\Components\Home\Header.jsx
 
 import React, { useState, useEffect, useRef } from "react";
-import { Link, usePage, router } from "@inertiajs/react"; // Añadimos router
+import { usePage, router } from "@inertiajs/react";
+import { Link } from "@inertiajs/inertia-react"; // Añadimos router
+import { Inertia } from "@inertiajs/inertia";
 import { motion, AnimatePresence } from "framer-motion";
 import {
     Search,
@@ -206,7 +208,7 @@ export default function AnimatedHeader() {
                                         <>
                                             <div className="border-t border-gray-100 mt-2 pt-2">
                                                 <Link
-                                                    href="/dashboard"
+                                                    href={route("dashboard")}
                                                     className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 transition-colors flex items-center"
                                                 >
                                                     <User className="h-4 w-4 mr-2" />
@@ -215,7 +217,9 @@ export default function AnimatedHeader() {
 
 
                                                 <Link
-                                                    href="/mis-asistencias"
+                                                    href={route(
+                                                        "eventos.mis-asistencias"
+                                                    )}
                                                     className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 transition-colors flex items-center"
                                                 >
                                                     <Bell className="h-4 w-4 mr-2" />

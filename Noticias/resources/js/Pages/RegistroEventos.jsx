@@ -5,49 +5,13 @@ import { Button } from "@/Components/ui/Button";
 import { Input } from "@/Components/ui/Input";
 import MainLayout from "@/Layouts/MainLayout";
 
-export default function RegistroEvento({ evento, empresas }) {
-    const [numAsistentes, setNumAsistentes] = useState(1);
-    const [esEmpresa, setEsEmpresa] = useState(false);
-
+export default function RegistroEvento({ evento, auth }) {
     const { data, setData, post, processing, errors } = useForm({
-        nombre: "",
-        email: "",
-        empresa_id: "",
-        es_empresa: false,
-        numero_asistentes: 1,
-        asistentes: [{ nombre: "", email: "" }],
+        nombre: auth.user?.name || "",
+        email: auth.user?.email || "",
+        telefono: "",
+        // Eliminar campos relacionados con múltiples asistentes
     });
-
-    const updateAsistente = (index, field, value) => {
-        const updatedAsistentes = [...data.asistentes];
-        updatedAsistentes[index] = {
-            ...updatedAsistentes[index],
-            [field]: value,
-        };
-        setData("asistentes", updatedAsistentes);
-    };
-
-    const cambiarNumeroAsistentes = (num) => {
-        setNumAsistentes(num);
-
-        // Ajustar array de asistentes
-        const asistentes = [...data.asistentes];
-        if (num > asistentes.length) {
-            // Añadir asistentes
-            for (let i = asistentes.length; i < num; i++) {
-                asistentes.push({ nombre: "", email: "" });
-            }
-        } else {
-            // Reducir asistentes
-            asistentes.splice(num);
-        }
-
-        setData({
-            ...data,
-            numero_asistentes: num,
-            asistentes,
-        });
-    };
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -70,7 +34,7 @@ export default function RegistroEvento({ evento, empresas }) {
                     <Card>
                         <CardContent className="p-6">
                             <h1 className="text-2xl font-bold mb-6">
-                                Registro para evento: {evento.titulo}
+                                Registro personal para evento: {evento.titulo}
                             </h1>
 
                             <div className="mb-6 p-4 bg-blue-50 rounded-lg">
@@ -115,7 +79,7 @@ export default function RegistroEvento({ evento, empresas }) {
                             </div>
 
                             <form onSubmit={handleSubmit}>
-                                {/* Datos principales */}
+                                {/* Datos del asistente principal */}
                                 <div className="space-y-4 mb-8">
                                     <div>
                                         <label className="block text-sm font-medium mb-1">
@@ -160,158 +124,23 @@ export default function RegistroEvento({ evento, empresas }) {
                                         )}
                                     </div>
 
-                                    {/* Selección de tipo de registro */}
-                                    <div>
-                                        <label className="flex items-center">
-                                            <input
-                                                type="checkbox"
-                                                checked={esEmpresa}
-                                                onChange={(e) => {
-                                                    setEsEmpresa(
-                                                        e.target.checked
-                                                    );
-                                                    setData(
-                                                        "es_empresa",
-                                                        e.target.checked
-                                                    );
-                                                }}
-                                                className="mr-2"
-                                            />
-                                            <span>
-                                                Vengo de una empresa o
-                                                institución
-                                            </span>
-                                        </label>
-                                    </div>
-
-                                    {/* Selector de empresa/institución */}
-                                    {esEmpresa && (
-                                        <div>
-                                            <label className="block text-sm font-medium mb-1">
-                                                Selecciona tu organización *
-                                            </label>
-                                            <select
-                                                value={data.empresa_id}
-                                                onChange={(e) =>
-                                                    setData(
-                                                        "empresa_id",
-                                                        e.target.value
-                                                    )
-                                                }
-                                                className="w-full p-2 border rounded-md"
-                                                required={esEmpresa}
-                                            >
-                                                <option value="">
-                                                    Selecciona una opción
-                                                </option>
-                                                {empresas.map((empresa) => (
-                                                    <option
-                                                        key={empresa.id}
-                                                        value={empresa.id}
-                                                    >
-                                                        {empresa.nombre}
-                                                    </option>
-                                                ))}
-                                            </select>
-                                            {errors.empresa_id && (
-                                                <div className="text-red-500 text-sm mt-1">
-                                                    {errors.empresa_id}
-                                                </div>
-                                            )}
-                                        </div>
-                                    )}
-
-                                    {/* Número de asistentes */}
                                     <div>
                                         <label className="block text-sm font-medium mb-1">
-                                            Número de asistentes
+                                            Teléfono (opcional)
                                         </label>
-                                        <select
-                                            value={numAsistentes}
+                                        <Input
+                                            type="tel"
+                                            value={data.telefono}
                                             onChange={(e) =>
-                                                cambiarNumeroAsistentes(
-                                                    parseInt(e.target.value)
+                                                setData(
+                                                    "telefono",
+                                                    e.target.value
                                                 )
                                             }
-                                            className="w-full p-2 border rounded-md"
-                                        >
-                                            {[1, 2, 3, 4, 5].map((num) => (
-                                                <option key={num} value={num}>
-                                                    {num}
-                                                </option>
-                                            ))}
-                                        </select>
+                                            className="w-full"
+                                        />
                                     </div>
                                 </div>
-
-                                {/* Formularios para asistentes adicionales */}
-                                {numAsistentes > 1 && (
-                                    <div className="mb-8">
-                                        <h3 className="font-medium mb-4 text-lg border-b pb-2">
-                                            Información de asistentes
-                                            adicionales
-                                        </h3>
-
-                                        {data.asistentes
-                                            .slice(1)
-                                            .map((asistente, index) => (
-                                                <div
-                                                    key={index}
-                                                    className="p-4 border rounded-md mb-4 bg-gray-50"
-                                                >
-                                                    <h4 className="font-medium mb-3">
-                                                        Asistente {index + 2}
-                                                    </h4>
-                                                    <div className="space-y-4">
-                                                        <div>
-                                                            <label className="block text-sm mb-1">
-                                                                Nombre completo
-                                                                *
-                                                            </label>
-                                                            <Input
-                                                                type="text"
-                                                                value={
-                                                                    asistente.nombre
-                                                                }
-                                                                onChange={(e) =>
-                                                                    updateAsistente(
-                                                                        index +
-                                                                            1,
-                                                                        "nombre",
-                                                                        e.target
-                                                                            .value
-                                                                    )
-                                                                }
-                                                                className="w-full"
-                                                                required
-                                                            />
-                                                        </div>
-                                                        <div>
-                                                            <label className="block text-sm mb-1">
-                                                                Email
-                                                            </label>
-                                                            <Input
-                                                                type="email"
-                                                                value={
-                                                                    asistente.email
-                                                                }
-                                                                onChange={(e) =>
-                                                                    updateAsistente(
-                                                                        index +
-                                                                            1,
-                                                                        "email",
-                                                                        e.target
-                                                                            .value
-                                                                    )
-                                                                }
-                                                                className="w-full"
-                                                            />
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                    </div>
-                                )}
 
                                 <div className="flex justify-end gap-3">
                                     <Link
@@ -330,15 +159,6 @@ export default function RegistroEvento({ evento, empresas }) {
                     </Card>
                 </div>
             </div>
-
-            {eventoSeleccionado && (
-                <RegistroEventoModal
-                    evento={eventoSeleccionado}
-                    empresas={empresas}
-                    isOpen={modalAbierto}
-                    onClose={cerrarModal}
-                />
-            )}
         </MainLayout>
     );
 }

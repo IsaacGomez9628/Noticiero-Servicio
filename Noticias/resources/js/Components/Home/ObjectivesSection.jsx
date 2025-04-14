@@ -67,7 +67,7 @@ export default function ObjectivesSection() {
                         </div>
                         <div className="relative flex justify-center">
                             <span className="bg-white px-8 py-3 text-4xl font-bold text-gray-900 rounded-full shadow-md">
-                                Nuestros Objetivos
+                                Nuestros objetivos
                             </span>
                         </div>
                     </div>
