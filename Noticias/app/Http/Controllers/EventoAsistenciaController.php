@@ -407,9 +407,10 @@ class EventoAsistenciaController extends Controller
             }
         }
 
-        $tieneAsistencias = $asistencias->isNotEmpty() || $asistenciasInstitucionales->isNotEmpty();
+        // Verificar si hay asistencias
+        $tieneAsistencias = ($asistencias->count() > 0 || $asistenciasInstitucionales->count() > 0);
 
-        return Inertia::render('Events.EventAttendance', [
+        return Inertia::render('MisAsistencias', [
             'asistencias' => $asistencias,
             'asistenciasInstitucionales' => $asistenciasInstitucionales,
             'tieneAsistencias' => $tieneAsistencias,
@@ -418,54 +419,55 @@ class EventoAsistenciaController extends Controller
     /**
      * Permite a un usuario cancelar su asistencia a un evento
      */
-    public function cancelarAsistencia($asistenciaId)
-    {
-        try {
-            DB::beginTransaction();
+   // En EventoAsistenciaController.php
+public function cancelarAsistencia($asistenciaId)
+{
+    try {
+        DB::beginTransaction();
 
-            $user = Auth::user();
-            $asistencia = EventAttendance::findOrFail($asistenciaId);
+        $user = Auth::user();
+        $asistencia = EventAttendance::findOrFail($asistenciaId);
 
-            // Verificar que la asistencia pertenezca al usuario
-            if ($asistencia->user_id !== $user->id) {
-                return redirect()->back()->with('error', 'No tienes permiso para cancelar esta asistencia.');
-            }
-
-            // Obtener el status de cancelado
-            $status = Status::where('type', 'asistencia')
-                ->where('slug', 'cancelado')
-                ->first();
-
-            if (!$status) {
-                // Si no existe, crear uno
-                $status = Status::create([
-                    'name' => 'Cancelado',
-                    'slug' => 'cancelado',
-                    'type' => 'asistencia',
-                    'description' => 'Asistencia cancelada por el usuario',
-                    'color' => '#EF4444',
-                    'active' => true,
-                    'order' => 3
-                ]);
-            }
-
-            // Actualizar status de la asistencia
-            $asistencia->status_id = $status->id;
-            $asistencia->save();
-
-            // No necesitamos actualizar manualmente la capacidad, ya que al consultar los registros
-            // activos (no cancelados) obtendremos la cuenta correcta automáticamente
-
-            DB::commit();
-
-            return redirect()->back()->with('success', 'Tu asistencia ha sido cancelada correctamente.');
-        } catch (\Exception $e) {
-            DB::rollBack();
-            Log::error('Error al cancelar asistencia: ' . $e->getMessage());
-
-            return redirect()->back()->with('error', 'Ocurrió un error al cancelar tu asistencia. Por favor, intenta nuevamente.');
+        // Verificar que la asistencia pertenezca al usuario
+        if ($asistencia->user_id !== $user->id) {
+            return redirect()->back()->with('error', 'No tienes permiso para cancelar esta asistencia.');
         }
+
+        // Obtener el evento para actualizar capacidad
+        $evento = Event::findOrFail($asistencia->event_id);
+
+        // Obtener el status de cancelado
+        $status = Status::where('type', 'asistencia')
+            ->where('slug', 'cancelado')
+            ->first();
+
+        if (!$status) {
+            // Si no existe, crear uno
+            $status = Status::create([
+                'name' => 'Cancelado',
+                'slug' => 'cancelado',
+                'type' => 'asistencia',
+                'description' => 'Asistencia cancelada por el usuario',
+                'color' => '#EF4444',
+                'active' => true,
+                'order' => 3
+            ]);
+        }
+
+        // Actualizar status de la asistencia
+        $asistencia->status_id = $status->id;
+        $asistencia->save();
+
+        DB::commit();
+
+        return redirect()->back()->with('success', 'Tu asistencia ha sido cancelada correctamente.');
+    } catch (\Exception $e) {
+        DB::rollBack();
+        Log::error('Error al cancelar asistencia: ' . $e->getMessage());
+
+        return redirect()->back()->with('error', 'Ocurrió un error al cancelar tu asistencia. Por favor, intenta nuevamente.');
     }
+}
 
     /**
      * Lista los asistentes registrados para un evento (vista admin)
