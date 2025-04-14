@@ -72,6 +72,8 @@ export default function Welcome() {
     // Nuevo estado para controlar la notificación de cierre de sesión
     const [showLogoutSuccess, setShowLogoutSuccess] = useState(false);
     const { flash } = usePage().props;
+    const { auth } = usePage().props;
+    const user = auth?.user;
 
     // Efecto para detectar mensajes flash o parámetros de URL (mantenido igual)
     useEffect(() => {
@@ -488,279 +490,340 @@ export default function Welcome() {
             <div className="min-h-screen bg-gray-50">
                 <main className="container mx-auto px-4 py-8">
                     {/* Título principal con animación de entrada */}
-                    <FadeInSection className="flex justify-center items-center px-4 rounded-lg shadow-sm mb-8 relative overflow-hidden">
-                        {/* Background image positioned to fill the entire container width */}
-                        <img
-                            src={Fondo_CEATyCC}
-                            alt="Fondo CEATyCC"
-                            className="absolute inset-0 w-full h-full object-cover opacity-75"
-                        />
+                    <FadeInSection className="relative py-20 sm:py-28 bg-gradient-to-br from-[#eaf4ff] via-white to-[#dbeafe] dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 overflow-hidden">
+                        {/* Capa de partículas animadas y luz suave */}
+                        <div className="absolute inset-0 -z-10 pointer-events-none">
+                            <div className="absolute w-72 h-72 bg-blue-200 dark:bg-blue-900/30 rounded-full blur-3xl top-[-50px] left-1/4 opacity-25 animate-[pulse_5s_ease-in-out_infinite]"></div>
+                            <div className="absolute w-60 h-60 bg-teal-200 dark:bg-cyan-800/30 rounded-full blur-2xl bottom-[-40px] right-1/4 opacity-20 animate-[pulse_6s_ease-in-out_infinite] delay-1000"></div>
+                            <div className="absolute w-[140%] h-96 bg-gradient-to-r from-blue-50/50 via-white/30 to-transparent dark:from-slate-700/20 dark:via-slate-800/30 dark:to-transparent top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 rotate-6 blur-2xl opacity-30"></div>
+                        </div>
 
-                        {/* Subtle glow effect */}
-                        <div className="absolute inset-0 bg-blue-100 blur-md opacity-30"></div>
+                        <div className="relative max-w-4xl mx-auto px-6 sm:px-12">
+                            <div className="rounded-3xl bg-white/70 dark:bg-slate-900/70 backdrop-blur-2xl shadow-[0_12px_60px_rgba(0,0,0,0.12)] border border-blue-100 dark:border-slate-700 text-center px-10 py-14 sm:px-14 sm:py-16 transition-all duration-700 hover:shadow-[0_20px_80px_rgba(0,0,0,0.2)] hover:scale-[1.01]">
+                                {/* Logo animado con efecto de elevación */}
+                                <img
+                                    src={Logo_CEATyCC}
+                                    alt="Logo CEATyCC"
+                                    className="h-44 w-auto mx-auto drop-shadow-lg transition-transform duration-700 hover:scale-105 hover:drop-shadow-[0_8px_24px_rgba(0,98,255,0.25)]"
+                                />
 
-                        {/* Logo positioned on top */}
-                        <div className="relative z-10 w-full flex justify-center py-8">
-                            <img
-                                src={Logo_CEATyCC}
-                                alt="Logo Comisión de Educación en Alta Tecnología y Cloud Computing"
-                                className="h-auto w-72 object-contain"
-                            />
+                                {/* Lema destacado con degradado animado */}
+                                <p className="mt-8 text-lg sm:text-xl font-semibold bg-gradient-to-r from-blue-600 via-teal-500 to-cyan-600 bg-clip-text text-transparent animate-gradient-x">
+                                    Impulsando la Educación en Alta Tecnología y
+                                    Cloud Computing
+                                </p>
+                            </div>
                         </div>
                     </FadeInSection>
-                    {/* Tabs con animación */}
-                    <FadeInSection delay={100}>
-                        <Tabs defaultValue="featured" className="space-y-6">
-                            <TabsList className="rounded-full flex justify-end bg-transparent">
-                                <TabsTrigger
-                                    value="featured"
-                                    className="rounded-full p-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white"
+                    {user && (
+                        <>
+                            {/* Tabs con animación */}
+                            <FadeInSection delay={100}>
+                                <Tabs
+                                    defaultValue="featured"
+                                    className="space-y-6"
                                 >
-                                    Presentando
-                                </TabsTrigger>
-                                <TabsTrigger
-                                    value="latest"
-                                    className="rounded-full p-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white"
-                                >
-                                    Lo más nuevo
-                                </TabsTrigger>
-                                <TabsTrigger
-                                    value="trending"
-                                    className="rounded-full p-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white"
-                                >
-                                    Tendencia
-                                </TabsTrigger>
-                            </TabsList>
-
-                            {/* Contenido para "Presentando" */}
-                            <TabsContent value="featured">
-                                <Swiper
-                                    modules={[Navigation, Autoplay]}
-                                    navigation
-                                    autoplay={{ delay: 3000 }}
-                                    spaceBetween={30}
-                                    slidesPerView={1}
-                                    className="w-full h-80"
-                                >
-                                    {newsArticles.map((article) => (
-                                        <SwiperSlide key={article.id}>
-                                            <Card className="overflow-hidden">
-                                                <div className="grid md:grid-cols-2 gap-6">
-                                                    <div className="relative h-64 md:h-full">
-                                                        <img
-                                                            src={article.image}
-                                                            alt={article.title}
-                                                            className="object-cover w-full h-full"
-                                                        />
-                                                    </div>
-                                                    <CardContent className="p-6">
-                                                        <h2 className="text-2xl font-bold">
-                                                            {article.title}
-                                                        </h2>
-                                                        <p className="text-muted-foreground">
-                                                            {
-                                                                article.description
-                                                            }
-                                                        </p>
-                                                        <Button className="mt-4">
-                                                            Leer Más
-                                                        </Button>
-                                                    </CardContent>
-                                                </div>
-                                            </Card>
-                                        </SwiperSlide>
-                                    ))}
-                                </Swiper>
-                            </TabsContent>
-
-                            {/* Contenido para "Lo más nuevo" con animaciones escalonadas */}
-                            <TabsContent value="latest">
-                                <div className="grid md:grid-cols-2 gap-6">
-                                    {latestArticles.map((article, index) => (
-                                        <FadeInSection
-                                            key={article.id}
-                                            delay={index * 100}
-                                            direction={
-                                                index % 2 === 0
-                                                    ? "left"
-                                                    : "right"
-                                            }
+                                    <TabsList className="rounded-full flex justify-end bg-transparent">
+                                        <TabsTrigger
+                                            value="featured"
+                                            className="rounded-full p-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white"
                                         >
-                                            <Card className="overflow-hidden card-hover-effect">
-                                                <div className="relative h-48">
-                                                    <img
-                                                        src={article.image}
-                                                        alt={article.title}
-                                                        className="object-cover h-full w-full"
-                                                    />
-                                                </div>
-                                                <CardContent className="p-6">
-                                                    <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                                                        <span>
-                                                            {article.category}
-                                                        </span>
-                                                        <span>
-                                                            • {article.readTime}
-                                                        </span>
-                                                    </div>
-                                                    <h3 className="text-xl font-bold mb-2">
-                                                        {article.title}
-                                                    </h3>
-                                                    <p className="text-muted-foreground mb-3">
-                                                        {article.description}
-                                                    </p>
-                                                    <div className="flex items-center space-x-4">
-                                                        <Button>
-                                                            Leer Más
-                                                        </Button>
-                                                        <Button
-                                                            variant="outline"
-                                                            size="icon"
-                                                        >
-                                                            <Bookmark className="h-4 w-4" />
-                                                        </Button>
-                                                    </div>
-                                                </CardContent>
-                                            </Card>
-                                        </FadeInSection>
-                                    ))}
-                                </div>
-                            </TabsContent>
-
-                            {/* Contenido para "Tendencia" con animaciones escalonadas */}
-                            <TabsContent value="trending">
-                                <div className="grid md:grid-cols-2 gap-6">
-                                    {trendArticles.map((article, index) => (
-                                        <FadeInSection
-                                            key={article.id}
-                                            delay={index * 100}
-                                            direction={
-                                                index % 2 === 0
-                                                    ? "left"
-                                                    : "right"
-                                            }
+                                            Presentando
+                                        </TabsTrigger>
+                                        <TabsTrigger
+                                            value="latest"
+                                            className="rounded-full p-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white"
                                         >
-                                            <Card className="overflow-hidden card-hover-effect">
-                                                <div className="relative h-48">
-                                                    <img
-                                                        src={article.image}
-                                                        alt={article.title}
-                                                        className="object-cover h-full w-full"
-                                                    />
-                                                </div>
-                                                <CardContent className="p-6">
-                                                    <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                                                        <span>
-                                                            {article.category}
-                                                        </span>
-                                                        <span>
-                                                            • {article.readTime}
-                                                        </span>
-                                                    </div>
-                                                    <h3 className="text-xl font-bold mb-2">
-                                                        {article.title}
-                                                    </h3>
-                                                    <p className="text-muted-foreground mb-3">
-                                                        {article.description}
-                                                    </p>
-                                                    <div className="flex items-center space-x-4">
-                                                        <Button>
-                                                            Leer Más
-                                                        </Button>
-                                                        <Button
-                                                            variant="outline"
-                                                            size="icon"
-                                                        >
-                                                            <Bookmark className="h-4 w-4" />
-                                                        </Button>
-                                                    </div>
-                                                </CardContent>
-                                            </Card>
-                                        </FadeInSection>
-                                    ))}
-                                </div>
-                            </TabsContent>
-                        </Tabs>
-                    </FadeInSection>
+                                            Lo más nuevo
+                                        </TabsTrigger>
+                                        <TabsTrigger
+                                            value="trending"
+                                            className="rounded-full p-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white"
+                                        >
+                                            Tendencia
+                                        </TabsTrigger>
+                                    </TabsList>
 
-                    {/* Sección de eventos con animación de entrada */}
-                    <FadeInSection delay={200}>
-                        <section className="mt-12">
-                            <div className="flex items-center justify-between mb-6">
-                                <div className="flex items-center gap-2">
-                                    <div className="icon-wrapper icon-blue">
-                                        <Award size={20} />
+                                    {/* Contenido para "Presentando" */}
+                                    <TabsContent value="featured">
+                                        <Swiper
+                                            modules={[Navigation, Autoplay]}
+                                            navigation
+                                            autoplay={{ delay: 3000 }}
+                                            spaceBetween={30}
+                                            slidesPerView={1}
+                                            className="w-full h-80"
+                                        >
+                                            {newsArticles.map((article) => (
+                                                <SwiperSlide key={article.id}>
+                                                    <Card className="overflow-hidden">
+                                                        <div className="grid md:grid-cols-2 gap-6">
+                                                            <div className="relative h-64 md:h-full">
+                                                                <img
+                                                                    src={
+                                                                        article.image
+                                                                    }
+                                                                    alt={
+                                                                        article.title
+                                                                    }
+                                                                    className="object-cover w-full h-full"
+                                                                />
+                                                            </div>
+                                                            <CardContent className="p-6">
+                                                                <h2 className="text-2xl font-bold">
+                                                                    {
+                                                                        article.title
+                                                                    }
+                                                                </h2>
+                                                                <p className="text-muted-foreground">
+                                                                    {
+                                                                        article.description
+                                                                    }
+                                                                </p>
+                                                                <Button className="mt-4">
+                                                                    Leer Más
+                                                                </Button>
+                                                            </CardContent>
+                                                        </div>
+                                                    </Card>
+                                                </SwiperSlide>
+                                            ))}
+                                        </Swiper>
+                                    </TabsContent>
+
+                                    {/* Contenido para "Lo más nuevo" con animaciones escalonadas */}
+                                    <TabsContent value="latest">
+                                        <div className="grid md:grid-cols-2 gap-6">
+                                            {latestArticles.map(
+                                                (article, index) => (
+                                                    <FadeInSection
+                                                        key={article.id}
+                                                        delay={index * 100}
+                                                        direction={
+                                                            index % 2 === 0
+                                                                ? "left"
+                                                                : "right"
+                                                        }
+                                                    >
+                                                        <Card className="overflow-hidden card-hover-effect">
+                                                            <div className="relative h-48">
+                                                                <img
+                                                                    src={
+                                                                        article.image
+                                                                    }
+                                                                    alt={
+                                                                        article.title
+                                                                    }
+                                                                    className="object-cover h-full w-full"
+                                                                />
+                                                            </div>
+                                                            <CardContent className="p-6">
+                                                                <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                                                                    <span>
+                                                                        {
+                                                                            article.category
+                                                                        }
+                                                                    </span>
+                                                                    <span>
+                                                                        •{" "}
+                                                                        {
+                                                                            article.readTime
+                                                                        }
+                                                                    </span>
+                                                                </div>
+                                                                <h3 className="text-xl font-bold mb-2">
+                                                                    {
+                                                                        article.title
+                                                                    }
+                                                                </h3>
+                                                                <p className="text-muted-foreground mb-3">
+                                                                    {
+                                                                        article.description
+                                                                    }
+                                                                </p>
+                                                                <div className="flex items-center space-x-4">
+                                                                    <Button>
+                                                                        Leer Más
+                                                                    </Button>
+                                                                    <Button
+                                                                        variant="outline"
+                                                                        size="icon"
+                                                                    >
+                                                                        <Bookmark className="h-4 w-4" />
+                                                                    </Button>
+                                                                </div>
+                                                            </CardContent>
+                                                        </Card>
+                                                    </FadeInSection>
+                                                )
+                                            )}
+                                        </div>
+                                    </TabsContent>
+
+                                    {/* Contenido para "Tendencia" con animaciones escalonadas */}
+                                    <TabsContent value="trending">
+                                        <div className="grid md:grid-cols-2 gap-6">
+                                            {trendArticles.map(
+                                                (article, index) => (
+                                                    <FadeInSection
+                                                        key={article.id}
+                                                        delay={index * 100}
+                                                        direction={
+                                                            index % 2 === 0
+                                                                ? "left"
+                                                                : "right"
+                                                        }
+                                                    >
+                                                        <Card className="overflow-hidden card-hover-effect">
+                                                            <div className="relative h-48">
+                                                                <img
+                                                                    src={
+                                                                        article.image
+                                                                    }
+                                                                    alt={
+                                                                        article.title
+                                                                    }
+                                                                    className="object-cover h-full w-full"
+                                                                />
+                                                            </div>
+                                                            <CardContent className="p-6">
+                                                                <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                                                                    <span>
+                                                                        {
+                                                                            article.category
+                                                                        }
+                                                                    </span>
+                                                                    <span>
+                                                                        •{" "}
+                                                                        {
+                                                                            article.readTime
+                                                                        }
+                                                                    </span>
+                                                                </div>
+                                                                <h3 className="text-xl font-bold mb-2">
+                                                                    {
+                                                                        article.title
+                                                                    }
+                                                                </h3>
+                                                                <p className="text-muted-foreground mb-3">
+                                                                    {
+                                                                        article.description
+                                                                    }
+                                                                </p>
+                                                                <div className="flex items-center space-x-4">
+                                                                    <Button>
+                                                                        Leer Más
+                                                                    </Button>
+                                                                    <Button
+                                                                        variant="outline"
+                                                                        size="icon"
+                                                                    >
+                                                                        <Bookmark className="h-4 w-4" />
+                                                                    </Button>
+                                                                </div>
+                                                            </CardContent>
+                                                        </Card>
+                                                    </FadeInSection>
+                                                )
+                                            )}
+                                        </div>
+                                    </TabsContent>
+                                </Tabs>
+                            </FadeInSection>
+
+                            {/* Sección de eventos con animación */}
+                            <FadeInSection delay={200}>
+                                <section className="mt-12">
+                                    <div className="flex items-center justify-between mb-6">
+                                        <div className="flex items-center gap-2">
+                                            <div className="icon-wrapper icon-blue">
+                                                <Award size={20} />
+                                            </div>
+                                            <h2 className="text-2xl font-bold">
+                                                Próximos Eventos
+                                            </h2>
+                                        </div>
+                                        <Link href="/eventos">
+                                            <Button
+                                                variant="outline"
+                                                className="flex items-center gap-2"
+                                            >
+                                                <span>Ver Todos</span>
+                                                <ChevronRight size={16} />
+                                            </Button>
+                                        </Link>
                                     </div>
-                                    <h2 className="text-2xl font-bold">
-                                        Próximos Eventos
-                                    </h2>
-                                </div>
-                                <Link href="/eventos">
-                                    <Button
-                                        variant="outline"
-                                        className="flex items-center gap-2"
-                                    >
-                                        <span>Ver Todos</span>
-                                        <ChevronRight size={16} />
-                                    </Button>
-                                </Link>
-                            </div>
 
-                            <div className="grid md:grid-cols-2 gap-6">
-                                {/* Primer evento con animación desde la izquierda */}
-                                <FadeInSection direction="left" delay={250}>
-                                    <Card className="overflow-hidden card-hover-effect">
-                                        <div className="relative h-48">
-                                            <img
-                                                src={img6}
-                                                alt="Imagen del evento"
-                                                className="object-cover h-full w-full"
-                                            />
-                                        </div>
-                                        <CardContent className="p-6">
-                                            <h3 className="text-xl font-bold mb-2">
-                                                Conferencia de Tecnología
-                                            </h3>
-                                            <p className="text-muted-foreground mb-3">
-                                                Únete a nosotros para explorar
-                                                las últimas tendencias en
-                                                tecnología.
-                                            </p>
-                                            <Link href="/eventos/1">
-                                                <Button>Ver Detalles</Button>
-                                            </Link>
-                                        </CardContent>
-                                    </Card>
-                                </FadeInSection>
+                                    <div className="grid md:grid-cols-2 gap-6">
+                                        {/* Primer evento con animación desde la izquierda */}
+                                        <FadeInSection
+                                            direction="left"
+                                            delay={250}
+                                        >
+                                            <Card className="overflow-hidden card-hover-effect">
+                                                <div className="relative h-48">
+                                                    <img
+                                                        src={img6}
+                                                        alt="Imagen del evento"
+                                                        className="object-cover h-full w-full"
+                                                    />
+                                                </div>
+                                                <CardContent className="p-6">
+                                                    <h3 className="text-xl font-bold mb-2">
+                                                        Conferencia de
+                                                        Tecnología
+                                                    </h3>
+                                                    <p className="text-muted-foreground mb-3">
+                                                        Únete a nosotros para
+                                                        explorar las últimas
+                                                        tendencias en
+                                                        tecnología.
+                                                    </p>
+                                                    <Link href="/eventos/1">
+                                                        <Button>
+                                                            Ver Detalles
+                                                        </Button>
+                                                    </Link>
+                                                </CardContent>
+                                            </Card>
+                                        </FadeInSection>
 
-                                {/* Segundo evento con animación desde la derecha */}
-                                <FadeInSection direction="right" delay={300}>
-                                    <Card className="overflow-hidden card-hover-effect">
-                                        <div className="relative h-48">
-                                            <img
-                                                src={img7}
-                                                alt="Imagen del evento"
-                                                className="object-cover h-full w-full"
-                                            />
-                                        </div>
-                                        <CardContent className="p-6">
-                                            <h3 className="text-xl font-bold mb-2">
-                                                Workshop de Desarrollo Web
-                                            </h3>
-                                            <p className="text-muted-foreground mb-3">
-                                                Aprende las mejores prácticas
-                                                para el desarrollo web moderno.
-                                            </p>
-                                            <Link href="/eventos/2">
-                                                <Button>Ver Detalles</Button>
-                                            </Link>
-                                        </CardContent>
-                                    </Card>
-                                </FadeInSection>
-                            </div>
-                        </section>
-                    </FadeInSection>
-
+                                        {/* Segundo evento con animación desde la derecha */}
+                                        <FadeInSection
+                                            direction="right"
+                                            delay={300}
+                                        >
+                                            <Card className="overflow-hidden card-hover-effect">
+                                                <div className="relative h-48">
+                                                    <img
+                                                        src={img7}
+                                                        alt="Imagen del evento"
+                                                        className="object-cover h-full w-full"
+                                                    />
+                                                </div>
+                                                <CardContent className="p-6">
+                                                    <h3 className="text-xl font-bold mb-2">
+                                                        Workshop de Desarrollo
+                                                        Web
+                                                    </h3>
+                                                    <p className="text-muted-foreground mb-3">
+                                                        Aprende las mejores
+                                                        prácticas para el
+                                                        desarrollo web moderno.
+                                                    </p>
+                                                    <Link href="/eventos/2">
+                                                        <Button>
+                                                            Ver Detalles
+                                                        </Button>
+                                                    </Link>
+                                                </CardContent>
+                                            </Card>
+                                        </FadeInSection>
+                                    </div>
+                                </section>
+                            </FadeInSection>
+                        </>
+                    )}
                     {/* Sección ¿Quiénes somos? - Misión y Visión con animaciones */}
                     <section className="mt-16 py-16 relative overflow-hidden">
                         {/* Fondo con patrón sutil (mantenido igual) */}
@@ -853,12 +916,6 @@ export default function Welcome() {
                                         Miembros de la comisión
                                     </h2>
                                     <div className="w-24 h-1 bg-gradient-to-r from-blue-600 to-teal-500 mx-auto rounded-full mb-6"></div>
-                                    <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-                                        Somos un grupo dinámico de individuos
-                                        apasionados por lo que hacemos y
-                                        dedicados a entregar los mejores
-                                        resultados para nuestros clientes.
-                                    </p>
 
                                     <div className="flex justify-center mt-10">
                                         <div className="relative overflow-hidden rounded-lg bg-white shadow-lg transform transition-transform duration-300 hover:shadow-xl hover:scale-105 h-full w-[300px]">
@@ -870,10 +927,10 @@ export default function Welcome() {
                                                 />
                                                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none"></div>
                                                 <div className="absolute bottom-0 left-0 p-4 text-white">
-                                                    <h3 className="text-xl font-bold">
+                                                    <h3 className="text-xl font-bold justify-center">
                                                         Orfelinda Torres Rivera
                                                     </h3>
-                                                    <p className="text-white/90">
+                                                    <p className="text-white/90 justify-center">
                                                         Coordinadora
                                                     </p>
                                                 </div>

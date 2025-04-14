@@ -400,7 +400,7 @@ public function register(Request $request, $eventId)
             }
         }
         
-        return Inertia::render('MisAsistencias', [
+        return Inertia::render('Events.EventAttendance', [
             'asistencias' => $asistencias,
             'asistenciasInstitucionales' => $asistenciasInstitucionales,
         ]);
