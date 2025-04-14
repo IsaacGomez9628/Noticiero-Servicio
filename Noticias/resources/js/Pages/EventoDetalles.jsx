@@ -1,7 +1,9 @@
+// C:\Noticiero-Servicio\Noticias\resources\js\Pages\EventoDetalles.jsx
 import React from "react";
-import { Head, Link } from "@inertiajs/react";
+import { Head, Link, usePage } from "@inertiajs/react";
 import { Card, CardContent } from "@/Components/ui/Card";
 import { Button } from "@/Components/ui/Button";
+import RegistroEventoModal from "@/Components/ui/ModalRegistro";
 import {
     Calendar,
     Clock,
@@ -16,6 +18,7 @@ import {
 import MainLayout from "@/Layouts/MainLayout";
 
 export default function EventoDetalle({ evento, asistenciasConfirmadas = 0 }) {
+    const { auth } = usePage().props;
     // Add default value to prevent undefined errors
 
     // Función para formatear fechas
@@ -361,10 +364,21 @@ export default function EventoDetalle({ evento, asistenciasConfirmadas = 0 }) {
                                     {/* Register button */}
                                     <div className="p-6">
                                         <Link
-                                            href={route(
-                                                "eventos.registro.form",
-                                                evento.id
-                                            )}
+                                            href={
+                                                auth?.user
+                                                    ? route(
+                                                          "eventos.registro.form",
+                                                          evento.id
+                                                      )
+                                                    : route("login") +
+                                                      "?redirect=" +
+                                                      encodeURIComponent(
+                                                          route(
+                                                              "eventos.registro.form",
+                                                              evento.id
+                                                          )
+                                                      )
+                                            }
                                         >
                                             <Button
                                                 className={`w-full py-3 rounded-md ${

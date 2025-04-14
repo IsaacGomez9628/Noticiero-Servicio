@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useForm } from "@inertiajs/react";
-
+// C:\Noticiero-Servicio\Noticias\resources\js\Components\ui\ModalRegistro.jsx
 export default function ModalRegistro({
     isOpen,
     onClose,

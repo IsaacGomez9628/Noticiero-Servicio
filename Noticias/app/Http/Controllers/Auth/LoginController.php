@@ -25,7 +25,7 @@ class LoginController extends Controller
      */
     public function login(Request $request)
     {
-        // Validar datos
+        // Validar datos (mantén esta parte igual)
         $validator = Validator::make($request->all(), [
             'email' => 'required|email',
             'password' => 'required',
@@ -36,26 +36,36 @@ class LoginController extends Controller
             return redirect()->back()->withErrors($validator)->withInput();
         }
 
-        // Buscar usuario por email
+        // Buscar usuario por email (mantén esta parte igual)
         $user = User::where('email', $request->email)->first();
-            
+
         if (!$user) {
             return redirect()->back()
                 ->withErrors(['email' => 'No se encontró un usuario con este correo electrónico.'])
                 ->withInput();
         }
 
-        // Verificar contraseña
+        // Verificar contraseña (mantén esta parte igual)
         if (!Hash::check($request->password, $user->password)) {
             return redirect()->back()
                 ->withErrors(['password' => 'La contraseña es incorrecta.'])
                 ->withInput();
         }
 
-        // Iniciar sesión
+        // Iniciar sesión (mantén esta parte igual)
         Auth::login($user, $request->remember ?? false);
 
-        // Redireccionar a la página principal
+        // CAMBIA ESTA PARTE: Redireccionar a donde estaba el usuario
+        if ($request->has('redirect')) {
+            return redirect($request->redirect);
+        }
+
+        // Si hay una URL guardada en la sesión, usar esa
+        if ($request->session()->has('url.intended')) {
+            return redirect()->intended();
+        }
+
+        // Redirección predeterminada
         return redirect()->route('welcome', ['login_success' => 'true'])
                  ->with('success', 'Inicio de sesión exitoso');
     }
@@ -66,14 +76,14 @@ class LoginController extends Controller
     public function logout(Request $request)
     {
         Auth::logout();
-        
+
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
         if ($request->wantsJson() || $request->header('X-Inertia')) {
             return redirect()->route('welcome');
         }
-        
+
         return redirect()->route('welcome', ['logout_success' => 'true'])
                      ->with('success', 'Has cerrado sesión correctamente.')
                      ->with('auth.user', null);;

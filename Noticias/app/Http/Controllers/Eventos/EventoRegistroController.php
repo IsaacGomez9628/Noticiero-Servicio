@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
-
+// C:\Noticiero-Servicio\Noticias\app\Http\Controllers\Eventos\EventoRegistroController.php
 use App\Models\Event;
 use App\Models\EventAttendance;
 use App\Models\Status;
@@ -21,25 +21,25 @@ class EventoRegistroController extends Controller
         try {
             // Verificar si el evento existe
             $evento = Event::findOrFail($id);
-            
+
             // Obtener el número de registros existentes
             $totalRegistrados = EventAttendance::where('evento_id', $id)
                 ->where('eliminado', false)
                 ->count();
-                
+
             // Calcular cupos disponibles
             $cuposDisponibles = max(0, $evento->capacity - $totalRegistrados);
-            
+
             // Obtener información del usuario autenticado si existe
             $user = Auth::check() ? Auth::user() : null;
             $esEmpresa = false;
             $empresaId = null;
-            
+
             if ($user && $user->tipoUsuario->nombre === 'Institucional') {
                 $esEmpresa = true;
                 $empresaId = session('empresa_id');
             }
-            
+
             return Inertia::render('EventoRegistro', [
                 'evento' => [
                     'id' => $evento->id,
@@ -61,17 +61,17 @@ class EventoRegistroController extends Controller
                 ],
                 'maxAsistentes' => min(5, $cuposDisponibles)
             ]);
-            
+
         } catch (\Exception $e) {
             Log::error('Error al mostrar formulario de registro: ' . $e->getMessage());
-            
+
             return Inertia::render('Error', [
                 'message' => 'No se pudo cargar el formulario de registro.',
                 'error' => $e->getMessage()
             ]);
         }
     }
-    
+
     /**
      * Procesa el registro de asistentes al evento
      */
@@ -88,33 +88,33 @@ class EventoRegistroController extends Controller
             'asistentes.*.nombre' => 'required|string|max:255',
             'asistentes.*.email' => 'nullable|email|max:255',
         ]);
-        
+
         try {
             // Iniciar transacción
             DB::beginTransaction();
-            
+
             // Obtener evento
             $evento = Event::findOrFail($id);
-            
+
             // Verificar capacidad disponible
             $totalRegistrados = EventAttendance::where('evento_id', $id)
                 ->where('eliminado', false)
                 ->count();
-                
+
             $cuposDisponibles = max(0, $evento->capacity - $totalRegistrados);
-            
+
             // Validar que el número de asistentes no exceda los cupos disponibles
             if (count($validated['asistentes']) > $cuposDisponibles) {
                 return back()->withErrors([
                     'numero_asistentes' => "No hay suficientes cupos disponibles. Solo quedan {$cuposDisponibles} cupos."
                 ])->withInput();
             }
-            
+
             // Obtener estado para asistentes
             $statusPendiente = Status::where('nombre', 'Pendiente')
                 ->where('tipo', 'asistencia')
                 ->first();
-                
+
             if (!$statusPendiente) {
                 $statusPendiente = Status::create([
                     'nombre' => 'Pendiente',
@@ -123,7 +123,7 @@ class EventoRegistroController extends Controller
                     'eliminado' => false
                 ]);
             }
-            
+
             // Registrar asistente principal
             $asistenciaPrincipal = EventAttendance::create([
                 'evento_id' => $evento->id,
@@ -137,12 +137,12 @@ class EventoRegistroController extends Controller
                 'fecha_registro' => now(),
                 'eliminado' => false
             ]);
-            
+
             // Registrar asistentes adicionales
             foreach ($validated['asistentes'] as $index => $asistente) {
                 // El primer elemento ya se registró como titular
                 if ($index === 0) continue;
-                
+
                 if (!empty($asistente['nombre'])) {
                     EventAttendance::create([
                         'evento_id' => $evento->id,
@@ -159,30 +159,30 @@ class EventoRegistroController extends Controller
                     ]);
                 }
             }
-            
+
             DB::commit();
-            
+
             // Redireccionar a la página de confirmación
             return redirect()->route('eventos.registro.confirmacion', ['id' => $evento->id])
                 ->with('success', '¡Registro exitoso! Tu lugar ha sido reservado.');
-                
+
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Error al registrar asistentes: ' . $e->getMessage());
-            
+
             return back()->withErrors([
                 'general' => 'Ocurrió un error al procesar tu registro. Por favor, intenta de nuevo.'
             ])->withInput();
         }
     }
-    
+
     /**
      * Muestra la confirmación de registro exitoso
      */
     public function confirmacion($id)
     {
         $evento = Event::findOrFail($id);
-        
+
         return Inertia::render('RegistroConfirmacion', [
             'evento' => [
                 'id' => $evento->id,

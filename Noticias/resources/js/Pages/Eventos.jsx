@@ -1,3 +1,5 @@
+// C:\Noticiero-Servicio\Noticias\resources\js\Pages\Eventos.jsx
+
 import React, { useState, useEffect } from "react";
 import { Card, CardContent } from "@/Components/ui/Card";
 import { Button } from "@/Components/ui/Button";
@@ -214,8 +216,17 @@ export default function EventosPage({
             imagen: "/images/gastronomia.jpg",
         },
     ];
-
     const abrirModalRegistro = (evento) => {
+        // Verificar si el usuario está autenticado
+        if (!auth.user) {
+            // Si no está autenticado, guardamos el evento en localStorage para redirigir después
+            localStorage.setItem('redirect_after_login', route('eventos.show', evento.id));
+            // Redireccionar a login
+            window.location.href = route('login');
+            return;
+        }
+
+        // Si está autenticado, mostrar el modal
         setEventoSeleccionado(evento);
         setModalAbierto(true);
     };

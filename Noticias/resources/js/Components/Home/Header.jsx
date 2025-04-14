@@ -1,3 +1,5 @@
+// C:\Noticiero-Servicio\Noticias\resources\js\Components\Home\Header.jsx
+
 import React, { useState, useEffect, useRef } from "react";
 import { Link, usePage, router } from "@inertiajs/react"; // Añadimos router
 import { motion, AnimatePresence } from "framer-motion";
@@ -210,6 +212,8 @@ export default function AnimatedHeader() {
                                                     <User className="h-4 w-4 mr-2" />
                                                     Mi Perfil
                                                 </Link>
+
+
                                                 <Link
                                                     href="/mis-asistencias"
                                                     className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 transition-colors flex items-center"

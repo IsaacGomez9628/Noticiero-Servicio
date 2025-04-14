@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
-
+// C:\Noticiero-Servicio\Noticias\app\Http\Controllers\DashboardController.php
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\EventAttendance;
@@ -23,19 +23,19 @@ class DashboardController extends BaseController
             // Redirigir al login si no hay usuario autenticado
             return redirect()->route('login');
         }
-        
+
         $user = User::find(Auth::id());
-        
+
         // Obtener las asistencias del usuario
         $eventAttendances = EventAttendance::where('user_id', $user->id)
             ->with(['event', 'event.location', 'status'])
             ->orderBy('created_at', 'desc')
             ->take(5)  // Limitamos a los 5 más recientes
             ->get();
-        
+
         // Si es usuario institucional, obtener también las asistencias de su empresa
         $companyAttendances = collect();
-        
+
         // Verificar si el usuario es institucional
         $isInstitutional = false;
         if (method_exists($user, 'isInstitutional')) {
@@ -44,7 +44,7 @@ class DashboardController extends BaseController
             $userRoles = $user->roles()->pluck('id')->toArray();
             $isInstitutional = in_array(6, $userRoles);
         }
-        
+
         if ($isInstitutional) {
             // Obtener IDs de empresas del usuario
             $empresasIds = [];
@@ -53,7 +53,7 @@ class DashboardController extends BaseController
             } else {
                 $empresasIds = Company::where('user_id', $user->id)->pluck('id');
             }
-            
+
             if (count($empresasIds) > 0) {
                 $companyAttendances = EventAttendance::whereIn('company_id', $empresasIds)
                 ->whereNot('user_id', $user->id)
@@ -63,13 +63,13 @@ class DashboardController extends BaseController
                 ->get();
             }
         }
-        
+
         // Contar próximos eventos
         $upcomingEventsCount = Event::whereDate('start_date', '>=', now())
             ->count();
 
-        
-        
+
+
         return Inertia::render('Dashboard', [
             'eventAttendances' => $eventAttendances,
             'companyAttendances' => $companyAttendances,
@@ -100,12 +100,12 @@ class DashboardController extends BaseController
 
     /**
      * Muestra el panel de control con estadísticas.
-     * 
+     *
      * @return \Inertia\Response
      */
     public function panel()
     {
-        
+
         if (!Auth::check()) {
             // Redirigir al login si no hay usuario autenticado
             return redirect()->route('login');
@@ -114,13 +114,13 @@ class DashboardController extends BaseController
         // Obtener el nombre del usuario
         $user = Auth::user();
         $userName = $user->person ? $user->person->getFullNameAttribute() : $user->email;
-        
+
         // Obtener las asistencias del usuario
         $eventAttendances = EventAttendance::where('user_id', $user->id)
             ->with(['event', 'event.location', 'status'])
             ->orderBy('created_at', 'desc')
             ->get();
-        
+
         // Estadísticas para el panel de control
         $stats = [
             'total_registros' => $eventAttendances->count(),
@@ -134,7 +134,7 @@ class DashboardController extends BaseController
                 return $attendance->status && $attendance->status->slug === 'cancelado';
             })->count(),
         ];
-        
+
         $isInstitutional = false;
         if (method_exists($user, 'isInstitutional')) {
             $isInstitutional = $user->isInstitutional();
@@ -150,7 +150,7 @@ class DashboardController extends BaseController
         } else {
             $empresasIds = Company::where('user_id', $user->id)->pluck('id');
         }
-        
+
         // Si es usuario institucional, agregar estadísticas de registros institucionales
         if ($isInstitutional) {
             // Obtener IDs de empresas del usuario
@@ -160,20 +160,20 @@ class DashboardController extends BaseController
             } else {
                 $empresasIds = Company::where('user_id', $user->id)->pluck('id');
             }
-            
+
             if (count($empresasIds) > 0) {
                 $companyAttendances = EventAttendance::whereIn('institution_id', $empresasIds)
                     ->whereNot('user_id', $user->id)  // Excluir al usuario para evitar duplicados
                     ->with(['event', 'event.location', 'status'])
                     ->get();
-                
+
                 $stats['total_registros_institucionales'] = $companyAttendances->count();
                 $stats['institucional_confirmados'] = $companyAttendances->filter(function($attendance) {
                     return $attendance->status && $attendance->status->slug === 'confirmado';
                 })->count();
             }
         }
-    
+
         return Inertia::render('Dashboard/PanelControl', [
             'eventAttendances' => $eventAttendances,
             'stats' => $stats,
