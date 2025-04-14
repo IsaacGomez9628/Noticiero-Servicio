@@ -37,6 +37,7 @@ import img5 from "@/assets/img5.jpg";
 import img6 from "@/assets/img6.png";
 import img7 from "@/assets/img7.png";
 import sedeq from "@/assets/SEDEQ.jpg";
+import logo from "@/assets/logo.png";
 
 // Imágenes para "Lo más nuevo"
 import img16 from "@/assets/img16.jpg";
@@ -65,6 +66,7 @@ import Jacinto from "@/assets/Jacinto.png";
 import Jorge from "@/assets/Jorge.png";
 import Jose from "@/assets/Jose.png";
 import Orfelinda from "@/assets/Orfelinda.jpg";
+import Dora from "@/assets/Dora.jpg";
 
 export default function Welcome() {
     // Estado para controlar la notificación de inicio de sesión
@@ -303,7 +305,7 @@ export default function Welcome() {
         });
     };
 
-    // Datos de miembros del equipo (mantenidos igual
+    // Datos de miembros de la comisión
 
     const teamMembers = [
         {
@@ -354,7 +356,7 @@ export default function Welcome() {
         {
             id: 6,
             image: miembroImg8,
-            name: "Victor Alegandro Gonzáles Huitrón",
+            name: "Victor Alegandro González Huitrón",
             title: "Profesor-Investigador",
             location: "Querétaro, México",
             description:
@@ -378,6 +380,25 @@ export default function Welcome() {
             description:
                 "Doctor en Sistemas Computacionales con más de 24 años de experiencia en docencia e industria. Especialista en desarrollo de aplicaciones computacionales, inteligencia artificial y programación avanzada. Ha impartido cursos en múltiples universidades y asesorado más de 15 proyectos industriales. Fundador del Club de Programación Turing y organizador de torneos de programación y eventos educativos. Coordinador del grupo de Investigación en IA y Programación Avanzada en la UTEQ. Ha desempeñado roles clave en gestión académica y asesoría en TI para instituciones como SEDEQ, USEBEQ y Santander.",
         },
+        {
+            id: 10,
+            image: Jorge,
+            name: "Jorge Ramiro Alavarado De La Vega",
+            title: "Profesor titular y tutor",
+            location: "Universidad Tecnológica de Querétaro",
+            description:
+                "Ingeniero en electrónica con más de 27 años de experiencia como docente  universitario, especializado en mecatrónica y redes de datos. Experto en la  impartición de clases, revisión de proyectos de estadía profesional, coordinación de  asignaturas y tutorías. Participación activa en cuerpos de investigación en  mecatrónica, Internet de las Cosas e Inteligencia Artificial, con logros destacados en  la actualización y el desarrollo de planes de estudio y procesos de titulación.  Comprometido con el aprendizaje continuo y la actualización tecnológica, con  recientes proyectos en la aplicación de IoT e IA para la agroindustria. Busco seguir  contribuyendo a la formación de nuevas generaciones y enfrentar los retos  tecnológicos de la institución.",
+        },
+        {
+            id: 11,
+            image: Dora,
+            name: "Dora Lilia López Angeles",
+            title: "Profesora",
+            location: "Universidad Tecnológica de San Juan Del Río",
+            description:
+                "Docente con sólida experiencia en la Universidad Tecnológica de San Juan del Río desde 2015, impartiendo clases a nivel Técnico Superior Universitario e Ingeniería en asignaturas como Metodología de la Programación, Sistemas Operativos, Administración de Proyectos de TI, y Desarrollo del Pensamiento Lógico Matemático, entre otras. Cuenta con formación continua a través de cursos como ITIL V3, Scrum Master, Cisco Networking Academy (CCNA R&S), y Linux Essentials, además de certificaciones en Ejecución de Pruebas de Software y SCRUM. Ha contribuido a la divulgación científica mediante publicaciones con ISBN e ISSN sobre tecnologías educativas, optimización de sistemas y gestión bibliográfica digital. Desde 2019, ha apoyado en la Coordinación de las divisiones de Mecatrónica y Desarrollo de Software, participando activamente en procesos de certificación con CACEI, CONAIC y CIEES, así como en la propuesta de una Maestría en Mecatrónica. Entre sus funciones destacan la gestión académica, planeación de horarios, organización de congresos, ferias de proyectos, atención a docentes y alumnos, y liderazgo en procesos administrativos. Se distingue por sus habilidades sociales, cognitivas, emocionales, organizativas, de liderazgo y aprendizaje continuo.",
+        },
+        
     ];
 
     return (
@@ -491,31 +512,30 @@ export default function Welcome() {
             <div className="min-h-screen bg-gray-50">
                 <main className="container mx-auto px-4 py-8">
                     {/* Título principal con animación de entrada */}
-                    <FadeInSection className="relative py-20 sm:py-28 bg-gradient-to-br from-[#eaf4ff] via-white to-[#dbeafe] dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 overflow-hidden">
-                        {/* Capa de partículas animadas y luz suave */}
-                        <div className="absolute inset-0 -z-10 pointer-events-none">
-                            <div className="absolute w-72 h-72 bg-blue-200 dark:bg-blue-900/30 rounded-full blur-3xl top-[-50px] left-1/4 opacity-25 animate-[pulse_5s_ease-in-out_infinite]"></div>
-                            <div className="absolute w-60 h-60 bg-teal-200 dark:bg-cyan-800/30 rounded-full blur-2xl bottom-[-40px] right-1/4 opacity-20 animate-[pulse_6s_ease-in-out_infinite] delay-1000"></div>
-                            <div className="absolute w-[140%] h-96 bg-gradient-to-r from-blue-50/50 via-white/30 to-transparent dark:from-slate-700/20 dark:via-slate-800/30 dark:to-transparent top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 rotate-6 blur-2xl opacity-30"></div>
+                    <FadeInSection className="relative overflow-hidden py-24 sm:py-28 bg-gradient-to-br from-[#e6f0ff] via-[#f9fcff] to-[#d1f4f2] dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+                    {/* Fondos decorativos */}
+                        <div className="absolute inset-0 pointer-events-none z-0">
+                            <div className="absolute w-[500px] h-[500px] bg-blue-200 dark:bg-blue-900/20 rounded-full blur-3xl top-[-100px] left-[-100px] opacity-30 animate-pulse"></div>
+                            <div className="absolute w-[400px] h-[400px] bg-cyan-200 dark:bg-cyan-800/20 rounded-full blur-3xl bottom-[-120px] right-[-80px] opacity-20 animate-pulse delay-300"></div>
                         </div>
 
-                        <div className="relative max-w-4xl mx-auto px-6 sm:px-12">
-                            <div className="rounded-3xl bg-white/70 dark:bg-slate-900/70 backdrop-blur-2xl shadow-[0_12px_60px_rgba(0,0,0,0.12)] border border-blue-100 dark:border-slate-700 text-center px-10 py-14 sm:px-14 sm:py-16 transition-all duration-700 hover:shadow-[0_20px_80px_rgba(0,0,0,0.2)] hover:scale-[1.01]">
-                            
-                            {/* Logo animado con efecto de elevación */}
+                        {/* Contenedor central con logo y eslogan */}
+                        <div className="relative z-10 max-w-4xl mx-auto px-6 sm:px-12">
+                            <div className="bg-white/80 dark:bg-slate-900/70 backdrop-blur-lg rounded-2xl border border-blue-100 dark:border-slate-700 shadow-xl px-10 py-12 text-center mx-auto max-w-2xl">
                             <img
                                 src={Logo_CEATyCC}
                                 alt="Logo CEATyCC"
-                                className="h-44 w-auto mx-auto drop-shadow-lg transition-transform duration-700 hover:scale-105 hover:drop-shadow-[0_8px_24px_rgba(0,98,255,0.25)]"
+                                className="h-64 w-auto mx-auto drop-shadow-md transition-transform duration-500 hover:scale-105"
                             />
-
-                            {/* Lema destacado con degradado animado */}
-                            <p className="mt-8 text-lg sm:text-xl font-semibold bg-gradient-to-r from-blue-600 via-teal-500 to-cyan-600 bg-clip-text text-transparent animate-gradient-x">
-                                Impulsando la Educación en Alta Tecnología y Cloud Computing
-                            </p>
                             </div>
+
+                            {/* Eslogan discreto */}
+                            <p className="mt-6 text-base font-medium text-center bg-clip-text text-transparent bg-gradient-to-r from-blue-600 via-blue-500 to-cyan-600 dark:from-cyan-400 dark:via-blue-400 dark:to-cyan-300">
+                            Impulsando la Educación en Alta Tecnología y Cloud Computing
+                            </p>
                         </div>
                     </FadeInSection>
+
                     {user && (
                         <>
                             {/* Tabs con animación */}
@@ -722,19 +742,21 @@ export default function Welcome() {
                                         <Card className="overflow-hidden card-hover-effect">
                                             <div className="relative h-48">
                                                 <img
-                                                    src={img6}
+                                                    src={logo}
                                                     alt="Imagen del evento"
                                                     className="object-cover h-full w-full"
                                                 />
                                             </div>
                                             <CardContent className="p-6">
                                                 <h3 className="text-xl font-bold mb-2">
-                                                    Conferencia de Tecnología
+                                                    Congreso CEATyCC
                                                 </h3>
                                                 <p className="text-muted-foreground mb-3">
-                                                    Únete a nosotros para explorar
-                                                    las últimas tendencias en
-                                                    tecnología.
+                                                Promover el conocimiento y la adopción de tecnologías
+                                                avanzadas y servicios de computación en la nube en el ámbito educativo,
+                                                fomentando el intercambio de ideas, experiencias y mejores prácticas entre
+                                                profesionales del sector educativo y tecnológico, con el fin de mejorar la calidad de
+                                                la educación y prepararse para los desafíos del futuro digital.
                                                 </p>
                                                 <Link href="/eventos/1">
                                                     <Button>Ver Detalles</Button>

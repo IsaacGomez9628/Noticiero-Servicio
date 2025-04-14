@@ -25,7 +25,7 @@ export default function EnhancedFooter() {
                             </h3>
                             <div className="flex items-center space-x-4">
                                 <a
-                                    href="#"
+                                    href="https://www.facebook.com/CEATYCC"
                                     className="bg-blue-600 text-white p-2 rounded-full hover:bg-blue-700 transition-colors duration-300 hover:scale-110 transform"
                                     aria-label="Facebook"
                                 >
@@ -38,7 +38,7 @@ export default function EnhancedFooter() {
                                     </svg>
                                 </a>
                                 <a
-                                    href="#"
+                                    href="https://twitter.com/tuUsuario"
                                     className="bg-black text-white p-2 rounded-full hover:bg-blue-500 transition-colors duration-300 hover:scale-110 transform"
                                     aria-label="Twitter"
                                 >
@@ -51,7 +51,7 @@ export default function EnhancedFooter() {
                                     </svg>
                                 </a>
                                 <a
-                                    href="#"
+                                    href="https://www.instagram.com/tuUsuario"
                                     className="bg-pink-600 text-white p-2 rounded-full hover:bg-pink-700 transition-colors duration-300 hover:scale-110 transform"
                                     aria-label="Instagram"
                                 >

@@ -183,25 +183,25 @@ export default function AnimatedHeader() {
                                         </div>
                                     )}
 
-                                    {/* Opciones comunes para todos los usuarios */}
-                                    <Link
-                                        href="/eventos"
-                                        className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 transition-colors flex items-center"
-                                    >
-                                        <Calendar className="h-4 w-4 mr-2" />
-                                        Eventos
-                                    </Link>
-                                    <Link
-                                        href="/noticias"
-                                        className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 transition-colors flex items-center"
-                                    >
-                                        <Newspaper className="h-4 w-4 mr-2" />
-                                        Noticias
-                                    </Link>
-
                                     {/* Usuario autenticado */}
                                     {isAuthenticated ? (
                                         <>
+                                            {/* Opciones comunes para todos los usuarios */}
+                                            <Link
+                                                href="/eventos"
+                                                className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 transition-colors flex items-center"
+                                            >
+                                                <Calendar className="h-4 w-4 mr-2" />
+                                                Eventos
+                                            </Link>
+                                            <Link
+                                                href="/noticias"
+                                                className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 transition-colors flex items-center"
+                                            >
+                                                <Newspaper className="h-4 w-4 mr-2" />
+                                                Noticias
+                                            </Link>
+
                                             <div className="border-t border-gray-100 mt-2 pt-2">
                                                 <Link
                                                     href="/dashboard"
