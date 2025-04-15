@@ -19,6 +19,9 @@ import {
     X,
     AlertTriangle,
     Info,
+    Copy,
+    FileText,
+    Users,
 } from "lucide-react";
 import { Badge } from "@/Components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/Components/ui/tabs";
@@ -38,6 +41,7 @@ export function EventsAttendance() {
     const [confirmCancelOpen, setConfirmCancelOpen] = useState(false);
     const [eventToCancel, setEventToCancel] = useState(null);
     const [successMessage, setSuccessMessage] = useState(null);
+    const [codeCopied, setCodeCopied] = useState(false);
 
     const { post, processing } = useForm();
 
@@ -101,12 +105,28 @@ export function EventsAttendance() {
                 attendance.event?.location?.name ||
                 attendance.event?.direccion?.direccion_completa ||
                 "Ubicación por confirmar",
+            locationDetails: {
+                name: attendance.event?.location?.name || "",
+                direction: attendance.event?.location?.direction || "",
+                city: attendance.event?.location?.city || "",
+                estate: attendance.event?.location?.estate || "",
+                link_google_maps:
+                    attendance.event?.location?.link_google_maps || "",
+            },
             description:
-                attendance.event?.descripcion || "Sin descripción disponible",
+                attendance.event?.descripcion ||
+                attendance.event?.description ||
+                "Sin descripción disponible",
             capacity:
                 attendance.event?.capacity || attendance.event?.capacidad || 0,
             attendees: attendance.event?.registered_attendees || 0,
             image: attendance.event?.imagen,
+            // Incluir el código de registro
+            codigoRegistro: attendance.codigo_registro || "No disponible",
+            organizador:
+                attendance.event?.organizador?.persona?.nombre_completo ||
+                attendance.event?.organizador?.persona?.nombres ||
+                "Organizador no especificado",
             tags: [
                 {
                     name: attendance.event?.categoria || "Evento",
@@ -165,6 +185,19 @@ export function EventsAttendance() {
     const showEventDetails = (event) => {
         setSelectedEvent(event);
         setDetailsOpen(true);
+        // Resetear el estado de código copiado
+        setCodeCopied(false);
+    };
+
+    // Función para copiar el código de registro al portapapeles
+    const copyRegistrationCode = (code) => {
+        navigator.clipboard.writeText(code);
+        setCodeCopied(true);
+
+        // Resetear después de 3 segundos
+        setTimeout(() => {
+            setCodeCopied(false);
+        }, 3000);
     };
 
     return (
@@ -334,10 +367,10 @@ export function EventsAttendance() {
                 </Tabs>
             </div>
 
-            {/* Modal de detalles del evento */}
+            {/* Modal de detalles del evento - ACTUALIZADO */}
             <Dialog open={detailsOpen} onOpenChange={setDetailsOpen}>
                 {selectedEvent && (
-                    <DialogContent className="sm:max-w-md bg-white dark:bg-gray-800 shadow-xl rounded-xl p-0 overflow-hidden">
+                    <DialogContent className="sm:max-w-lg bg-white dark:bg-gray-800 shadow-xl rounded-xl p-0 overflow-hidden">
                         {selectedEvent.image && (
                             <div className="w-full h-40 relative">
                                 <img
@@ -361,11 +394,42 @@ export function EventsAttendance() {
                                     {selectedEvent.title}
                                 </DialogTitle>
                                 <DialogDescription>
-                                    Detalles importantes para tu asistencia
+                                    Información detallada de tu registro
                                 </DialogDescription>
                             </DialogHeader>
 
                             <div className="space-y-6 py-6">
+                                {/* Código de Registro */}
+                                <div className="flex items-center gap-4 bg-indigo-50 dark:bg-indigo-900/20 p-4 rounded-lg">
+                                    <div className="bg-indigo-100 text-indigo-600 dark:bg-indigo-800 dark:text-indigo-300 rounded-full p-3">
+                                        <Ticket className="h-6 w-6" />
+                                    </div>
+                                    <div className="flex-1">
+                                        <div className="font-medium text-sm text-gray-500 dark:text-gray-400">
+                                            Código de Registro
+                                        </div>
+                                        <div className="font-mono font-semibold text-lg flex items-center">
+                                            {selectedEvent.codigoRegistro}
+                                            <button
+                                                onClick={() =>
+                                                    copyRegistrationCode(
+                                                        selectedEvent.codigoRegistro
+                                                    )
+                                                }
+                                                className="ml-2 p-1 hover:bg-indigo-100 rounded-md transition-colors"
+                                                title="Copiar código"
+                                            >
+                                                {codeCopied ? (
+                                                    <Check className="h-4 w-4 text-green-600" />
+                                                ) : (
+                                                    <Copy className="h-4 w-4 text-indigo-600" />
+                                                )}
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Fecha y Hora */}
                                 <div className="flex items-center gap-4 bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
                                     <div className="bg-blue-100 text-blue-600 dark:bg-blue-800 dark:text-blue-300 rounded-full p-3">
                                         <Calendar className="h-6 w-6" />
@@ -381,6 +445,7 @@ export function EventsAttendance() {
                                     </div>
                                 </div>
 
+                                {/* Ubicación */}
                                 <div className="flex items-center gap-4 bg-purple-50 dark:bg-purple-900/20 p-4 rounded-lg">
                                     <div className="bg-purple-100 text-purple-600 dark:bg-purple-800 dark:text-purple-300 rounded-full p-3">
                                         <MapPin className="h-6 w-6" />
@@ -392,9 +457,58 @@ export function EventsAttendance() {
                                         <div className="font-semibold">
                                             {selectedEvent.location}
                                         </div>
+                                        {selectedEvent.locationDetails
+                                            .link_google_maps && (
+                                            <a
+                                                href={
+                                                    selectedEvent
+                                                        .locationDetails
+                                                        .link_google_maps
+                                                }
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="text-blue-600 text-sm hover:underline mt-1 inline-block"
+                                            >
+                                                Ver en Google Maps
+                                            </a>
+                                        )}
                                     </div>
                                 </div>
 
+                                {/* Organizador */}
+                                <div className="flex items-center gap-4 bg-amber-50 dark:bg-amber-900/20 p-4 rounded-lg">
+                                    <div className="bg-amber-100 text-amber-600 dark:bg-amber-800 dark:text-amber-300 rounded-full p-3">
+                                        <User className="h-6 w-6" />
+                                    </div>
+                                    <div>
+                                        <div className="font-medium text-sm text-gray-500 dark:text-gray-400">
+                                            Organizador
+                                        </div>
+                                        <div className="font-semibold">
+                                            {selectedEvent.organizador}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Capacidad */}
+                                {selectedEvent.capacity > 0 && (
+                                    <div className="flex items-center gap-4 bg-teal-50 dark:bg-teal-900/20 p-4 rounded-lg">
+                                        <div className="bg-teal-100 text-teal-600 dark:bg-teal-800 dark:text-teal-300 rounded-full p-3">
+                                            <Users className="h-6 w-6" />
+                                        </div>
+                                        <div>
+                                            <div className="font-medium text-sm text-gray-500 dark:text-gray-400">
+                                                Capacidad
+                                            </div>
+                                            <div className="font-semibold">
+                                                {selectedEvent.capacity}{" "}
+                                                asistentes
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Estado */}
                                 <div className="flex items-center gap-4 bg-green-50 dark:bg-green-900/20 p-4 rounded-lg">
                                     <div className="bg-green-100 text-green-600 dark:bg-green-800 dark:text-green-300 rounded-full p-3">
                                         <User className="h-6 w-6" />
@@ -426,6 +540,19 @@ export function EventsAttendance() {
                                             {selectedEvent.status}
                                         </span>
                                     </div>
+                                </div>
+
+                                {/* Descripción */}
+                                <div className="bg-gray-50 dark:bg-gray-900/20 p-4 rounded-lg">
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <FileText className="h-5 w-5 text-gray-600" />
+                                        <div className="font-medium text-gray-700">
+                                            Acerca del evento
+                                        </div>
+                                    </div>
+                                    <p className="text-gray-600 text-sm">
+                                        {selectedEvent.description}
+                                    </p>
                                 </div>
                             </div>
 

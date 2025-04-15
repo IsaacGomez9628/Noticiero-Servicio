@@ -30,31 +30,14 @@ class EventoAsistenciaController extends Controller
         }
         
         // Verificar si el usuario ya está registrado para este evento (para usuarios personales)
-        if (!$user->isInstitutional()) {
-            $existingRegistration = EventAttendance::where('event_id', $eventId)
-                ->where('user_id', $user->id)
-                ->whereHas('status', function($query) {
-                    $query->where('slug', '!=', 'cancelado');
-                })
-                ->first();
-                
-            if ($existingRegistration) {
-                return redirect()->route('eventos.mis-asistencias')
-                    ->with('message', 'Ya estás registrado para este evento. Puedes ver tus asistencias aquí.');
-            }
-        } else {
-            // Verificar si el usuario institucional ya tiene un registro principal
-            $existingRegistration = EventAttendance::where('event_id', $eventId)
-                ->where('user_id', $user->id)
-                ->where('tipo_registro', 'institucional')
-                ->whereNull('deleted_at')
-                ->first();
-                
-            if ($existingRegistration) {
-                return redirect()->route('eventos.mis-asistencias')
-                    ->with('message', 'Ya has registrado asistentes para este evento. Puedes ver tus asistencias aquí.');
-            }
-        }
+        $existingRegistration = EventAttendance::where('event_id', $eventId)
+            ->where('user_id', $user->id)
+            ->whereHas('status', function($query) {
+                $query->where('slug', '!=', 'cancelado');
+            })
+            ->first();
+        
+        $yaRegistrado = $existingRegistration ? true : false;
         
         // Verificar si el usuario es institucional
         $isInstitutional = $user->isInstitutional();
@@ -76,7 +59,8 @@ class EventoAsistenciaController extends Controller
                 'empresas' => $empresas,
                 'auth' => [
                     'user' => $user,
-                ]
+                ],
+                'yaRegistrado' => $yaRegistrado
             ]);
         } else {
             // Renderizar formulario para usuario personal
@@ -85,14 +69,15 @@ class EventoAsistenciaController extends Controller
                 'auth' => [
                     'user' => $user,
                 ],
-                'isPersonal' => true // Añadir flag para indicar que es usuario personal
+                'isPersonal' => true, // Añadir flag para indicar que es usuario personal
+                'yaRegistrado' => $yaRegistrado
             ]);
         }
     }
     
     /**
- * Procesa el registro personal a un evento
- */
+     * Procesa el registro personal a un evento
+     */
     public function register(Request $request, $eventId)
     {
         if (!Auth::check()) {
@@ -415,7 +400,6 @@ class EventoAsistenciaController extends Controller
     /**
      * Permite a un usuario cancelar su asistencia a un evento
      */
-    // En EventoAsistenciaController.php
     public function cancelarAsistencia($asistenciaId)
     {
         $user = Auth::user();
@@ -444,57 +428,10 @@ class EventoAsistenciaController extends Controller
             ]);
         }
     
-    $asistencia->status_id = $status->id;
-    $asistencia->save();
-    
-    return redirect()->back()->with('success', 'Tu asistencia ha sido cancelada.');
-}
-    
-    /**
-     * Lista los asistentes registrados para un evento (vista admin)
-     */
-    public function listarAsistentes($eventId)
-    {
-        $event = Event::findOrFail($eventId);
-        
-        // Obtener todos los asistentes para este evento
-        $asistentes = EventAttendance::where('event_id', $event->id)
-            ->with(['user', 'status', 'institution'])
-            ->orderBy('created_at', 'desc')
-            ->get();
-            
-        // Agrupar por tipo de registro (personal/institucional)
-        $asistentesPersonales = $asistentes->where('tipo_registro', 'personal');
-        $asistentesInstitucionales = $asistentes->where('tipo_registro', 'institucional');
-        
-        return Inertia::render('Admin/AsistentesEvento', [
-            'evento' => $event,
-            'asistentesPersonales' => $asistentesPersonales,
-            'asistentesInstitucionales' => $asistentesInstitucionales,
-            'totalAsistentes' => $asistentes->count(),
-        ]);
-    }
-    
-    /**
-     * Actualiza el estado de una asistencia (admin)
-     */
-    public function actualizarAsistencia(Request $request, $eventId, $asistenciaId)
-    {
-        $request->validate([
-            'status_id' => 'required|exists:statuses,id',
-        ]);
-        
-        $asistencia = EventAttendance::findOrFail($asistenciaId);
-        
-        // Verificar que la asistencia pertenezca al evento
-        if ($asistencia->event_id != $eventId) {
-            return redirect()->back()->with('error', 'La asistencia no pertenece a este evento.');
-        }
-        
-        $asistencia->status_id = $request->status_id;
+        $asistencia->status_id = $status->id;
         $asistencia->save();
         
-        return redirect()->back()->with('success', 'Estado de asistencia actualizado.');
+        return redirect()->back()->with('success', 'Tu asistencia ha sido cancelada.');
     }
     
     /**
