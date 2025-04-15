@@ -128,7 +128,7 @@ export default function EventoDetalle({ evento, asistenciasConfirmadas = 0 }) {
                                 />
                             </div>
                             <div>
-                                <p className="text-sm text-gray-500">By</p>
+                                <p className="text-sm text-gray-500">Por:</p>
                                 <p className="font-medium">
                                     {evento.organizador?.persona?.nombres ||
                                         evento.organizador?.persona
@@ -143,7 +143,7 @@ export default function EventoDetalle({ evento, asistenciasConfirmadas = 0 }) {
                         <div className="ml-8">
                             <Button className="bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-full px-5 py-2 flex items-center gap-2">
                                 <Heart className="h-5 w-5" />
-                                <span>Follow</span>
+                                <span>Seguir</span>
                             </Button>
                         </div>
                     </div>
@@ -173,7 +173,7 @@ export default function EventoDetalle({ evento, asistenciasConfirmadas = 0 }) {
                         {/* Date and Time Section */}
                         <div className="mb-8">
                             <h2 className="text-2xl font-bold mb-4">
-                                Date and time
+                                Fecha y hora
                             </h2>
                             <div className="flex items-start gap-3 mb-4">
                                 <Calendar className="h-5 w-5 text-gray-500 mt-0.5" />
@@ -194,15 +194,13 @@ export default function EventoDetalle({ evento, asistenciasConfirmadas = 0 }) {
                         {/* Location Section */}
                         <div className="mb-8">
                             <h2 className="text-2xl font-bold mb-4">
-                                Location
+                                Ubicacion
                             </h2>
                             <div className="flex items-start gap-3 mb-4">
                                 <MapPin className="h-5 w-5 text-gray-500 mt-0.5" />
                                 <div>
                                     {evento.modalidad === "Virtual" ? (
-                                        <p className="font-medium">
-                                            Moved to Virtual Event
-                                        </p>
+                                        <p className="font-medium"></p>
                                     ) : (
                                         <p className="font-medium">
                                             {evento.direccion
@@ -230,7 +228,7 @@ export default function EventoDetalle({ evento, asistenciasConfirmadas = 0 }) {
                                         rel="noopener noreferrer"
                                         className="text-blue-600 hover:underline"
                                     >
-                                        View map
+                                        Ver mapa
                                     </Link>
                                 </div>
                             </div>
@@ -243,7 +241,7 @@ export default function EventoDetalle({ evento, asistenciasConfirmadas = 0 }) {
                         {/* About Event Section */}
                         <div className="mb-8">
                             <h2 className="text-2xl font-bold mb-4">
-                                About this event
+                                Acerca del evento
                             </h2>
 
                             <div className="flex items-center gap-2 mb-4 text-gray-600">
@@ -262,7 +260,7 @@ export default function EventoDetalle({ evento, asistenciasConfirmadas = 0 }) {
                                 {evento.categorias && (
                                     <div className="mt-6">
                                         <p className="font-medium mb-2">
-                                            Categories:
+                                            Categorias:
                                         </p>
                                         <div className="flex flex-wrap gap-2">
                                             {evento.categorias.map(
@@ -291,7 +289,7 @@ export default function EventoDetalle({ evento, asistenciasConfirmadas = 0 }) {
                                     <div className="p-6 border-b border-gray-200">
                                         <div className="flex justify-between items-center mb-3">
                                             <h3 className="text-xl font-bold">
-                                                RSVP
+                                                Registro
                                             </h3>
                                             <div className="flex items-center">
                                                 <button
@@ -342,11 +340,11 @@ export default function EventoDetalle({ evento, asistenciasConfirmadas = 0 }) {
                                         <div className="px-6 py-3 bg-gray-50">
                                             <div className="flex items-center justify-between mb-1">
                                                 <span className="text-sm text-gray-600">
-                                                    Capacity
+                                                    Capacidad
                                                 </span>
                                                 <span className="text-sm font-medium">
                                                     {confirmedAttendees}/
-                                                    {capacidad} places
+                                                    {capacidad} Lugares
                                                 </span>
                                             </div>
                                             <div className="w-full bg-gray-200 rounded-full h-2">
@@ -432,12 +430,12 @@ export default function EventoDetalle({ evento, asistenciasConfirmadas = 0 }) {
                                         <div className="flex justify-center mt-4">
                                             <Button className="bg-white text-gray-600 hover:bg-gray-50 px-4 py-2 flex items-center gap-2 mr-3">
                                                 <Share2 className="h-4 w-4" />
-                                                <span>Share</span>
+                                                <span>Compartir</span>
                                             </Button>
 
                                             <Button className="bg-white text-gray-600 hover:bg-gray-50 px-4 py-2 flex items-center gap-2">
                                                 <DownloadIcon className="h-4 w-4" />
-                                                <span>Save</span>
+                                                <span>Guardar</span>
                                             </Button>
                                         </div>
                                     </div>
@@ -447,7 +445,7 @@ export default function EventoDetalle({ evento, asistenciasConfirmadas = 0 }) {
                             {/* Organizer Information */}
                             <div className="mt-6">
                                 <h3 className="text-xl font-bold mb-4">
-                                    Organized by
+                                    Organizado por:
                                 </h3>
                                 <div className="flex items-center justify-between mb-3">
                                     <div className="flex items-center">
@@ -488,12 +486,12 @@ export default function EventoDetalle({ evento, asistenciasConfirmadas = 0 }) {
                                     </div>
 
                                     <Button className="bg-blue-600 hover:bg-blue-700 text-white rounded-md px-4 py-2">
-                                        Contact
+                                        Contacto
                                     </Button>
                                 </div>
 
                                 <Button className="bg-blue-600 hover:bg-blue-700 text-white rounded-md px-4 py-2 w-full mt-2">
-                                    Follow
+                                    Seguir
                                 </Button>
                             </div>
                         </div>
