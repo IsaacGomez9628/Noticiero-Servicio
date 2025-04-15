@@ -1,35 +1,57 @@
-// EventsAttendance.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { usePage, Link, useForm } from "@inertiajs/react";
-import {
-    Avatar, AvatarFallback, AvatarImage
-} from "@/Components/ui/Avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/Components/ui/Avatar";
 import { Button } from "@/Components/ui/ButtonDashboard";
 import {
-    Card, CardContent, CardDescription, CardTitle
+    Card,
+    CardContent,
+    CardDescription,
+    CardTitle,
 } from "@/Components/ui/card";
 import {
-    Calendar, MapPin, Ticket, ArrowRight, Clock, User,
-    Check, X, AlertTriangle, Info
+    Calendar,
+    MapPin,
+    Ticket,
+    ArrowRight,
+    Clock,
+    User,
+    Check,
+    X,
+    AlertTriangle,
+    Info,
 } from "lucide-react";
 import { Badge } from "@/Components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/Components/ui/tabs";
 import {
-    Dialog, DialogContent, DialogDescription,
-    DialogHeader, DialogTitle, DialogFooter
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+    DialogFooter,
 } from "@/Components/ui/dialog";
-import {
-    AlertDialog, AlertDialogAction, AlertDialogCancel,
-    AlertDialogContent, AlertDialogDescription, AlertDialogFooter,
-    AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger
-} from "@/Components/ui/alert-dialog";
 
 export function EventsAttendance() {
-    const { auth, eventAttendances = [] } = usePage().props;
+    const { auth, eventAttendances = [], flash } = usePage().props;
     const [selectedEvent, setSelectedEvent] = useState(null);
     const [detailsOpen, setDetailsOpen] = useState(false);
+    const [confirmCancelOpen, setConfirmCancelOpen] = useState(false);
+    const [eventToCancel, setEventToCancel] = useState(null);
+    const [successMessage, setSuccessMessage] = useState(null);
 
-    const { delete: destroy, processing } = useForm();
+    const { post, processing } = useForm();
+
+    // Set flash message if available
+    useEffect(() => {
+        if (flash?.success) {
+            setSuccessMessage(flash.success);
+            // Auto-hide the message after 5 seconds
+            const timer = setTimeout(() => {
+                setSuccessMessage(null);
+            }, 5000);
+            return () => clearTimeout(timer);
+        }
+    }, [flash]);
 
     // Función para formatear fechas
     const formatDate = (dateString) => {
@@ -45,54 +67,98 @@ export function EventsAttendance() {
     // Dividir entre eventos pasados (asistencias) y futuros (registros)
     const now = new Date();
 
-    const pastEvents = eventAttendances.filter(attendance => {
-        const eventDate = new Date(attendance.event?.fecha_inicio || attendance.event?.start_date);
+    const pastEvents = eventAttendances.filter((attendance) => {
+        const eventDate = new Date(
+            attendance.event?.fecha_inicio || attendance.event?.start_date
+        );
         return eventDate < now;
     });
 
-    const upcomingEvents = eventAttendances.filter(attendance => {
-        const eventDate = new Date(attendance.event?.fecha_inicio || attendance.event?.start_date);
+    const upcomingEvents = eventAttendances.filter((attendance) => {
+        const eventDate = new Date(
+            attendance.event?.fecha_inicio || attendance.event?.start_date
+        );
         return eventDate >= now;
     });
 
     // Formatear los eventos para mostrarlos
-    const formatEvents = (events) => events.map((attendance) => ({
-        id: attendance.id,
-        eventId: attendance.event?.id,
-        title: attendance.event?.titulo || attendance.event?.titule || "Evento sin título",
-        date: formatDate(attendance.event?.fecha_inicio || attendance.event?.start_date),
-        time: attendance.event?.hora || attendance.event?.start_time || "10:00 AM",
-        location: attendance.event?.location?.name ||
+    const formatEvents = (events) =>
+        events.map((attendance) => ({
+            id: attendance.id,
+            eventId: attendance.event?.id,
+            title:
+                attendance.event?.titulo ||
+                attendance.event?.titule ||
+                "Evento sin título",
+            date: formatDate(
+                attendance.event?.fecha_inicio || attendance.event?.start_date
+            ),
+            time:
+                attendance.event?.hora ||
+                attendance.event?.start_time ||
+                "10:00 AM",
+            location:
+                attendance.event?.location?.name ||
                 attendance.event?.direccion?.direccion_completa ||
                 "Ubicación por confirmar",
-        description: attendance.event?.descripcion || "Sin descripción disponible",
-        capacity: attendance.event?.capacity || attendance.event?.capacidad || 0,
-        attendees: attendance.event?.registered_attendees || 0,
-        image: attendance.event?.imagen,
-        tags: [
-            { name: attendance.event?.categoria || "Evento", color: "blue" },
-            {
-                name: attendance.status?.nombre || attendance.status?.name || "Pendiente",
-                color: attendance.status?.slug === "confirmado" ? "green" : "orange",
-            },
-        ],
-        status: attendance.status?.nombre || attendance.status?.name || "Pendiente",
-        statusSlug: attendance.status?.slug || "pendiente",
-        color: attendance.status?.slug === "confirmado" ? "green" : "orange",
-    }));
+            description:
+                attendance.event?.descripcion || "Sin descripción disponible",
+            capacity:
+                attendance.event?.capacity || attendance.event?.capacidad || 0,
+            attendees: attendance.event?.registered_attendees || 0,
+            image: attendance.event?.imagen,
+            tags: [
+                {
+                    name: attendance.event?.categoria || "Evento",
+                    color: "blue",
+                },
+                {
+                    name:
+                        attendance.status?.nombre ||
+                        attendance.status?.name ||
+                        "Pendiente",
+                    color:
+                        attendance.status?.slug === "confirmado"
+                            ? "green"
+                            : "orange",
+                },
+            ],
+            status:
+                attendance.status?.nombre ||
+                attendance.status?.name ||
+                "Pendiente",
+            statusSlug: attendance.status?.slug || "pendiente",
+            color:
+                attendance.status?.slug === "confirmado" ? "green" : "orange",
+        }));
 
     const upcomingEventCards = formatEvents(upcomingEvents);
     const pastEventCards = formatEvents(pastEvents);
 
+    // Función para mostrar el diálogo de confirmación
+    const showCancelConfirmation = (event) => {
+        setEventToCancel(event);
+        setConfirmCancelOpen(true);
+    };
+
     // Función para cancelar la inscripción
-    const handleCancelAttendance = (id) => {
-        destroy(route('eventos.asistencia.cancelar', id), {
-            onSuccess: () => {
-                // El servidor debería manejar la actualización de la capacidad
-                // Mostrar mensaje de éxito (asumiendo que tienes un sistema de notificaciones)
-                console.log("Inscripción cancelada exitosamente");
-            },
-        });
+    const handleCancelAttendance = () => {
+        if (!eventToCancel) return;
+
+        post(
+            route("eventos.asistencia.cancelar", eventToCancel.id),
+            {},
+            {
+                onSuccess: () => {
+                    // Cerrar el diálogo de confirmación
+                    setConfirmCancelOpen(false);
+                    // Mostrar mensaje de éxito
+                    setSuccessMessage(
+                        "Inscripción cancelada exitosamente. Se ha liberado un cupo en el evento."
+                    );
+                },
+            }
+        );
     };
 
     // Mostrar detalles del evento
@@ -103,6 +169,22 @@ export function EventsAttendance() {
 
     return (
         <div className="space-y-12 px-2 md:px-4">
+            {/* Success Message */}
+            {successMessage && (
+                <div className="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-4 rounded shadow-md fixed top-4 right-4 z-50 max-w-md">
+                    <div className="flex items-center">
+                        <Check className="h-5 w-5 mr-2" />
+                        <p>{successMessage}</p>
+                    </div>
+                    <button
+                        className="absolute top-2 right-2 text-green-700 hover:text-green-900"
+                        onClick={() => setSuccessMessage(null)}
+                    >
+                        <X className="h-4 w-4" />
+                    </button>
+                </div>
+            )}
+
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 mt-6">
                 <div className="flex items-center gap-6">
                     <Avatar className="h-16 w-16 border-2 border-blue-600 shadow-lg">
@@ -118,7 +200,9 @@ export function EventsAttendance() {
                     </Avatar>
                     <div>
                         <h2 className="text-2xl font-bold mb-3 text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">
-                            {auth.user?.name || auth.user?.full_name || "Usuario"}
+                            {auth.user?.name ||
+                                auth.user?.full_name ||
+                                "Usuario"}
                         </h2>
                         <div className="flex items-center gap-8 text-sm text-muted-foreground mt-1">
                             <div className="flex items-center">
@@ -140,7 +224,9 @@ export function EventsAttendance() {
                 </div>
                 <Button
                     className="gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:opacity-90 transition-opacity"
-                    onClick={() => (window.location.href = route("eventos.index"))}
+                    onClick={() =>
+                        (window.location.href = route("eventos.index"))
+                    }
                 >
                     <span>Buscar más eventos</span>
                     <ArrowRight className="h-4 w-4 ml-2" />
@@ -174,8 +260,12 @@ export function EventsAttendance() {
                                     <EventCard
                                         key={event.id}
                                         event={event}
-                                        onShowDetails={() => showEventDetails(event)}
-                                        onCancelAttendance={() => handleCancelAttendance(event.id)}
+                                        onShowDetails={() =>
+                                            showEventDetails(event)
+                                        }
+                                        onCancelAttendance={() =>
+                                            showCancelConfirmation(event)
+                                        }
                                         isPast={false}
                                         processing={processing}
                                     />
@@ -191,11 +281,16 @@ export function EventsAttendance() {
                                         No tienes próximos eventos
                                     </CardTitle>
                                     <CardDescription className="mb-6 text-base">
-                                        Aún no te has registrado a ningún evento. Explora nuestros eventos y regístrate.
+                                        Aún no te has registrado a ningún
+                                        evento. Explora nuestros eventos y
+                                        regístrate.
                                     </CardDescription>
                                     <Button
                                         className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:opacity-90 transition-opacity"
-                                        onClick={() => (window.location.href = route("eventos.index"))}
+                                        onClick={() =>
+                                            (window.location.href =
+                                                route("eventos.index"))
+                                        }
                                     >
                                         Explorar eventos
                                     </Button>
@@ -211,7 +306,9 @@ export function EventsAttendance() {
                                     <EventCard
                                         key={event.id}
                                         event={event}
-                                        onShowDetails={() => showEventDetails(event)}
+                                        onShowDetails={() =>
+                                            showEventDetails(event)
+                                        }
                                         isPast={true}
                                     />
                                 ))}
@@ -226,7 +323,9 @@ export function EventsAttendance() {
                                         No hay eventos completados
                                     </CardTitle>
                                     <CardDescription className="mb-6 text-base">
-                                        Aún no has asistido a ningún evento. Cuando asistas a un evento, aparecerá aquí.
+                                        Aún no has asistido a ningún evento.
+                                        Cuando asistas a un evento, aparecerá
+                                        aquí.
                                     </CardDescription>
                                 </CardContent>
                             </Card>
@@ -238,92 +337,176 @@ export function EventsAttendance() {
             {/* Modal de detalles del evento */}
             <Dialog open={detailsOpen} onOpenChange={setDetailsOpen}>
                 {selectedEvent && (
-                    <DialogContent className="sm:max-w-md">
-                        <DialogHeader>
-                            <DialogTitle>{selectedEvent.title}</DialogTitle>
-                            <DialogDescription>
-                                Detalles importantes para tu asistencia
-                            </DialogDescription>
-                        </DialogHeader>
-
-                        <div className="space-y-4 py-4">
-                            {selectedEvent.image && (
-                                <div className="rounded-md overflow-hidden h-48">
-                                    <img
-                                        src={selectedEvent.image}
-                                        alt={selectedEvent.title}
-                                        className="w-full h-full object-cover"
-                                    />
-                                </div>
-                            )}
-
-                            <div className="flex items-center text-sm">
-                                <div className="bg-blue-100 text-blue-600 rounded-full p-2 mr-3">
-                                    <Calendar className="h-4 w-4" />
-                                </div>
-                                <div>
-                                    <div className="font-medium">Fecha</div>
-                                    <div>{selectedEvent.date}</div>
-                                </div>
+                    <DialogContent className="sm:max-w-md bg-white dark:bg-gray-800 shadow-xl rounded-xl p-0 overflow-hidden">
+                        {selectedEvent.image && (
+                            <div className="w-full h-40 relative">
+                                <img
+                                    src={selectedEvent.image}
+                                    alt={selectedEvent.title}
+                                    className="w-full h-full object-cover"
+                                />
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
+                                <Button
+                                    className="absolute top-3 right-3 bg-white/20 backdrop-blur-sm hover:bg-white/30 rounded-full w-8 h-8 p-0"
+                                    onClick={() => setDetailsOpen(false)}
+                                >
+                                    <X className="h-4 w-4 text-white" />
+                                </Button>
                             </div>
+                        )}
 
-                            <div className="flex items-center text-sm">
-                                <div className="bg-green-100 text-green-600 rounded-full p-2 mr-3">
-                                    <Clock className="h-4 w-4" />
-                                </div>
-                                <div>
-                                    <div className="font-medium">Hora</div>
-                                    <div>{selectedEvent.time}</div>
-                                </div>
-                            </div>
+                        <div className="p-6">
+                            <DialogHeader>
+                                <DialogTitle className="text-2xl font-bold">
+                                    {selectedEvent.title}
+                                </DialogTitle>
+                                <DialogDescription>
+                                    Detalles importantes para tu asistencia
+                                </DialogDescription>
+                            </DialogHeader>
 
-                            <div className="flex items-center text-sm">
-                                <div className="bg-purple-100 text-purple-600 rounded-full p-2 mr-3">
-                                    <MapPin className="h-4 w-4" />
+                            <div className="space-y-6 py-6">
+                                <div className="flex items-center gap-4 bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
+                                    <div className="bg-blue-100 text-blue-600 dark:bg-blue-800 dark:text-blue-300 rounded-full p-3">
+                                        <Calendar className="h-6 w-6" />
+                                    </div>
+                                    <div>
+                                        <div className="font-medium text-sm text-gray-500 dark:text-gray-400">
+                                            Fecha y Hora
+                                        </div>
+                                        <div className="font-semibold">
+                                            {selectedEvent.date} ·{" "}
+                                            {selectedEvent.time}
+                                        </div>
+                                    </div>
                                 </div>
-                                <div>
-                                    <div className="font-medium">Ubicación</div>
-                                    <div>{selectedEvent.location}</div>
-                                </div>
-                            </div>
 
-                            <div className="flex items-center text-sm">
-                                <div className="bg-orange-100 text-orange-600 rounded-full p-2 mr-3">
-                                    <User className="h-4 w-4" />
+                                <div className="flex items-center gap-4 bg-purple-50 dark:bg-purple-900/20 p-4 rounded-lg">
+                                    <div className="bg-purple-100 text-purple-600 dark:bg-purple-800 dark:text-purple-300 rounded-full p-3">
+                                        <MapPin className="h-6 w-6" />
+                                    </div>
+                                    <div>
+                                        <div className="font-medium text-sm text-gray-500 dark:text-gray-400">
+                                            Ubicación
+                                        </div>
+                                        <div className="font-semibold">
+                                            {selectedEvent.location}
+                                        </div>
+                                    </div>
                                 </div>
-                                <div>
-                                    <div className="font-medium">Estado</div>
-                                    <div className="flex gap-2 items-center">
+
+                                <div className="flex items-center gap-4 bg-green-50 dark:bg-green-900/20 p-4 rounded-lg">
+                                    <div className="bg-green-100 text-green-600 dark:bg-green-800 dark:text-green-300 rounded-full p-3">
+                                        <User className="h-6 w-6" />
+                                    </div>
+                                    <div>
+                                        <div className="font-medium text-sm text-gray-500 dark:text-gray-400">
+                                            Estado
+                                        </div>
                                         <span
-                                            className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
-                                                selectedEvent.statusSlug === "confirmado" ? "bg-green-100 text-green-800" :
-                                                selectedEvent.statusSlug === "cancelado" ? "bg-red-100 text-red-800" :
-                                                "bg-yellow-100 text-yellow-800"
+                                            className={`inline-flex items-center rounded-full px-3 py-1 text-sm font-medium ${
+                                                selectedEvent.statusSlug ===
+                                                "confirmado"
+                                                    ? "bg-green-100 text-green-800"
+                                                    : selectedEvent.statusSlug ===
+                                                      "cancelado"
+                                                    ? "bg-red-100 text-red-800"
+                                                    : "bg-yellow-100 text-yellow-800"
                                             }`}
                                         >
+                                            {selectedEvent.statusSlug ===
+                                            "confirmado" ? (
+                                                <Check className="h-4 w-4 mr-1" />
+                                            ) : selectedEvent.statusSlug ===
+                                              "cancelado" ? (
+                                                <X className="h-4 w-4 mr-1" />
+                                            ) : (
+                                                <AlertTriangle className="h-4 w-4 mr-1" />
+                                            )}
                                             {selectedEvent.status}
                                         </span>
                                     </div>
                                 </div>
                             </div>
-                        </div>
 
-                        <DialogFooter className="flex justify-end">
-                            <Button
-                                onClick={() => setDetailsOpen(false)}
-                                className="bg-blue-600 hover:bg-blue-700"
-                            >
-                                Cerrar
-                            </Button>
-                        </DialogFooter>
+                            <DialogFooter className="flex sm:justify-between">
+                                <Button
+                                    variant="outline"
+                                    onClick={() => setDetailsOpen(false)}
+                                    className="border-gray-200 hover:bg-gray-50 text-gray-700"
+                                >
+                                    Cerrar
+                                </Button>
+
+                                {!selectedEvent.isPast &&
+                                    selectedEvent.statusSlug !==
+                                        "cancelado" && (
+                                        <Button
+                                            variant="outline"
+                                            className="border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
+                                            onClick={() => {
+                                                setDetailsOpen(false);
+                                                showCancelConfirmation(
+                                                    selectedEvent
+                                                );
+                                            }}
+                                        >
+                                            <X className="h-4 w-4 mr-2" />
+                                            Cancelar inscripción
+                                        </Button>
+                                    )}
+                            </DialogFooter>
+                        </div>
                     </DialogContent>
                 )}
+            </Dialog>
+
+            {/* Diálogo de confirmación para cancelar */}
+            <Dialog
+                open={confirmCancelOpen}
+                onOpenChange={setConfirmCancelOpen}
+            >
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>¿Estás seguro?</DialogTitle>
+                        <DialogDescription>
+                            Estás a punto de cancelar tu inscripción para el
+                            evento "{eventToCancel?.title}". Esta acción
+                            liberará tu cupo para que otra persona pueda asistir
+                            y no se puede deshacer.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter className="flex justify-end gap-2">
+                        <Button
+                            variant="outline"
+                            onClick={() => setConfirmCancelOpen(false)}
+                            className="bg-gray-200 text-gray-800 hover:bg-gray-300"
+                        >
+                            No, mantener inscripción
+                        </Button>
+                        <Button
+                            onClick={handleCancelAttendance}
+                            className="bg-red-600 hover:bg-red-700 text-white"
+                            disabled={processing}
+                        >
+                            {processing
+                                ? "Procesando..."
+                                : "Sí, cancelar inscripción"}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
             </Dialog>
         </div>
     );
 }
 
-function EventCard({ event, onShowDetails, onCancelAttendance, isPast = false, processing = false }) {
+function EventCard({
+    event,
+    onShowDetails,
+    onCancelAttendance,
+    isPast = false,
+    processing = false,
+}) {
     const colorMap = {
         blue: {
             accent: "border-l-blue-500",
@@ -343,26 +526,51 @@ function EventCard({ event, onShowDetails, onCancelAttendance, isPast = false, p
             icon: "bg-orange-100 text-orange-600",
             button: "hover:bg-orange-50 hover:text-orange-700",
         },
+        red: {
+            accent: "border-l-red-500",
+            title: "text-red-700",
+            icon: "bg-red-100 text-red-600",
+            button: "hover:bg-red-50 hover:text-red-700",
+        },
     };
+
+    // Choose the card color style based on status
+    const cardColor = event.statusSlug === "cancelado" ? "red" : event.color;
 
     return (
         <Card
-            className={`relative overflow-hidden rounded-xl border-l-8 ${colorMap[event.color]?.accent || "border-l-blue-500"} bg-white shadow-sm hover:shadow-md transition-all`}
+            className={`relative overflow-hidden rounded-xl border-l-8 ${
+                colorMap[cardColor]?.accent || "border-l-blue-500"
+            } bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition-all`}
         >
-            <div className="p-6 pt-8 border-b flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="p-6 pt-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-gray-100 dark:border-gray-700">
                 <div className="flex flex-col">
-                    <h4 className={`text-xl font-medium ${colorMap[event.color]?.title || "text-blue-700"} mb-3`}>
+                    <h4
+                        className={`text-xl font-medium ${
+                            colorMap[cardColor]?.title || "text-blue-700"
+                        } mb-3`}
+                    >
                         {event.title}
                     </h4>
-                    <div className="flex items-center text-sm text-gray-600 mt-2 space-x-6">
+                    <div className="flex flex-wrap items-center text-sm text-gray-600 dark:text-gray-300 mt-2 gap-4 sm:gap-6">
                         <div className="flex items-center">
-                            <div className={`flex items-center justify-center rounded-full p-2 ${colorMap[event.color]?.icon || "bg-blue-100 text-blue-600"} mr-3`}>
+                            <div
+                                className={`flex items-center justify-center rounded-full p-2 ${
+                                    colorMap[cardColor]?.icon ||
+                                    "bg-blue-100 text-blue-600"
+                                } mr-3`}
+                            >
                                 <Calendar className="h-4 w-4" />
                             </div>
                             <span>{event.date}</span>
                         </div>
                         <div className="flex items-center">
-                            <div className={`flex items-center justify-center rounded-full p-2 ${colorMap[event.color]?.icon || "bg-blue-100 text-blue-600"} mr-3`}>
+                            <div
+                                className={`flex items-center justify-center rounded-full p-2 ${
+                                    colorMap[cardColor]?.icon ||
+                                    "bg-blue-100 text-blue-600"
+                                } mr-3`}
+                            >
                                 <Clock className="h-4 w-4" />
                             </div>
                             <span>{event.time}</span>
@@ -370,11 +578,15 @@ function EventCard({ event, onShowDetails, onCancelAttendance, isPast = false, p
                     </div>
                 </div>
                 <div className="flex items-center">
-                    <span className={`inline-flex items-center rounded-full px-4 py-1.5 text-sm font-medium ${
-                        event.statusSlug === "confirmado" ? "bg-green-100 text-green-800" :
-                        event.statusSlug === "cancelado" ? "bg-red-100 text-red-800" :
-                        "bg-yellow-100 text-yellow-800"
-                    }`}>
+                    <span
+                        className={`inline-flex items-center rounded-full px-4 py-1.5 text-sm font-medium ${
+                            event.statusSlug === "confirmado"
+                                ? "bg-green-100 text-green-800 dark:bg-green-800/30 dark:text-green-300"
+                                : event.statusSlug === "cancelado"
+                                ? "bg-red-100 text-red-800 dark:bg-red-800/30 dark:text-red-300"
+                                : "bg-yellow-100 text-yellow-800 dark:bg-yellow-800/30 dark:text-yellow-300"
+                        }`}
+                    >
                         {event.statusSlug === "confirmado" ? (
                             <Check className="h-4 w-4 mr-1" />
                         ) : event.statusSlug === "cancelado" ? (
@@ -387,75 +599,66 @@ function EventCard({ event, onShowDetails, onCancelAttendance, isPast = false, p
                 </div>
             </div>
             <div className="p-6 pl-8 flex flex-col gap-6">
-                <div className="flex flex-col sm:flex-row sm:items-center gap-6">
-                    <div className="flex items-center text-sm text-gray-600">
-                        <div className={`flex items-center justify-center rounded-full p-2 ${colorMap[event.color]?.icon || "bg-blue-100 text-blue-600"} mr-3`}>
-                            <MapPin className="h-4 w-4 flex-shrink-0" />
-                        </div>
-                        <span>{event.location}</span>
+                <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
+                    <div
+                        className={`flex items-center justify-center rounded-full p-2 ${
+                            colorMap[cardColor]?.icon ||
+                            "bg-blue-100 text-blue-600"
+                        } mr-3`}
+                    >
+                        <MapPin className="h-4 w-4 flex-shrink-0" />
                     </div>
+                    <span>{event.location}</span>
                 </div>
+
                 <div className="flex flex-wrap gap-2">
                     {event.tags.map((tag) => (
                         <Badge
                             key={tag.name}
                             className={`px-3 py-1 text-sm rounded-full
-                                ${tag.color === "blue" ? "bg-blue-100 text-blue-800" :
-                                tag.color === "green" ? "bg-green-100 text-green-800" :
-                                tag.color === "orange" ? "bg-orange-100 text-orange-800" :
-                                tag.color === "purple" ? "bg-purple-100 text-purple-800" :
-                                "bg-gray-100 text-gray-800"}`
-                            }
+                                ${
+                                    tag.color === "blue"
+                                        ? "bg-blue-100 text-blue-800 dark:bg-blue-800/30 dark:text-blue-300"
+                                        : tag.color === "green"
+                                        ? "bg-green-100 text-green-800 dark:bg-green-800/30 dark:text-green-300"
+                                        : tag.color === "orange"
+                                        ? "bg-orange-100 text-orange-800 dark:bg-orange-800/30 dark:text-orange-300"
+                                        : tag.color === "purple"
+                                        ? "bg-purple-100 text-purple-800 dark:bg-purple-800/30 dark:text-purple-300"
+                                        : "bg-gray-100 text-gray-800 dark:bg-gray-800/30 dark:text-gray-300"
+                                }`}
                         >
                             {tag.name}
                         </Badge>
                     ))}
                 </div>
             </div>
-            <div className="p-4 border-t bg-gray-50 flex justify-between">
+            <div className="p-4 border-t border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/60 flex justify-between">
                 <Button
                     variant="outline"
                     onClick={onShowDetails}
-                    className={`px-4 py-2 ${colorMap[event.color]?.button || "hover:bg-blue-50"}`}
+                    className={`px-4 py-2 border-gray-200 ${
+                        colorMap[cardColor]?.button || "hover:bg-blue-50"
+                    }`}
                 >
                     <Info className="h-4 w-4 mr-2" />
                     Ver detalles
                 </Button>
 
                 {!isPast && event.statusSlug !== "cancelado" && (
-                    <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                            <Button
-                                variant="outline"
-                                className="px-4 py-2 text-red-600 border-red-200 hover:bg-red-50"
-                                disabled={processing}
-                            >
-                                <X className="h-4 w-4 mr-2" />
-                                Cancelar inscripción
-                            </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                            <AlertDialogHeader>
-                                <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                    Estás a punto de cancelar tu inscripción para este evento. Esta acción no se puede deshacer.
-                                </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                <AlertDialogAction
-                                    onClick={onCancelAttendance}
-                                    className="bg-red-600 hover:bg-red-700"
-                                >
-                                    {processing ? 'Procesando...' : 'Confirmar cancelación'}
-                                </AlertDialogAction>
-                            </AlertDialogFooter>
-                        </AlertDialogContent>
-                    </AlertDialog>
+                    <Button
+                        variant="outline"
+                        className="px-4 py-2 text-red-600 border-red-200 hover:bg-red-50"
+                        disabled={processing}
+                        onClick={onCancelAttendance}
+                    >
+                        <X className="h-4 w-4 mr-2" />
+                        Cancelar inscripción
+                    </Button>
                 )}
 
                 {isPast && (
-                    <Link href={route('eventos.show', event.eventId)}>
+                    <Link href={route("eventos.show", event.eventId)}>
                         <Button
                             variant="outline"
                             className="px-4 py-2 text-gray-600 border-gray-200 hover:bg-gray-50"
