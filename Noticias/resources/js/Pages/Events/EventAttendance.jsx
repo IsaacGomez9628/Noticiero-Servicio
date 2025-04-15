@@ -368,11 +368,12 @@ export function EventsAttendance() {
             </div>
 
             {/* Modal de detalles del evento - ACTUALIZADO */}
+            {/* Modal de detalles del evento - ACTUALIZADO con SCROLL */}
             <Dialog open={detailsOpen} onOpenChange={setDetailsOpen}>
                 {selectedEvent && (
-                    <DialogContent className="sm:max-w-lg bg-white dark:bg-gray-800 shadow-xl rounded-xl p-0 overflow-hidden">
+                    <DialogContent className="sm:max-w-lg bg-white dark:bg-gray-800 shadow-xl rounded-xl p-0 overflow-hidden max-h-[90vh] flex flex-col">
                         {selectedEvent.image && (
-                            <div className="w-full h-40 relative">
+                            <div className="w-full h-40 relative flex-shrink-0">
                                 <img
                                     src={selectedEvent.image}
                                     alt={selectedEvent.title}
@@ -388,201 +389,209 @@ export function EventsAttendance() {
                             </div>
                         )}
 
-                        <div className="p-6">
-                            <DialogHeader>
-                                <DialogTitle className="text-2xl font-bold">
-                                    {selectedEvent.title}
-                                </DialogTitle>
-                                <DialogDescription>
-                                    Información detallada de tu registro
-                                </DialogDescription>
-                            </DialogHeader>
+                        <div className="flex flex-col flex-grow overflow-hidden">
+                            <div className="p-6 flex-shrink-0">
+                                <DialogHeader>
+                                    <DialogTitle className="text-2xl font-bold">
+                                        {selectedEvent.title}
+                                    </DialogTitle>
+                                    <DialogDescription>
+                                        Información detallada de tu registro
+                                    </DialogDescription>
+                                </DialogHeader>
+                            </div>
 
-                            <div className="space-y-6 py-6">
-                                {/* Código de Registro */}
-                                <div className="flex items-center gap-4 bg-indigo-50 dark:bg-indigo-900/20 p-4 rounded-lg">
-                                    <div className="bg-indigo-100 text-indigo-600 dark:bg-indigo-800 dark:text-indigo-300 rounded-full p-3">
-                                        <Ticket className="h-6 w-6" />
-                                    </div>
-                                    <div className="flex-1">
-                                        <div className="font-medium text-sm text-gray-500 dark:text-gray-400">
-                                            Código de Registro
+                            {/* Área con scroll */}
+                            <div className="px-6 overflow-y-auto flex-grow custom-scrollbar">
+                                <div className="space-y-6 pb-6">
+                                    {/* Código de Registro */}
+                                    <div className="flex items-center gap-4 bg-indigo-50 dark:bg-indigo-900/20 p-4 rounded-lg">
+                                        <div className="bg-indigo-100 text-indigo-600 dark:bg-indigo-800 dark:text-indigo-300 rounded-full p-3 flex-shrink-0">
+                                            <Ticket className="h-6 w-6" />
                                         </div>
-                                        <div className="font-mono font-semibold text-lg flex items-center">
-                                            {selectedEvent.codigoRegistro}
-                                            <button
-                                                onClick={() =>
-                                                    copyRegistrationCode(
-                                                        selectedEvent.codigoRegistro
-                                                    )
-                                                }
-                                                className="ml-2 p-1 hover:bg-indigo-100 rounded-md transition-colors"
-                                                title="Copiar código"
-                                            >
-                                                {codeCopied ? (
-                                                    <Check className="h-4 w-4 text-green-600" />
-                                                ) : (
-                                                    <Copy className="h-4 w-4 text-indigo-600" />
-                                                )}
-                                            </button>
+                                        <div className="flex-1">
+                                            <div className="font-medium text-sm text-gray-500 dark:text-gray-400">
+                                                Código de Registro
+                                            </div>
+                                            <div className="font-mono font-semibold text-lg flex items-center">
+                                                {selectedEvent.codigoRegistro}
+                                                <button
+                                                    onClick={() =>
+                                                        copyRegistrationCode(
+                                                            selectedEvent.codigoRegistro
+                                                        )
+                                                    }
+                                                    className="ml-2 p-1 hover:bg-indigo-100 rounded-md transition-colors"
+                                                    title="Copiar código"
+                                                >
+                                                    {codeCopied ? (
+                                                        <Check className="h-4 w-4 text-green-600" />
+                                                    ) : (
+                                                        <Copy className="h-4 w-4 text-indigo-600" />
+                                                    )}
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
 
-                                {/* Fecha y Hora */}
-                                <div className="flex items-center gap-4 bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
-                                    <div className="bg-blue-100 text-blue-600 dark:bg-blue-800 dark:text-blue-300 rounded-full p-3">
-                                        <Calendar className="h-6 w-6" />
-                                    </div>
-                                    <div>
-                                        <div className="font-medium text-sm text-gray-500 dark:text-gray-400">
-                                            Fecha y Hora
-                                        </div>
-                                        <div className="font-semibold">
-                                            {selectedEvent.date} ·{" "}
-                                            {selectedEvent.time}
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Ubicación */}
-                                <div className="flex items-center gap-4 bg-purple-50 dark:bg-purple-900/20 p-4 rounded-lg">
-                                    <div className="bg-purple-100 text-purple-600 dark:bg-purple-800 dark:text-purple-300 rounded-full p-3">
-                                        <MapPin className="h-6 w-6" />
-                                    </div>
-                                    <div>
-                                        <div className="font-medium text-sm text-gray-500 dark:text-gray-400">
-                                            Ubicación
-                                        </div>
-                                        <div className="font-semibold">
-                                            {selectedEvent.location}
-                                        </div>
-                                        {selectedEvent.locationDetails
-                                            .link_google_maps && (
-                                            <a
-                                                href={
-                                                    selectedEvent
-                                                        .locationDetails
-                                                        .link_google_maps
-                                                }
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="text-blue-600 text-sm hover:underline mt-1 inline-block"
-                                            >
-                                                Ver en Google Maps
-                                            </a>
-                                        )}
-                                    </div>
-                                </div>
-
-                                {/* Organizador */}
-                                <div className="flex items-center gap-4 bg-amber-50 dark:bg-amber-900/20 p-4 rounded-lg">
-                                    <div className="bg-amber-100 text-amber-600 dark:bg-amber-800 dark:text-amber-300 rounded-full p-3">
-                                        <User className="h-6 w-6" />
-                                    </div>
-                                    <div>
-                                        <div className="font-medium text-sm text-gray-500 dark:text-gray-400">
-                                            Organizador
-                                        </div>
-                                        <div className="font-semibold">
-                                            {selectedEvent.organizador}
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Capacidad */}
-                                {selectedEvent.capacity > 0 && (
-                                    <div className="flex items-center gap-4 bg-teal-50 dark:bg-teal-900/20 p-4 rounded-lg">
-                                        <div className="bg-teal-100 text-teal-600 dark:bg-teal-800 dark:text-teal-300 rounded-full p-3">
-                                            <Users className="h-6 w-6" />
+                                    {/* Fecha y Hora */}
+                                    <div className="flex items-center gap-4 bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
+                                        <div className="bg-blue-100 text-blue-600 dark:bg-blue-800 dark:text-blue-300 rounded-full p-3 flex-shrink-0">
+                                            <Calendar className="h-6 w-6" />
                                         </div>
                                         <div>
                                             <div className="font-medium text-sm text-gray-500 dark:text-gray-400">
-                                                Capacidad
+                                                Fecha y Hora
                                             </div>
                                             <div className="font-semibold">
-                                                {selectedEvent.capacity}{" "}
-                                                asistentes
+                                                {selectedEvent.date} ·{" "}
+                                                {selectedEvent.time}
                                             </div>
                                         </div>
                                     </div>
-                                )}
 
-                                {/* Estado */}
-                                <div className="flex items-center gap-4 bg-green-50 dark:bg-green-900/20 p-4 rounded-lg">
-                                    <div className="bg-green-100 text-green-600 dark:bg-green-800 dark:text-green-300 rounded-full p-3">
-                                        <User className="h-6 w-6" />
-                                    </div>
-                                    <div>
-                                        <div className="font-medium text-sm text-gray-500 dark:text-gray-400">
-                                            Estado
+                                    {/* Ubicación */}
+                                    <div className="flex items-center gap-4 bg-purple-50 dark:bg-purple-900/20 p-4 rounded-lg">
+                                        <div className="bg-purple-100 text-purple-600 dark:bg-purple-800 dark:text-purple-300 rounded-full p-3 flex-shrink-0">
+                                            <MapPin className="h-6 w-6" />
                                         </div>
-                                        <span
-                                            className={`inline-flex items-center rounded-full px-3 py-1 text-sm font-medium ${
-                                                selectedEvent.statusSlug ===
-                                                "confirmado"
-                                                    ? "bg-green-100 text-green-800"
-                                                    : selectedEvent.statusSlug ===
-                                                      "cancelado"
-                                                    ? "bg-red-100 text-red-800"
-                                                    : "bg-yellow-100 text-yellow-800"
-                                            }`}
-                                        >
-                                            {selectedEvent.statusSlug ===
-                                            "confirmado" ? (
-                                                <Check className="h-4 w-4 mr-1" />
-                                            ) : selectedEvent.statusSlug ===
-                                              "cancelado" ? (
-                                                <X className="h-4 w-4 mr-1" />
-                                            ) : (
-                                                <AlertTriangle className="h-4 w-4 mr-1" />
+                                        <div>
+                                            <div className="font-medium text-sm text-gray-500 dark:text-gray-400">
+                                                Ubicación
+                                            </div>
+                                            <div className="font-semibold">
+                                                {selectedEvent.location}
+                                            </div>
+                                            {selectedEvent.locationDetails
+                                                .link_google_maps && (
+                                                <a
+                                                    href={
+                                                        selectedEvent
+                                                            .locationDetails
+                                                            .link_google_maps
+                                                    }
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="text-blue-600 text-sm hover:underline mt-1 inline-block"
+                                                >
+                                                    Ver en Google Maps
+                                                </a>
                                             )}
-                                            {selectedEvent.status}
-                                        </span>
-                                    </div>
-                                </div>
-
-                                {/* Descripción */}
-                                <div className="bg-gray-50 dark:bg-gray-900/20 p-4 rounded-lg">
-                                    <div className="flex items-center gap-2 mb-2">
-                                        <FileText className="h-5 w-5 text-gray-600" />
-                                        <div className="font-medium text-gray-700">
-                                            Acerca del evento
                                         </div>
                                     </div>
-                                    <p className="text-gray-600 text-sm">
-                                        {selectedEvent.description}
-                                    </p>
+
+                                    {/* Organizador */}
+                                    <div className="flex items-center gap-4 bg-amber-50 dark:bg-amber-900/20 p-4 rounded-lg">
+                                        <div className="bg-amber-100 text-amber-600 dark:bg-amber-800 dark:text-amber-300 rounded-full p-3 flex-shrink-0">
+                                            <User className="h-6 w-6" />
+                                        </div>
+                                        <div>
+                                            <div className="font-medium text-sm text-gray-500 dark:text-gray-400">
+                                                Organizador
+                                            </div>
+                                            <div className="font-semibold">
+                                                {selectedEvent.organizador}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Capacidad */}
+                                    {selectedEvent.capacity > 0 && (
+                                        <div className="flex items-center gap-4 bg-teal-50 dark:bg-teal-900/20 p-4 rounded-lg">
+                                            <div className="bg-teal-100 text-teal-600 dark:bg-teal-800 dark:text-teal-300 rounded-full p-3 flex-shrink-0">
+                                                <Users className="h-6 w-6" />
+                                            </div>
+                                            <div>
+                                                <div className="font-medium text-sm text-gray-500 dark:text-gray-400">
+                                                    Capacidad
+                                                </div>
+                                                <div className="font-semibold">
+                                                    {selectedEvent.capacity}{" "}
+                                                    asistentes
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Estado */}
+                                    <div className="flex items-center gap-4 bg-green-50 dark:bg-green-900/20 p-4 rounded-lg">
+                                        <div className="bg-green-100 text-green-600 dark:bg-green-800 dark:text-green-300 rounded-full p-3 flex-shrink-0">
+                                            <User className="h-6 w-6" />
+                                        </div>
+                                        <div>
+                                            <div className="font-medium text-sm text-gray-500 dark:text-gray-400">
+                                                Estado
+                                            </div>
+                                            <span
+                                                className={`inline-flex items-center rounded-full px-3 py-1 text-sm font-medium ${
+                                                    selectedEvent.statusSlug ===
+                                                    "confirmado"
+                                                        ? "bg-green-100 text-green-800"
+                                                        : selectedEvent.statusSlug ===
+                                                          "cancelado"
+                                                        ? "bg-red-100 text-red-800"
+                                                        : "bg-yellow-100 text-yellow-800"
+                                                }`}
+                                            >
+                                                {selectedEvent.statusSlug ===
+                                                "confirmado" ? (
+                                                    <Check className="h-4 w-4 mr-1" />
+                                                ) : selectedEvent.statusSlug ===
+                                                  "cancelado" ? (
+                                                    <X className="h-4 w-4 mr-1" />
+                                                ) : (
+                                                    <AlertTriangle className="h-4 w-4 mr-1" />
+                                                )}
+                                                {selectedEvent.status}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    {/* Descripción */}
+                                    <div className="bg-gray-50 dark:bg-gray-900/20 p-4 rounded-lg">
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <FileText className="h-5 w-5 text-gray-600" />
+                                            <div className="font-medium text-gray-700">
+                                                Acerca del evento
+                                            </div>
+                                        </div>
+                                        <p className="text-gray-600 text-sm">
+                                            {selectedEvent.description}
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
 
-                            <DialogFooter className="flex sm:justify-between">
-                                <Button
-                                    variant="outline"
-                                    onClick={() => setDetailsOpen(false)}
-                                    className="border-gray-200 hover:bg-gray-50 text-gray-700"
-                                >
-                                    Cerrar
-                                </Button>
+                            {/* Footer fijo */}
+                            <div className="p-6 border-t border-gray-100 dark:border-gray-700 flex-shrink-0">
+                                <DialogFooter className="flex sm:justify-between">
+                                    <Button
+                                        variant="outline"
+                                        onClick={() => setDetailsOpen(false)}
+                                        className="border-gray-200 hover:bg-gray-50 text-gray-700"
+                                    >
+                                        Cerrar
+                                    </Button>
 
-                                {!selectedEvent.isPast &&
-                                    selectedEvent.statusSlug !==
-                                        "cancelado" && (
-                                        <Button
-                                            variant="outline"
-                                            className="border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
-                                            onClick={() => {
-                                                setDetailsOpen(false);
-                                                showCancelConfirmation(
-                                                    selectedEvent
-                                                );
-                                            }}
-                                        >
-                                            <X className="h-4 w-4 mr-2" />
-                                            Cancelar inscripción
-                                        </Button>
-                                    )}
-                            </DialogFooter>
+                                    {!selectedEvent.isPast &&
+                                        selectedEvent.statusSlug !==
+                                            "cancelado" && (
+                                            <Button
+                                                variant="outline"
+                                                className="border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
+                                                onClick={() => {
+                                                    setDetailsOpen(false);
+                                                    showCancelConfirmation(
+                                                        selectedEvent
+                                                    );
+                                                }}
+                                            >
+                                                <X className="h-4 w-4 mr-2" />
+                                                Cancelar inscripción
+                                            </Button>
+                                        )}
+                                </DialogFooter>
+                            </div>
                         </div>
                     </DialogContent>
                 )}

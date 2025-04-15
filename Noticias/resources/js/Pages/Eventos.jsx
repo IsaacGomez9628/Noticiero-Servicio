@@ -79,33 +79,6 @@ export default function EventosPage({
         { id: "gratis", nombre: "Gratis" },
         { id: "pago", nombre: "Pago" },
     ];
-
-    const eventosEjemplo = [
-        {
-            id: "ejemplo-1",
-            titulo: "Concierto: Velada de ópera y música mexicana",
-            descripcion:
-                "Recaudación gira por Europa con los mejores talentos de ópera mexicana.",
-            fecha_inicio: new Date(
-                new Date().getTime() + 7 * 24 * 60 * 60 * 1000
-            ).toISOString(),
-            hora: "20:00",
-            modalidad: "Presencial",
-            precio: 216.22,
-            categoria: "musica",
-            organizador: {
-                persona: {
-                    nombres: "CEART",
-                },
-            },
-            direccion: {
-                direccion_completa: "Centro de las Artes de Querétaro",
-            },
-            imagen: "/images/opera.jpg",
-        },
-        // ... resto de eventos de ejemplo (mantenidos igual)
-    ];
-
     // Función para redirigir al formulario de registro
     const irARegistroEvento = (evento) => {
         window.location.href = route("eventos.registro.form", evento.id);
