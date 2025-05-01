@@ -13,6 +13,14 @@ class Rol extends Model
     // Especificar el nombre de la tabla ya que no sigue la convención
     protected $table = 'rols';
     
+    // Añadir esta propiedad para permitir asignación masiva
+    protected $fillable = [
+        'name',
+        'slug',
+        'description',
+        'active'
+    ];
+    
     // Relación con Admins (un rol puede tener muchos administradores)
     public function admins()
     {

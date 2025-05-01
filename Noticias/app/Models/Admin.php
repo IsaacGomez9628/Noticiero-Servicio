@@ -3,13 +3,28 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Laravel\Sanctum\HasApiTokens;
 
-class Admin extends Model
+class Admin extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\AdminsFactory> */
-    use HasFactory, SoftDeletes;
+    use HasFactory, SoftDeletes, HasApiTokens;
+
+    protected $fillable = [
+        'name',
+        'email',
+        'password',
+        'phone',
+        'rol_id',
+        'active'
+    ];
+    
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
     
     // Relación con Rol (un admin pertenece a un rol)
     public function rol()
@@ -33,5 +48,17 @@ class Admin extends Model
     public function activities()
     {
         return $this->morphMany(ActivityLog::class, 'object');
+    }
+    
+    /**
+     * Verifica si el usuario es un administrador
+     * Este método es usado en el middleware HandleInertiaRequests
+     * 
+     * @return bool
+     */
+    public function isAdmin()
+    {
+        // Como este modelo es específicamente para administradores, siempre devolvemos true
+        return true;
     }
 }

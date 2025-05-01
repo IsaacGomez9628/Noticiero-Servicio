@@ -37,18 +37,20 @@ class HandleInertiaRequests extends Middleware
     public function share(Request $request): array
     {
         $user = $request->user();
-        
-        // Si el usuario está autenticado, carga explícitamente la relación person
+        $fullName = null;
+    
+        // Verificamos qué tipo de usuario es y cargamos las relaciones apropiadas
         if ($user) {
-            // Carga la relación person si aún no está cargada
-            if (!$user->relationLoaded('person')) {
-                $user->load('person');
-            }
+            // Añadir un log para debug
+            \Log::info('Tipo de usuario autenticado: ' . get_class($user));
             
-            // Asegúrate de que la persona exista antes de intentar acceder a sus atributos
-            $fullName = null;
-            if ($user->person) {
-                $fullName = $user->person->getFullNameAttribute();
+            if (get_class($user) === 'App\Models\User') {
+                // Usuario normal
+                $user->load('person');
+                $fullName = $user->person->full_name ?? null;
+            } elseif (get_class($user) === 'App\Models\Admin') {
+                // Usuario admin
+                $fullName = $user->name ?? $user->email;
             }
         }
         
@@ -58,10 +60,10 @@ class HandleInertiaRequests extends Middleware
                     'id' => $user->id,
                     'email' => $user->email,
                     'full_name' => $fullName ?? $user->email, // Si no hay nombre, usa el email
-                    'is_admin' => $user->isAdmin(),
-                    'is_super_admin' => $user->isSuperAdmin(),
-                    'is_institutional' => $user->isInstitutional(),
-                    'is_personal' => $user->isPersonal(),
+                    'is_admin' => method_exists($user, 'isAdmin') ? $user->isAdmin() : false,
+                    'is_super_admin' => method_exists($user, 'isSuperAdmin') ? $user->isSuperAdmin() : false,
+                    'is_institutional' => method_exists($user, 'isInstitutional') ? $user->isInstitutional() : false,
+                    'is_personal' => method_exists($user, 'isPersonal') ? $user->isPersonal() : false,
                 ] : null,
             ],
             'flash' => [
