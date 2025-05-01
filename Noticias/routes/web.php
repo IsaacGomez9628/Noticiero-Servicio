@@ -15,6 +15,10 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Middleware\EnsureEmailIsVerified;
 use App\Mail\EmailVerification;
 use Illuminate\Support\Facades\Mail;
+use App\Http\Controllers\Admin\AdminAuthController;
+use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\RolController;
+use App\Http\Controllers\Admin\StatusController;
 
 // Rutas para vistas principales (renderizan la SPA de React)
 Route::get('/', function () {
@@ -77,21 +81,10 @@ Route::middleware('guest')->group(function () {
         ->name('verification.resend');
 });
 
-// Ruta de compatibilidad (para mantener enlaces antiguos)
-// Route::get('/eventos/{id}/registro', [EventoController::class, 'showRegistrationForm'])->name('eventos.registro.form');
-
-
-// Rutas para administradores
-Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
-    Route::get('/eventos/{id}/asistentes', [EventoAsistenciaController::class, 'listarAsistentes'])->name('admin.eventos.asistentes');
-});
-
 // Otras rutas
 Route::get('/noticias', [NoticiaController::class, 'index'])->name('noticias');
 
-
-    
- // Rutas para usuarios autenticados
+// Rutas para usuarios autenticados
 Route::middleware(['auth', EnsureEmailIsVerified::class])->group(function () {
     // Dashboard y sus funcionalidades
     Route::get('/dashboard', [DashboardController::class, 'index'])
@@ -141,9 +134,9 @@ Route::middleware(['auth', EnsureEmailIsVerified::class])->group(function () {
     Route::post('/perfil/actualizar', [ProfileController::class, 'update'])
         ->name('perfil.update');
     
-     // Registro de eventos (formulario y procesamiento)
-     Route::get('/evento/{id}/registro', [EventoAsistenciaController::class, 'showRegistrationForm'])
-     ->name('eventos.registro.form');
+    // Registro de eventos (formulario y procesamiento)
+    Route::get('/evento/{id}/registro', [EventoAsistenciaController::class, 'showRegistrationForm'])
+        ->name('eventos.registro.form');
  
     // Procesar registro personal
     Route::post('/evento/{id}/registro', [EventoAsistenciaController::class, 'register'])
@@ -163,38 +156,90 @@ Route::middleware(['auth', EnsureEmailIsVerified::class])->group(function () {
     
     // Cancelar asistencia
     Route::post('/asistencia/{id}/cancelar', [EventoAsistenciaController::class, 'cancelarAsistencia'])
-    ->name('eventos.asistencia.cancelar')
-    ->middleware('auth');
+        ->name('eventos.asistencia.cancelar');
     
     // Cierre de sesión
     Route::post('/logout', [LoginController::class, 'logout'])
         ->name('logout');
-    
-    // Rutas para registro de asistentes a eventos (institucional)
-    Route::post('/eventos/{id}/registro/institucional', 
-        [App\Http\Controllers\EventoAsistenciaController::class, 'registrarInstitucional'])
-        ->name('eventos.registro.institucional');
 });
 
-// Rutas para administradores
-Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
-    // Listado de asistentes
-    Route::get('/eventos/{id}/asistentes', [EventoAsistenciaController::class, 'listarAsistentes'])
-        ->name('admin.eventos.asistentes');
+// Rutas de administración separadas del catch-all final
+Route::prefix('admin')->group(function () {
+    // Ruta pública para la página de login
+    Route::get('/login', function () {
+        return Inertia::render('Admin/AdminLoginCheck');
+    })->name('admin.login');
     
-    Route::get('/eventos/{id}/asistentes', 
-        [App\Http\Controllers\EventoAsistenciaController::class, 'listarAsistentes'])
-        ->name('eventos.asistentes');
+    // Ruta pública para la página de creación de nuevo administrador
+    Route::get('/create', function () {
+        return Inertia::render('Admin/AdminCreateForm');
+    })->name('admin.create');
     
+    // Rutas API públicas para administración
+    Route::get('/check', [AdminAuthController::class, 'checkAdmin']);
+    Route::post('/login', [AdminAuthController::class, 'login']);
+    Route::post('/create-first', [AdminAuthController::class, 'createFirstAdmin']);
+    Route::post('/create', [AdminAuthController::class, 'createAdmin']);
+    
+    // Ruta para verificar autenticación actual
+    Route::get('/check-auth', [AdminAuthController::class, 'checkAdminAuth'])
+        ->middleware('auth:sanctum');
+    
+    // Dashboard de admin
+    Route::get('/dashboard', function () {
+        return Inertia::render('Admin/AdminDashboard');
+    })->name('admin.dashboard');
+    
+    // Rutas protegidas que requieren autenticación de administrador
+    Route::middleware(['auth:sanctum'])->group(function () {
+        // Obtener información del admin actual
+        Route::get('/me', [AdminAuthController::class, 'getCurrentAdmin']);
+        
+        // Cerrar sesión
+        Route::post('/logout', [AdminAuthController::class, 'logout']);
+        
+        // Rutas para gestión de usuarios
+        Route::get('/users', [UserController::class, 'index'])->name('admin.users.index');
+        Route::get('/users/list', [UserController::class, 'list'])->name('admin.users.list');
+        Route::get('/users/create', [UserController::class, 'create'])->name('admin.users.create');
+        Route::post('/users', [UserController::class, 'store'])->name('admin.users.store');
+        Route::get('/users/{id}', [UserController::class, 'show'])->name('admin.users.show');
+        Route::get('/users/{id}/edit', [UserController::class, 'edit'])->name('admin.users.edit');
+        Route::put('/users/{id}', [UserController::class, 'update'])->name('admin.users.update');
+        Route::delete('/users/{id}', [UserController::class, 'destroy'])->name('admin.users.destroy');
+        
+        // Rutas para gestión de roles
+        Route::get('/roles/list', [RolController::class, 'list'])->name('admin.roles.list');
+        Route::get('/roles', [RolController::class, 'index'])->name('admin.roles.index');
+        Route::get('/roles/create', [RolController::class, 'create'])->name('admin.roles.create');
+        Route::post('/roles', [RolController::class, 'store'])->name('admin.roles.store');
+        Route::get('/roles/{id}', [RolController::class, 'show'])->name('admin.roles.show');
+        Route::get('/roles/{id}/edit', [RolController::class, 'edit'])->name('admin.roles.edit');
+        Route::put('/roles/{id}', [RolController::class, 'update'])->name('admin.roles.update');
+        Route::delete('/roles/{id}', [RolController::class, 'destroy'])->name('admin.roles.destroy');
+        
+        // Rutas para gestión de estados
+        Route::get('/statuses/{type}', [StatusController::class, 'getByType'])->name('admin.statuses.byType');
+        Route::get('/statuses/user', [StatusController::class, 'getUserStatuses'])->name('admin.statuses.user');
+        Route::get('/statuses/event', [StatusController::class, 'getEventStatuses'])->name('admin.statuses.event');
+        Route::post('/statuses', [StatusController::class, 'store'])->name('admin.statuses.store');
+        Route::put('/statuses/{id}', [StatusController::class, 'update'])->name('admin.statuses.update');
+        Route::delete('/statuses/{id}', [StatusController::class, 'destroy'])->name('admin.statuses.destroy');
+        
+        // Rutas existentes para eventos en el panel de administración
+        Route::get('/events', function () {
+            return Inertia::render('Admin/Events/Index');
+        })->name('admin.events');
+        
+        // Rutas para gestión de eventos y asistencias
+        Route::get('/eventos/{id}/asistentes', [EventoAsistenciaController::class, 'listarAsistentes'])
+            ->name('admin.eventos.asistentes');
+        
         Route::patch('/eventos/{id}/asistentes/{asistenciaId}', [EventoAsistenciaController::class, 'actualizarAsistencia'])
-        ->name('admin.eventos.asistencia.actualizar');
-    
+            ->name('admin.eventos.asistencia.actualizar');
+    });
 });
 
 // Ruta para cualquier otra URL que debería ser manejada por React Router
+// Importante: debe estar al final de todas las demás rutas
 Route::get('/{any}', [HomeController::class, 'index'])->where('any', '.*');
-
-// Route::get('/test-mail', function () {
-//     Mail::to('gr27271593@gmail.com')->send(new EmailVerification());
-//     return 'Correo enviado';
-// });
