@@ -38,7 +38,7 @@ export default function EnhancedFooter() {
                                     </svg>
                                 </a>
                                 <a
-                                    href="https://twitter.com/tuUsuario"
+                                    href="https://twitter.com/CEATyCC_q"
                                     className="bg-black text-white p-2 rounded-full hover:bg-blue-500 transition-colors duration-300 hover:scale-110 transform"
                                     aria-label="Twitter"
                                 >
