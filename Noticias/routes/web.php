@@ -16,9 +16,6 @@ use App\Http\Middleware\EnsureEmailIsVerified;
 use App\Mail\EmailVerification;
 use Illuminate\Support\Facades\Mail;
 use App\Http\Controllers\Admin\AdminAuthController;
-use App\Http\Controllers\Admin\UserController;
-use App\Http\Controllers\Admin\RolController;
-use App\Http\Controllers\Admin\StatusController;
 
 // Rutas para vistas principales (renderizan la SPA de React)
 Route::get('/', function () {
@@ -181,55 +178,29 @@ Route::prefix('admin')->group(function () {
     Route::post('/create-first', [AdminAuthController::class, 'createFirstAdmin']);
     Route::post('/create', [AdminAuthController::class, 'createAdmin']);
     
-    // Ruta para verificar autenticación actual
-    Route::get('/check-auth', [AdminAuthController::class, 'checkAdminAuth'])
-        ->middleware('auth:sanctum');
-    
-    // Dashboard de admin
+    // Dashboard de admin (sin middleware para pruebas)
     Route::get('/dashboard', function () {
         return Inertia::render('Admin/AdminDashboard');
     })->name('admin.dashboard');
     
     // Rutas protegidas que requieren autenticación de administrador
-    Route::middleware(['auth:sanctum'])->group(function () {
-        // Obtener información del admin actual
-        Route::get('/me', [AdminAuthController::class, 'getCurrentAdmin']);
+    Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
+        // Vistas principales del panel de administración (Inertia)
+        Route::get('/users', function () {
+            return Inertia::render('Admin/Users/Index');
+        })->name('admin.users');
         
-        // Cerrar sesión
-        Route::post('/logout', [AdminAuthController::class, 'logout']);
-        
-        // Rutas para gestión de usuarios
-        Route::get('/users', [UserController::class, 'index'])->name('admin.users.index');
-        Route::get('/users/list', [UserController::class, 'list'])->name('admin.users.list');
-        Route::get('/users/create', [UserController::class, 'create'])->name('admin.users.create');
-        Route::post('/users', [UserController::class, 'store'])->name('admin.users.store');
-        Route::get('/users/{id}', [UserController::class, 'show'])->name('admin.users.show');
-        Route::get('/users/{id}/edit', [UserController::class, 'edit'])->name('admin.users.edit');
-        Route::put('/users/{id}', [UserController::class, 'update'])->name('admin.users.update');
-        Route::delete('/users/{id}', [UserController::class, 'destroy'])->name('admin.users.destroy');
-        
-        // Rutas para gestión de roles
-        Route::get('/roles/list', [RolController::class, 'list'])->name('admin.roles.list');
-        Route::get('/roles', [RolController::class, 'index'])->name('admin.roles.index');
-        Route::get('/roles/create', [RolController::class, 'create'])->name('admin.roles.create');
-        Route::post('/roles', [RolController::class, 'store'])->name('admin.roles.store');
-        Route::get('/roles/{id}', [RolController::class, 'show'])->name('admin.roles.show');
-        Route::get('/roles/{id}/edit', [RolController::class, 'edit'])->name('admin.roles.edit');
-        Route::put('/roles/{id}', [RolController::class, 'update'])->name('admin.roles.update');
-        Route::delete('/roles/{id}', [RolController::class, 'destroy'])->name('admin.roles.destroy');
-        
-        // Rutas para gestión de estados
-        Route::get('/statuses/{type}', [StatusController::class, 'getByType'])->name('admin.statuses.byType');
-        Route::get('/statuses/user', [StatusController::class, 'getUserStatuses'])->name('admin.statuses.user');
-        Route::get('/statuses/event', [StatusController::class, 'getEventStatuses'])->name('admin.statuses.event');
-        Route::post('/statuses', [StatusController::class, 'store'])->name('admin.statuses.store');
-        Route::put('/statuses/{id}', [StatusController::class, 'update'])->name('admin.statuses.update');
-        Route::delete('/statuses/{id}', [StatusController::class, 'destroy'])->name('admin.statuses.destroy');
-        
-        // Rutas existentes para eventos en el panel de administración
         Route::get('/events', function () {
             return Inertia::render('Admin/Events/Index');
         })->name('admin.events');
+        
+        Route::get('/roles', function () {
+            return Inertia::render('Admin/Roles/Index');
+        })->name('admin.roles');
+        
+        // Endpoints API protegidos para administración
+        Route::post('/logout', [AdminAuthController::class, 'logout']);
+        Route::get('/me', [AdminAuthController::class, 'getCurrentAdmin']);
         
         // Rutas para gestión de eventos y asistencias
         Route::get('/eventos/{id}/asistentes', [EventoAsistenciaController::class, 'listarAsistentes'])

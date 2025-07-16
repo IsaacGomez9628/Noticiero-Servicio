@@ -6,6 +6,8 @@ $vendorDir = dirname(__DIR__);
 $baseDir = dirname($vendorDir);
 
 return array(
+    'App\\Console\\Commands\\CheckMissingFields' => $baseDir . '/app/Console/Commands/CheckMissingFields.php',
+    'App\\Http\\Controllers\\Admin\\AdminAuthController' => $baseDir . '/app/Http/Controllers/Admin/AdminAuthController.php',
     'App\\Http\\Controllers\\Auth\\AuthController' => $baseDir . '/app/Http/Controllers/Auth/AuthController.php',
     'App\\Http\\Controllers\\Auth\\AuthenticatedSessionController' => $baseDir . '/app/Http/Controllers/Auth/AuthenticatedSessionController.php',
     'App\\Http\\Controllers\\Auth\\ConfirmablePasswordController' => $baseDir . '/app/Http/Controllers/Auth/ConfirmablePasswordController.php',
@@ -15,10 +17,11 @@ return array(
     'App\\Http\\Controllers\\Auth\\NewPasswordController' => $baseDir . '/app/Http/Controllers/Auth/NewPasswordController.php',
     'App\\Http\\Controllers\\Auth\\PasswordController' => $baseDir . '/app/Http/Controllers/Auth/PasswordController.php',
     'App\\Http\\Controllers\\Auth\\PasswordResetLinkController' => $baseDir . '/app/Http/Controllers/Auth/PasswordResetLinkController.php',
-    'App\\Http\\Controllers\\Auth\\RegisteredUserController' => $baseDir . '/app/Http/Controllers/Auth/RegisteredUserController.php',
     'App\\Http\\Controllers\\Auth\\RegistroController' => $baseDir . '/app/Http/Controllers/Auth/RegistroController.php',
     'App\\Http\\Controllers\\Auth\\VerificationController' => $baseDir . '/app/Http/Controllers/Auth/VerificationController.php',
+    'App\\Http\\Controllers\\BaseController' => $baseDir . '/app/Http/Controllers/BaseController.php',
     'App\\Http\\Controllers\\Controller' => $baseDir . '/app/Http/Controllers/Controller.php',
+    'App\\Http\\Controllers\\DashboardController' => $baseDir . '/app/Http/Controllers/DashboardController.php',
     'App\\Http\\Controllers\\EventoAsistenciaController' => $baseDir . '/app/Http/Controllers/EventoAsistenciaController.php',
     'App\\Http\\Controllers\\Eventos\\EventController' => $baseDir . '/app/Http/Controllers/Eventos/EventController.php',
     'App\\Http\\Controllers\\HomeController' => $baseDir . '/app/Http/Controllers/HomeController.php',
@@ -27,6 +30,8 @@ return array(
     'App\\Http\\Controllers\\Home\\QuienesSomosController' => $baseDir . '/app/Http/Controllers/Home/QuienesSomosController.php',
     'App\\Http\\Controllers\\ProfileController' => $baseDir . '/app/Http/Controllers/ProfileController.php',
     'App\\Http\\Controllers\\Usuarios\\UsuarioController' => $baseDir . '/app/Http/Controllers/Usuarios/UsuarioController.php',
+    'App\\Http\\Middleware\\CheckAdminPermission' => $baseDir . '/app/Http/Middleware/CheckAdminPermission.php',
+    'App\\Http\\Middleware\\EnsureEmailIsVerified' => $baseDir . '/app/Http/Middleware/EnsureEmailIsVerified.php',
     'App\\Http\\Middleware\\HandleInertiaRequests' => $baseDir . '/app/Http/Middleware/HandleInertiaRequests.php',
     'App\\Http\\Requests\\Auth\\LoginRequest' => $baseDir . '/app/Http/Requests/Auth/LoginRequest.php',
     'App\\Http\\Requests\\ProfileUpdateRequest' => $baseDir . '/app/Http/Requests/ProfileUpdateRequest.php',
@@ -51,6 +56,7 @@ return array(
     'App\\Models\\ListCompany' => $baseDir . '/app/Models/ListCompany.php',
     'App\\Models\\Location' => $baseDir . '/app/Models/Location.php',
     'App\\Models\\Organizer' => $baseDir . '/app/Models/Organizer.php',
+    'App\\Models\\PendingRegistration' => $baseDir . '/app/Models/PendingRegistration.php',
     'App\\Models\\Permission' => $baseDir . '/app/Models/Permission.php',
     'App\\Models\\PermissionRol' => $baseDir . '/app/Models/PermissionRol.php',
     'App\\Models\\Person' => $baseDir . '/app/Models/Person.php',

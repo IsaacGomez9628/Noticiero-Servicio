@@ -148,6 +148,7 @@ const AdminCreateForm = ({ onSuccess }) => {
   );
 };
 
+// Definir el layout como una propiedad del componente
 AdminCreateForm.layout = page => <AdminLayout>{page}</AdminLayout>;
 
 export default AdminCreateForm;

@@ -39,7 +39,9 @@ const AdminLoginForm = () => {
       setLoading(false);
     }
   };
+
   
+
   return (
     <div className="max-w-md mx-auto">
       <h2 className="text-2xl font-bold mb-6">Iniciar sesión como Administrador</h2>
@@ -95,6 +97,7 @@ const AdminLoginForm = () => {
   );
 };
 
+// Definir el layout como una propiedad del componente
 AdminLoginForm.layout = page => <AdminLayout>{page}</AdminLayout>;
 
 export default AdminLoginForm;

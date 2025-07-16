@@ -565,6 +565,8 @@ class ComposerStaticInit626b9e7ddd47fb7eff9aaa53cce0c9ad
     );
 
     public static $classMap = array (
+        'App\\Console\\Commands\\CheckMissingFields' => __DIR__ . '/../..' . '/app/Console/Commands/CheckMissingFields.php',
+        'App\\Http\\Controllers\\Admin\\AdminAuthController' => __DIR__ . '/../..' . '/app/Http/Controllers/Admin/AdminAuthController.php',
         'App\\Http\\Controllers\\Auth\\AuthController' => __DIR__ . '/../..' . '/app/Http/Controllers/Auth/AuthController.php',
         'App\\Http\\Controllers\\Auth\\AuthenticatedSessionController' => __DIR__ . '/../..' . '/app/Http/Controllers/Auth/AuthenticatedSessionController.php',
         'App\\Http\\Controllers\\Auth\\ConfirmablePasswordController' => __DIR__ . '/../..' . '/app/Http/Controllers/Auth/ConfirmablePasswordController.php',
@@ -574,10 +576,11 @@ class ComposerStaticInit626b9e7ddd47fb7eff9aaa53cce0c9ad
         'App\\Http\\Controllers\\Auth\\NewPasswordController' => __DIR__ . '/../..' . '/app/Http/Controllers/Auth/NewPasswordController.php',
         'App\\Http\\Controllers\\Auth\\PasswordController' => __DIR__ . '/../..' . '/app/Http/Controllers/Auth/PasswordController.php',
         'App\\Http\\Controllers\\Auth\\PasswordResetLinkController' => __DIR__ . '/../..' . '/app/Http/Controllers/Auth/PasswordResetLinkController.php',
-        'App\\Http\\Controllers\\Auth\\RegisteredUserController' => __DIR__ . '/../..' . '/app/Http/Controllers/Auth/RegisteredUserController.php',
         'App\\Http\\Controllers\\Auth\\RegistroController' => __DIR__ . '/../..' . '/app/Http/Controllers/Auth/RegistroController.php',
         'App\\Http\\Controllers\\Auth\\VerificationController' => __DIR__ . '/../..' . '/app/Http/Controllers/Auth/VerificationController.php',
+        'App\\Http\\Controllers\\BaseController' => __DIR__ . '/../..' . '/app/Http/Controllers/BaseController.php',
         'App\\Http\\Controllers\\Controller' => __DIR__ . '/../..' . '/app/Http/Controllers/Controller.php',
+        'App\\Http\\Controllers\\DashboardController' => __DIR__ . '/../..' . '/app/Http/Controllers/DashboardController.php',
         'App\\Http\\Controllers\\EventoAsistenciaController' => __DIR__ . '/../..' . '/app/Http/Controllers/EventoAsistenciaController.php',
         'App\\Http\\Controllers\\Eventos\\EventController' => __DIR__ . '/../..' . '/app/Http/Controllers/Eventos/EventController.php',
         'App\\Http\\Controllers\\HomeController' => __DIR__ . '/../..' . '/app/Http/Controllers/HomeController.php',
@@ -586,6 +589,8 @@ class ComposerStaticInit626b9e7ddd47fb7eff9aaa53cce0c9ad
         'App\\Http\\Controllers\\Home\\QuienesSomosController' => __DIR__ . '/../..' . '/app/Http/Controllers/Home/QuienesSomosController.php',
         'App\\Http\\Controllers\\ProfileController' => __DIR__ . '/../..' . '/app/Http/Controllers/ProfileController.php',
         'App\\Http\\Controllers\\Usuarios\\UsuarioController' => __DIR__ . '/../..' . '/app/Http/Controllers/Usuarios/UsuarioController.php',
+        'App\\Http\\Middleware\\CheckAdminPermission' => __DIR__ . '/../..' . '/app/Http/Middleware/CheckAdminPermission.php',
+        'App\\Http\\Middleware\\EnsureEmailIsVerified' => __DIR__ . '/../..' . '/app/Http/Middleware/EnsureEmailIsVerified.php',
         'App\\Http\\Middleware\\HandleInertiaRequests' => __DIR__ . '/../..' . '/app/Http/Middleware/HandleInertiaRequests.php',
         'App\\Http\\Requests\\Auth\\LoginRequest' => __DIR__ . '/../..' . '/app/Http/Requests/Auth/LoginRequest.php',
         'App\\Http\\Requests\\ProfileUpdateRequest' => __DIR__ . '/../..' . '/app/Http/Requests/ProfileUpdateRequest.php',
@@ -610,6 +615,7 @@ class ComposerStaticInit626b9e7ddd47fb7eff9aaa53cce0c9ad
         'App\\Models\\ListCompany' => __DIR__ . '/../..' . '/app/Models/ListCompany.php',
         'App\\Models\\Location' => __DIR__ . '/../..' . '/app/Models/Location.php',
         'App\\Models\\Organizer' => __DIR__ . '/../..' . '/app/Models/Organizer.php',
+        'App\\Models\\PendingRegistration' => __DIR__ . '/../..' . '/app/Models/PendingRegistration.php',
         'App\\Models\\Permission' => __DIR__ . '/../..' . '/app/Models/Permission.php',
         'App\\Models\\PermissionRol' => __DIR__ . '/../..' . '/app/Models/PermissionRol.php',
         'App\\Models\\Person' => __DIR__ . '/../..' . '/app/Models/Person.php',

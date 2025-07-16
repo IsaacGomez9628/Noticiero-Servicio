@@ -28,6 +28,6 @@ class AppServiceProvider extends ServiceProvider
 
         Route::resourceParameters([
             'usuario' => 'App\Models\Usuario',
-        ]);
+        ]);     
     }
 }

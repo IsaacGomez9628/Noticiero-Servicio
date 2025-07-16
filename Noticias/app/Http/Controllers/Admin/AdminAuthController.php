@@ -9,7 +9,6 @@ use App\Models\Admin;
 use App\Models\Rol;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
-use Illuminate\Support\Facades\Log;
 
 class AdminAuthController extends Controller
 {
@@ -46,11 +45,8 @@ class AdminAuthController extends Controller
                         'id' => $admin->id,
                         'name' => $admin->name,
                         'email' => $admin->email,
-                        'rol_id' => $admin->rol_id,
-                        'phone' => $admin->phone,
-                        'active' => $admin->active
+                        'rol_id' => $admin->rol_id
                     ],
-                    'permissions' => $this->getAdminPermissions($admin),
                     'token' => $token
                 ], 200);
             }
@@ -60,7 +56,6 @@ class AdminAuthController extends Controller
                 'message' => 'Las credenciales proporcionadas son incorrectas.'
             ], 401);
         } catch (\Exception $e) {
-            Log::error('Error en login de administrador: ' . $e->getMessage());
             return response()->json([
                 'status' => 'error',
                 'message' => 'Error en el servidor',
@@ -78,35 +73,6 @@ class AdminAuthController extends Controller
             'status' => 'success',
             'admin_exists' => $adminExists
         ]);
-    }
-    
-    // Verificar la autenticación actual
-    public function checkAdminAuth(Request $request)
-    {
-        try {
-            $admin = $request->user();
-            
-            if (!$admin) {
-                return response()->json([
-                    'status' => 'error',
-                    'authenticated' => false,
-                    'message' => 'No autenticado'
-                ], 401);
-            }
-            
-            return response()->json([
-                'status' => 'success',
-                'authenticated' => true,
-                'message' => 'Autenticación válida'
-            ]);
-        } catch (\Exception $e) {
-            Log::error('Error al verificar autenticación: ' . $e->getMessage());
-            return response()->json([
-                'status' => 'error',
-                'authenticated' => false,
-                'message' => 'Error al verificar autenticación'
-            ], 500);
-        }
     }
     
     // Crear el primer admin (super admin)
@@ -156,7 +122,6 @@ class AdminAuthController extends Controller
             'token' => $token
         ], 201);
     }
-
     // Crear un nuevo administrador (después de que exista el primero)
     public function createAdmin(Request $request)
     {
@@ -186,22 +151,9 @@ class AdminAuthController extends Controller
             'admin' => $admin
         ], 201);
     }
-        
-    // Cerrar sesión
-    public function logout(Request $request)
-    {
-        if ($request->user()) {
-            $request->user()->tokens()->delete();
-        }
-        
-        Auth::guard('admin')->logout();
-        
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Sesión cerrada correctamente'
-        ]);
-    }
 
+    
+    // Obtener información del admin autenticado
     public function getCurrentAdmin(Request $request)
     {
         try {
@@ -239,12 +191,30 @@ class AdminAuthController extends Controller
     {
         try {
             if ($admin->rol) {
-                return $admin->rol->permissions->pluck('slug')->toArray();
+                return $admin->rol->permissions->pluck('slug');
             }
             return [];
         } catch (\Exception $e) {
-            Log::error('Error al obtener permisos: ' . $e->getMessage());
             return [];
         }
     }
+    
+    
+    
+    // Cerrar sesión
+    public function logout(Request $request)
+    {
+        if ($request->user()) {
+            $request->user()->tokens()->delete();
+        }
+        
+        Auth::guard('admin')->logout();
+        
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Sesión cerrada correctamente'
+        ]);
+    }
+    
+    
 }

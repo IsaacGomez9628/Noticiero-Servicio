@@ -1,14 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { Inertia } from '@inertiajs/inertia';
 
 const AdminLayout = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [authenticated, setAuthenticated] = useState(false);
   const [adminData, setAdminData] = useState(null);
-  
-  // Estado para manejar la pestaña activa en el layout
-  const [activeTab, setActiveTab] = useState('dashboard');
-  
+
   useEffect(() => {
     const verifyAuth = async () => {
       const token = localStorage.getItem('admin_token');
@@ -22,18 +20,11 @@ const AdminLayout = ({ children }) => {
         // Configurar token para todas las solicitudes
         axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
         
-        // Usar la ruta correcta para verificar autenticación
-        const checkAuthResponse = await axios.get('/admin/check-auth');
-        
-        if (checkAuthResponse.data.authenticated) {
-          // Si estamos autenticados, obtener los datos del administrador
-          const response = await axios.get('/admin/me');
-          setAdminData(response.data.admin);
-          setAuthenticated(true);
-          setLoading(false);
-        } else {
-          throw new Error('No autenticado');
-        }
+        // Intentar obtener datos del admin actual para verificar que el token sigue siendo válido
+        const response = await axios.get('/admin/me');
+        setAdminData(response.data.admin);
+        setAuthenticated(true);
+        setLoading(false);
       } catch (error) {
         console.error('Error de autenticación:', error);
         localStorage.removeItem('admin_token');
@@ -45,37 +36,6 @@ const AdminLayout = ({ children }) => {
 
     verifyAuth();
   }, []);
-
-  // Esta función manejará el cambio de pestaña desde el sidebar
-  const handleTabChange = (tab) => {
-    setActiveTab(tab);
-  };
-
-  const handleLogout = async () => {
-    try {
-      const token = localStorage.getItem('admin_token');
-      if (token) {
-        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-        await axios.post('/admin/logout');
-      }
-      
-      // Limpiar datos de sesión
-      localStorage.removeItem('admin_token');
-      localStorage.removeItem('admin_data');
-      localStorage.removeItem('admin_permissions');
-      
-      // Redirigir al login
-      window.location.href = '/admin/login';
-    } catch (error) {
-      console.error('Error al cerrar sesión:', error);
-      
-      // En caso de error, intentar redirigir al login de todos modos
-      localStorage.removeItem('admin_token');
-      localStorage.removeItem('admin_data');
-      localStorage.removeItem('admin_permissions');
-      window.location.href = '/admin/login';
-    }
-  };
 
   if (loading) {
     return <div className="flex justify-center items-center h-screen">Verificando autenticación...</div>;
@@ -90,38 +50,45 @@ const AdminLayout = ({ children }) => {
           <p className="text-sm text-gray-400">{adminData?.name || 'Administrador'}</p>
         </div>
         <nav className="mt-4">
-          <button 
-            onClick={() => handleTabChange('dashboard')}
-            className={`block w-full text-left py-2 px-4 text-sm hover:bg-gray-700 ${activeTab === 'dashboard' ? 'border-l-4 border-blue-500' : 'border-l-4 border-transparent'}`}
+          <a 
+            href="/admin/dashboard" 
+            className="block py-2 px-4 text-sm hover:bg-gray-700 border-l-4 border-blue-500"
           >
             Dashboard
-          </button>
-          <button 
-            onClick={() => handleTabChange('users')}
-            className={`block w-full text-left py-2 px-4 text-sm hover:bg-gray-700 ${activeTab === 'users' ? 'border-l-4 border-blue-500' : 'border-l-4 border-transparent'}`}
+          </a>
+          <a 
+            href="/admin/users" 
+            className="block py-2 px-4 text-sm hover:bg-gray-700 border-l-4 border-transparent"
           >
             Usuarios
-          </button>
-          <button 
-            onClick={() => handleTabChange('events')}
-            className={`block w-full text-left py-2 px-4 text-sm hover:bg-gray-700 ${activeTab === 'events' ? 'border-l-4 border-blue-500' : 'border-l-4 border-transparent'}`}
+          </a>
+          <a 
+            href="/admin/events" 
+            className="block py-2 px-4 text-sm hover:bg-gray-700 border-l-4 border-transparent"
           >
             Eventos
-          </button>
-          <button 
-            onClick={() => handleTabChange('roles')}
-            className={`block w-full text-left py-2 px-4 text-sm hover:bg-gray-700 ${activeTab === 'roles' ? 'border-l-4 border-blue-500' : 'border-l-4 border-transparent'}`}
+          </a>
+          <a 
+            href="/admin/roles" 
+            className="block py-2 px-4 text-sm hover:bg-gray-700 border-l-4 border-transparent"
           >
             Roles y Permisos
-          </button>
-          <button 
-            onClick={() => handleTabChange('config')}
-            className={`block w-full text-left py-2 px-4 text-sm hover:bg-gray-700 ${activeTab === 'config' ? 'border-l-4 border-blue-500' : 'border-l-4 border-transparent'}`}
+          </a>
+          <a 
+            href="/admin/settings" 
+            className="block py-2 px-4 text-sm hover:bg-gray-700 border-l-4 border-transparent"
           >
             Configuración
-          </button>
+          </a>
           <button 
-            onClick={handleLogout}
+            onClick={() => {
+              axios.post('/admin/logout').then(() => {
+                localStorage.removeItem('admin_token');
+                localStorage.removeItem('admin_data');
+                localStorage.removeItem('admin_permissions');
+                window.location.href = '/admin/login';
+              });
+            }}
             className="block w-full text-left py-2 px-4 text-sm hover:bg-gray-700 border-l-4 border-transparent text-red-400 hover:text-red-300 mt-8"
           >
             Cerrar Sesión
@@ -145,11 +112,7 @@ const AdminLayout = ({ children }) => {
         
         {/* Page content */}
         <main className="p-6">
-          {/* Clonar el elemento hijo y pasarle la pestaña activa y la función para cambiarla como props */}
-          {React.cloneElement(children, { 
-            tabFromLayout: activeTab,
-            adminData: adminData
-          })}
+          {children}
         </main>
       </div>
     </div>
