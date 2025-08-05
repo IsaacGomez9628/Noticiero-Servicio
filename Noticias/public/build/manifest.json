@@ -1,16 +1,16 @@
 {
   "resources/css/app.css": {
-    "file": "assets/app-R1F4jZ5o.css",
+    "file": "assets/app-BjT6YeBh.css",
     "src": "resources/css/app.css",
     "isEntry": true
   },
   "resources/js/app.jsx": {
-    "file": "assets/app-CM-MokB_.js",
+    "file": "assets/app-x3iFNjVI.js",
     "name": "app",
     "src": "resources/js/app.jsx",
     "isEntry": true,
     "css": [
-      "assets/app-DIKNbaL4.css"
+      "assets/app-BGbKNkvw.css"
     ],
     "assets": [
       "assets/Logo_SecretariaDeEducacion-C-m42lM7.png",
@@ -21,12 +21,11 @@
       "assets/img19-DP8VMJr2.jpg",
       "assets/img20-BTLf1Ia4.jpg",
       "assets/img21-Dbn4L5jp.jpg",
-      "assets/fondo3-Dayu2p7A.jpg",
       "assets/img2-C9xpjErh.png",
       "assets/img4-BTgikkAQ.jpg",
       "assets/img5-EvsP7Ffe.jpg",
-      "assets/img6-eRFRmmWT.png",
       "assets/img7-uNMxa4hJ.png",
+      "assets/logo-BnVbvRDi.png",
       "assets/img10-DOG_W3rq.jpg",
       "assets/img11-CHRqeB9d.jpg",
       "assets/img12-DnIb7ylh.jpg",
@@ -40,9 +39,15 @@
       "assets/manuel-BppodfQd.png",
       "assets/victor-BQpMBq9N.png",
       "assets/Jacinto-BIrSDchZ.png",
+      "assets/Jorge-CvjFPxKz.png",
       "assets/Jose-DBYKUV6x.png",
-      "assets/Orfelinda-Df5PwpNs.jpg"
+      "assets/Orfelinda-Df5PwpNs.jpg",
+      "assets/Dora-DSFttu1e.jpg"
     ]
+  },
+  "resources/js/assets/Dora.jpg": {
+    "file": "assets/Dora-DSFttu1e.jpg",
+    "src": "resources/js/assets/Dora.jpg"
   },
   "resources/js/assets/Fondo_electronica2.jpg": {
     "file": "assets/Fondo_electronica2-CAr1Gs7h.jpg",
@@ -159,6 +164,10 @@
   "resources/js/assets/lira.png": {
     "file": "assets/lira-B72TTrtp.png",
     "src": "resources/js/assets/lira.png"
+  },
+  "resources/js/assets/logo.png": {
+    "file": "assets/logo-BnVbvRDi.png",
+    "src": "resources/js/assets/logo.png"
   },
   "resources/js/assets/manuel.png": {
     "file": "assets/manuel-BppodfQd.png",

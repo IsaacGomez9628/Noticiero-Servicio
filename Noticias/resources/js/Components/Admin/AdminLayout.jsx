@@ -2,10 +2,11 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Inertia } from '@inertiajs/inertia';
 
-const AdminLayout = ({ children }) => {
+// El componente AdminLayout ahora acepta una prop 'adminEmail'
+const AdminLayout = ({ children, adminEmail }) => {
   const [loading, setLoading] = useState(true);
   const [authenticated, setAuthenticated] = useState(false);
-  const [adminData, setAdminData] = useState(null);
+  const [adminData, setAdminData] = useState(null); // Este estado aún se usa para el nombre en el sidebar y como fallback para el email
 
   useEffect(() => {
     const verifyAuth = async () => {
@@ -16,13 +17,24 @@ const AdminLayout = ({ children }) => {
         return;
       }
       
+      // Intenta cargar adminData desde localStorage inmediatamente para una visualización más rápida
+      const storedAdminData = localStorage.getItem('admin_data');
+      if (storedAdminData) {
+        setAdminData(JSON.parse(storedAdminData));
+        setAuthenticated(true); // Asume autenticado por ahora, la llamada a la API lo confirmará
+        setLoading(false); // Puede establecer loading en false antes si los datos están disponibles
+      } else {
+        setLoading(true); // Mantén loading si no hay datos en localStorage
+      }
+
       try {
         // Configurar token para todas las solicitudes
         axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
         
         // Intentar obtener datos del admin actual para verificar que el token sigue siendo válido
+        // y para obtener los datos completos del admin para el layout (como el nombre en el sidebar)
         const response = await axios.get('/admin/me');
-        setAdminData(response.data.admin);
+        setAdminData(response.data.admin); // Actualiza con datos frescos de la API
         setAuthenticated(true);
         setLoading(false);
       } catch (error) {
@@ -35,7 +47,28 @@ const AdminLayout = ({ children }) => {
     };
 
     verifyAuth();
-  }, []);
+  }, []); // El array vacío asegura que este useEffect se ejecute solo una vez al montar
+
+  // Función para manejar el cierre de sesión directamente desde el layout
+  const handleLogout = async () => {
+    try {
+      // Si tienes un endpoint de logout en Laravel, descomenta la siguiente línea:
+      // await axios.post('/admin/logout');
+
+      localStorage.removeItem('admin_token');
+      localStorage.removeItem('admin_data');
+      localStorage.removeItem('admin_permissions');
+      window.location.href = '/admin/login';
+    } catch (error) {
+      console.error('Error al cerrar sesión desde el layout:', error);
+      // Aunque haya un error en la llamada al backend, se procede a limpiar el almacenamiento local y redirigir
+      localStorage.removeItem('admin_token');
+      localStorage.removeItem('admin_data');
+      localStorage.removeItem('admin_permissions');
+      window.location.href = '/admin/login';
+    }
+  };
+
 
   if (loading) {
     return <div className="flex justify-center items-center h-screen">Verificando autenticación...</div>;
@@ -47,6 +80,7 @@ const AdminLayout = ({ children }) => {
       <div className="w-64 bg-gray-800 text-white">
         <div className="p-4">
           <h1 className="text-xl font-bold">Panel Admin</h1>
+          {/* Muestra el nombre del admin en el sidebar */}
           <p className="text-sm text-gray-400">{adminData?.name || 'Administrador'}</p>
         </div>
         <nav className="mt-4">
@@ -69,26 +103,14 @@ const AdminLayout = ({ children }) => {
             Eventos
           </a>
           <a 
-            href="/admin/roles" 
-            className="block py-2 px-4 text-sm hover:bg-gray-700 border-l-4 border-transparent"
-          >
-            Roles y Permisos
-          </a>
-          <a 
             href="/admin/settings" 
             className="block py-2 px-4 text-sm hover:bg-gray-700 border-l-4 border-transparent"
           >
             Configuración
           </a>
+          {/* Botón de cerrar sesión en el sidebar */}
           <button 
-            onClick={() => {
-              axios.post('/admin/logout').then(() => {
-                localStorage.removeItem('admin_token');
-                localStorage.removeItem('admin_data');
-                localStorage.removeItem('admin_permissions');
-                window.location.href = '/admin/login';
-              });
-            }}
+            onClick={handleLogout} // Usa la función handleLogout definida en este componente
             className="block w-full text-left py-2 px-4 text-sm hover:bg-gray-700 border-l-4 border-transparent text-red-400 hover:text-red-300 mt-8"
           >
             Cerrar Sesión
@@ -104,7 +126,8 @@ const AdminLayout = ({ children }) => {
             <h2 className="text-xl font-semibold text-gray-800">Panel de Administración</h2>
             <div className="flex items-center">
               <span className="mr-2 text-sm text-gray-600">
-                {adminData?.email || 'admin@example.com'}
+                {/* Prioriza la prop adminEmail si está disponible, sino usa el email de adminData */}
+                {adminEmail || adminData?.email || 'admin@example.com'}
               </span>
             </div>
           </div>

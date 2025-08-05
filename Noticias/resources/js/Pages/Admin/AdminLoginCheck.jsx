@@ -6,6 +6,7 @@ const AdminLoginCheck = () => {
   const [adminExists, setAdminExists] = useState(true);
   const [error, setError] = useState(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [successMessage, setSuccessMessage] = useState(null); // Para mensajes de éxito
 
   // Formulario de inicio de sesión
   const [loginData, setLoginData] = useState({
@@ -54,15 +55,19 @@ const AdminLoginCheck = () => {
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
-    
+    setError(null); // Limpiar errores previos
+    setSuccessMessage(null); // Limpiar mensajes de éxito previos
+
     try {
       const response = await axios.post('/admin/login', loginData);
       localStorage.setItem('admin_token', response.data.token);
+      // ¡Aquí se guarda el objeto admin completo, incluyendo el nombre!
       localStorage.setItem('admin_data', JSON.stringify(response.data.admin));
       
       // Redireccionar al dashboard
       window.location.href = '/admin/dashboard';
     } catch (err) {
+      console.error('Error de inicio de sesión:', err);
       setError(err.response?.data?.message || 'Las credenciales proporcionadas son incorrectas.');
     } finally {
       setSubmitting(false);
@@ -72,10 +77,13 @@ const AdminLoginCheck = () => {
   const handleCreateSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
+    setError(null); // Limpiar errores previos
+    setSuccessMessage(null); // Limpiar mensajes de éxito previos
     
     try {
       const response = await axios.post('/admin/create', createData);
-      alert('Administrador creado con éxito');
+      // Reemplazamos alert() por un mensaje en la UI
+      setSuccessMessage('Administrador creado con éxito. Ahora puedes iniciar sesión.');
       setShowCreateForm(false);
       // Limpiar el formulario
       setCreateData({
@@ -85,7 +93,10 @@ const AdminLoginCheck = () => {
         password_confirmation: '',
         phone: ''
       });
+      // Opcional: Podrías redirigir directamente al login o al dashboard si quieres que inicie sesión automáticamente
+      // window.location.href = '/admin/login';
     } catch (err) {
+      console.error('Error al crear administrador:', err);
       setError(err.response?.data?.message || 'Error al crear administrador');
     } finally {
       setSubmitting(false);
@@ -101,6 +112,11 @@ const AdminLoginCheck = () => {
       {error && (
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
           {error}
+        </div>
+      )}
+      {successMessage && (
+        <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
+          {successMessage}
         </div>
       )}
       

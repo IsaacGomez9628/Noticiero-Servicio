@@ -5,9 +5,66 @@ import { Link } from '@inertiajs/inertia-react';
 import AdminLayout from '../../Components/Admin/AdminLayout';
 
 const AdminDashboard = () => {
-  const [adminData, setAdminData] = useState(null);
+  const [adminData, setAdminData] = useState(null); // Aquí guardaremos el objeto completo del admin
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // Datos simulados para el resumen del sistema
+  const [dashboardStats, setDashboardStats] = useState({
+    users: 1250,
+    activeEvents: 42,
+    attendances: 8765,
+    activeAdmins: 7,
+  });
+
+  // Datos simulados para la actividad reciente
+  const [recentActivity, setRecentActivity] = useState([
+    {
+      id: 1,
+      action: 'Registro de Usuario',
+      user: 'Juan Pérez',
+      date: '15/07/2025 10:30',
+      details: 'Nuevo usuario registrado en la plataforma.',
+      tag: 'Registro',
+      tagColor: 'green',
+    },
+    {
+      id: 2,
+      action: 'Creación de Evento',
+      user: 'Admin 1',
+      date: '14/07/2025 14:00',
+      details: 'Evento "Conferencia de Innovación" creado.',
+      tag: 'Evento',
+      tagColor: 'blue',
+    },
+    {
+      id: 3,
+      action: 'Actualización de Rol',
+      user: 'María García',
+      date: '13/07/2025 09:15',
+      details: 'Rol de "Editor" asignado a un usuario.',
+      tag: 'Roles',
+      tagColor: 'purple',
+    },
+    {
+      id: 4,
+      action: 'Asistencia Registrada',
+      user: 'Sistema',
+      date: '15/07/2025 11:45',
+      details: 'Asistencia registrada para "Taller de React".',
+      tag: 'Asistencia',
+      tagColor: 'yellow',
+    },
+    {
+      id: 5,
+      action: 'Eliminación de Usuario',
+      user: 'Admin 2',
+      date: '12/07/2025 16:20',
+      details: 'Usuario "Pedro López" eliminado.',
+      tag: 'Borrado',
+      tagColor: 'red',
+    },
+  ]);
 
   useEffect(() => {
     const fetchAdminData = async () => {
@@ -17,14 +74,27 @@ const AdminDashboard = () => {
           throw new Error('No hay token de autenticación');
         }
 
+        // Intenta obtener los datos del admin desde localStorage
+        const storedAdminData = localStorage.getItem('admin_data');
+        if (storedAdminData) {
+          setAdminData(JSON.parse(storedAdminData)); // Parseamos el string JSON de vuelta a objeto
+        }
+
         axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-        const response = await axios.get('/admin/me');
-        setAdminData(response.data.admin);
+        // Opcional: Si quieres seguir haciendo la llamada a /admin/me
+        // para asegurar que los datos estén actualizados o para verificación.
+        // Si /admin/me devuelve el mismo objeto 'admin', puedes actualizar setAdminData con eso.
+        // const response = await axios.get('/admin/me');
+        // setAdminData(response.data.admin);
+
         setLoading(false);
       } catch (err) {
         console.error('Error al cargar datos:', err);
         setError('Error al cargar los datos del administrador');
         setLoading(false);
+        // Si hay un error al obtener el token o los datos, o si la API falla,
+        // nos aseguramos de que adminData sea null para mostrar "Administrador" por defecto
+        setAdminData(null);
       }
     };
 
@@ -33,13 +103,23 @@ const AdminDashboard = () => {
 
   const handleLogout = async () => {
     try {
-      await axios.post('/admin/logout');
+      // Si tienes un endpoint de logout en Laravel, descomenta la siguiente línea:
+      // await axios.post('/admin/logout');
+
+      localStorage.removeItem('admin_token');
+      localStorage.removeItem('admin_data'); // ¡Importante eliminar también los datos del admin!
+      localStorage.removeItem('admin_permissions');
+      // Redirige al usuario a la página de login de admin
+      window.location.href = '/admin/login';
+      // O si usas Inertia: Inertia.visit('/admin/login');
+    } catch (error) {
+      console.error('Error al cerrar sesión:', error);
+      // Aunque haya un error en la llamada al backend, se procede a limpiar el almacenamiento local y redirigir
       localStorage.removeItem('admin_token');
       localStorage.removeItem('admin_data');
       localStorage.removeItem('admin_permissions');
       window.location.href = '/admin/login';
-    } catch (error) {
-      console.error('Error al cerrar sesión:', error);
+      // O si usas Inertia: Inertia.visit('/admin/login');
     }
   };
 
@@ -62,10 +142,11 @@ const AdminDashboard = () => {
       <div className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
         <h2 className="text-xl font-semibold mb-4">
           Bienvenido, {adminData?.name || 'Administrador'}
-        </h2>
+        </h2> {/* Usa adminData?.name para mostrar el nombre */}
         <p className="mb-4">Desde aquí puedes gestionar todos los aspectos de tu aplicación.</p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
+          {/* ... (el resto de tu código de gestión de usuarios, eventos, roles) ... */}
           <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
             <h3 className="font-bold text-lg mb-2">Gestión de Usuarios</h3>
             <p className="text-sm mb-3">Administra los usuarios registrados en la plataforma.</p>
@@ -89,13 +170,13 @@ const AdminDashboard = () => {
           </div>
 
           <div className="bg-purple-50 p-4 rounded-lg border border-purple-100">
-            <h3 className="font-bold text-lg mb-2">Gestión de Roles</h3>
-            <p className="text-sm mb-3">Configura los roles y permisos del sistema.</p>
+            <h3 className="font-bold text-lg mb-2">Configuracion</h3>
+            <p className="text-sm mb-3">Configuracion de la cuenta</p>
             <Link
-              href="/admin/roles"
+              href="/admin/settings"
               className="block text-center bg-purple-500 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded"
             >
-              Ir a Roles
+              Ir a Configuracion
             </Link>
           </div>
         </div>
@@ -107,22 +188,22 @@ const AdminDashboard = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="bg-blue-100 p-4 rounded-lg">
             <h3 className="font-bold text-lg mb-2">Usuarios</h3>
-            <p className="text-3xl font-bold text-blue-700">--</p>
+            <p className="text-3xl font-bold text-blue-700">{dashboardStats.users}</p>
             <p className="text-sm text-blue-700">Total de usuarios registrados</p>
           </div>
           <div className="bg-green-100 p-4 rounded-lg">
             <h3 className="font-bold text-lg mb-2">Eventos</h3>
-            <p className="text-3xl font-bold text-green-700">--</p>
+            <p className="text-3xl font-bold text-green-700">{dashboardStats.activeEvents}</p>
             <p className="text-sm text-green-700">Total de eventos activos</p>
           </div>
           <div className="bg-yellow-100 p-4 rounded-lg">
             <h3 className="font-bold text-lg mb-2">Asistencias</h3>
-            <p className="text-3xl font-bold text-yellow-700">--</p>
+            <p className="text-3xl font-bold text-yellow-700">{dashboardStats.attendances}</p>
             <p className="text-sm text-yellow-700">Registros de asistencia</p>
           </div>
           <div className="bg-purple-100 p-4 rounded-lg">
             <h3 className="font-bold text-lg mb-2">Administradores</h3>
-            <p className="text-3xl font-bold text-purple-700">--</p>
+            <p className="text-3xl font-bold text-purple-700">{dashboardStats.activeAdmins}</p>
             <p className="text-sm text-purple-700">Administradores activos</p>
           </div>
         </div>
@@ -149,16 +230,27 @@ const AdminDashboard = () => {
             </tr>
           </thead>
           <tbody>
-            <tr>
-              <td className="py-2 px-4 border-b border-gray-200">
-                <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
-                  Registro
-                </span>
-              </td>
-              <td className="py-2 px-4 border-b border-gray-200">Usuario Ejemplo</td>
-              <td className="py-2 px-4 border-b border-gray-200">--/--/----</td>
-              <td className="py-2 px-4 border-b border-gray-200">--</td>
-            </tr>
+            {recentActivity.map((activity) => (
+              <tr key={activity.id}>
+                <td className="py-2 px-4 border-b border-gray-200">
+                  <span
+                    className={`
+                      ${activity.tagColor === 'green' ? 'bg-green-100 text-green-800' : ''}
+                      ${activity.tagColor === 'blue' ? 'bg-blue-100 text-blue-800' : ''}
+                      ${activity.tagColor === 'purple' ? 'bg-purple-100 text-purple-800' : ''}
+                      ${activity.tagColor === 'yellow' ? 'bg-yellow-100 text-yellow-800' : ''}
+                      ${activity.tagColor === 'red' ? 'bg-red-100 text-red-800' : ''}
+                      text-xs px-2 py-1 rounded-full
+                    `}
+                  >
+                    {activity.tag}
+                  </span>
+                </td>
+                <td className="py-2 px-4 border-b border-gray-200">{activity.user}</td>
+                <td className="py-2 px-4 border-b border-gray-200">{activity.date}</td>
+                <td className="py-2 px-4 border-b border-gray-200">{activity.details}</td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>
@@ -166,7 +258,7 @@ const AdminDashboard = () => {
   );
 };
 
-// Volvemos a habilitar el layout
+// Eliminamos la prop adminEmail de aquí, ya que AdminLayout la obtendrá por sí mismo.
 AdminDashboard.layout = page => <AdminLayout>{page}</AdminLayout>;
 
 export default AdminDashboard;

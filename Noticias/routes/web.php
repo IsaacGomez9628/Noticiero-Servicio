@@ -16,6 +16,7 @@ use App\Http\Middleware\EnsureEmailIsVerified;
 use App\Mail\EmailVerification;
 use Illuminate\Support\Facades\Mail;
 use App\Http\Controllers\Admin\AdminAuthController;
+use App\Http\Controllers\Admin\UserController;
 
 // Rutas para vistas principales (renderizan la SPA de React)
 Route::get('/', function () {
@@ -67,7 +68,7 @@ Route::middleware('guest')->group(function () {
     Route::post('/login', [LoginController::class, 'login'])
         ->name('login.store');
         
-    // Rutas de verificación de correo - IMPORTANTE: estas deberían ser accesibles para usuarios no autenticados
+    // Rutas de verificación de correo
     Route::get('/email/verify', [VerificationController::class, 'notice'])
         ->name('verification.notice');
         
@@ -87,14 +88,14 @@ Route::middleware(['auth', EnsureEmailIsVerified::class])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])
         ->name('dashboard');
     
-    // Gestión de eventos - Aquí usamos DashboardController solo para las vistas
+    // Gestión de eventos
     Route::get('/dashboard/crear-evento', [DashboardController::class, 'createEvent'])
         ->name('dashboard.crear-evento');
 
     Route::get('/dashboard/panel', [DashboardController::class, 'panel'])
         ->name('dashboard.panel');
     
-    // Si posteriormente implementas funcionalidad real:
+    // Funcionalidad real de eventos
     Route::post('/eventos', [EventosEventController::class, 'store'])
         ->name('eventos.store');
     
@@ -107,11 +108,11 @@ Route::middleware(['auth', EnsureEmailIsVerified::class])->group(function () {
     Route::delete('/eventos/{id}', [EventosEventController::class, 'destroy'])
         ->name('eventos.destroy');
     
-    // Gestión de noticias - Aquí usamos DashboardController para las vistas
+    // Gestión de noticias
     Route::get('/dashboard/crear-noticia', [DashboardController::class, 'createNews'])
         ->name('dashboard.crear-noticia');
     
-    // Si posteriormente implementas funcionalidad real:
+    // Funcionalidad real de noticias
     Route::post('/noticias', [NoticiaController::class, 'store'])
         ->name('noticias.store');
     
@@ -131,27 +132,22 @@ Route::middleware(['auth', EnsureEmailIsVerified::class])->group(function () {
     Route::post('/perfil/actualizar', [ProfileController::class, 'update'])
         ->name('perfil.update');
     
-    // Registro de eventos (formulario y procesamiento)
+    // Registro de eventos
     Route::get('/evento/{id}/registro', [EventoAsistenciaController::class, 'showRegistrationForm'])
         ->name('eventos.registro.form');
  
-    // Procesar registro personal
     Route::post('/evento/{id}/registro', [EventoAsistenciaController::class, 'register'])
         ->name('eventos.registro');
     
-    // Procesar registro institucional
     Route::post('/evento/{id}/registro/institucional', [EventoAsistenciaController::class, 'registrarInstitucional'])
         ->name('eventos.registro.institucional');
     
-    // Página de confirmación de registro
     Route::get('/evento/{id}/confirmacion', [EventoAsistenciaController::class, 'showConfirmation'])
         ->name('eventos.confirmacion');
     
-    // Listar mis asistencias
     Route::get('/mis-asistencias', [EventoAsistenciaController::class, 'misAsistencias'])
         ->name('eventos.mis-asistencias');
     
-    // Cancelar asistencia
     Route::post('/asistencia/{id}/cancelar', [EventoAsistenciaController::class, 'cancelarAsistencia'])
         ->name('eventos.asistencia.cancelar');
     
@@ -160,35 +156,42 @@ Route::middleware(['auth', EnsureEmailIsVerified::class])->group(function () {
         ->name('logout');
 });
 
-// Rutas de administración separadas del catch-all final
+// Rutas de administración
 Route::prefix('admin')->group(function () {
-    // Ruta pública para la página de login
+    // Rutas públicas para administración
     Route::get('/login', function () {
         return Inertia::render('Admin/AdminLoginCheck');
     })->name('admin.login');
     
-    // Ruta pública para la página de creación de nuevo administrador
     Route::get('/create', function () {
         return Inertia::render('Admin/AdminCreateForm');
     })->name('admin.create');
     
-    // Rutas API públicas para administración
+    // API endpoints públicos para administración
     Route::get('/check', [AdminAuthController::class, 'checkAdmin']);
     Route::post('/login', [AdminAuthController::class, 'login']);
     Route::post('/create-first', [AdminAuthController::class, 'createFirstAdmin']);
     Route::post('/create', [AdminAuthController::class, 'createAdmin']);
     
-    // Dashboard de admin (sin middleware para pruebas)
-    Route::get('/dashboard', function () {
-        return Inertia::render('Admin/AdminDashboard');
-    })->name('admin.dashboard');
-    
     // Rutas protegidas que requieren autenticación de administrador
-    Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
-        // Vistas principales del panel de administración (Inertia)
-        Route::get('/users', function () {
-            return Inertia::render('Admin/Users/Index');
-        })->name('admin.users');
+    Route::middleware(['auth:sanctum', 'admin'])->group(function () {
+        // Dashboard de admin
+        Route::get('/dashboard', function () {
+            return Inertia::render('Admin/AdminDashboard');
+        })->name('admin.dashboard');
+        
+        // ===== VISTAS INERTIA (renderizan páginas) =====
+        Route::get('/users', [UserController::class, 'index'])
+            ->name('admin.users');
+        
+        Route::get('/users/create', [UserController::class, 'create'])
+            ->name('admin.users.create');
+        
+        Route::get('/users/{id}/edit', [UserController::class, 'edit'])
+            ->name('admin.users.edit');
+        
+        Route::get('/users/{id}', [UserController::class, 'show'])
+            ->name('admin.users.show');
         
         Route::get('/events', function () {
             return Inertia::render('Admin/Events/Index');
@@ -198,11 +201,45 @@ Route::prefix('admin')->group(function () {
             return Inertia::render('Admin/Roles/Index');
         })->name('admin.roles');
         
-        // Endpoints API protegidos para administración
-        Route::post('/logout', [AdminAuthController::class, 'logout']);
-        Route::get('/me', [AdminAuthController::class, 'getCurrentAdmin']);
+        // ===== API ENDPOINTS (devuelven JSON) =====
+        Route::prefix('api')->group(function () {
+            // Endpoints de usuarios
+            Route::get('/users', [UserController::class, 'apiIndex'])
+                ->name('admin.api.users');
+            
+            Route::get('/users/{id}', [UserController::class, 'apiShow'])
+                ->name('admin.api.users.show');
+            
+            Route::post('/users', [UserController::class, 'store'])
+                ->name('admin.api.users.store');
+            
+            Route::put('/users/{id}', [UserController::class, 'update'])
+                ->name('admin.api.users.update');
+            
+            Route::delete('/users/{id}', [UserController::class, 'destroy'])
+                ->name('admin.api.users.destroy');
+            
+            Route::patch('/users/{id}/toggle-status', [UserController::class, 'toggleStatus'])
+                ->name('admin.api.users.toggle-status');
+            
+            Route::post('/users/{id}/reset-password', [UserController::class, 'resetPassword'])
+                ->name('admin.api.users.reset-password');
+            
+            Route::get('/users/export', [UserController::class, 'export'])
+                ->name('admin.api.users.export');
+            
+            Route::get('/stats/users', [UserController::class, 'getUserStats'])
+                ->name('admin.api.users.stats');
+        });
         
-        // Rutas para gestión de eventos y asistencias
+        // Otros endpoints protegidos
+        Route::post('/logout', [AdminAuthController::class, 'logout'])
+            ->name('admin.logout');
+        
+        Route::get('/me', [AdminAuthController::class, 'getCurrentAdmin'])
+            ->name('admin.me');
+        
+        // Gestión de eventos y asistencias
         Route::get('/eventos/{id}/asistentes', [EventoAsistenciaController::class, 'listarAsistentes'])
             ->name('admin.eventos.asistentes');
         
@@ -211,6 +248,5 @@ Route::prefix('admin')->group(function () {
     });
 });
 
-// Ruta para cualquier otra URL que debería ser manejada por React Router
-// Importante: debe estar al final de todas las demás rutas
+// Ruta catch-all - debe estar al final
 Route::get('/{any}', [HomeController::class, 'index'])->where('any', '.*');
