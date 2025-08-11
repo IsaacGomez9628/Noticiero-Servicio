@@ -9,6 +9,7 @@ class Person extends Model
     protected $table = 'persons';
 
     protected $fillable = [
+        'user_id',  // Agregar este campo
         'name',
         'last_name',
         'second_last_name',
@@ -18,7 +19,7 @@ class Person extends Model
     ];
 
     protected $casts = [
-        'birthdate' => 'datetime', // Ajustar según la columna real
+        'birth_date' => 'datetime',
         'age' => 'integer',
     ];
 

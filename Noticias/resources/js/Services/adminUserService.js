@@ -1,4 +1,3 @@
-// resources/js/Services/adminUserService.js
 import axios from 'axios';
 
 const adminUserService = {

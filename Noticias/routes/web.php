@@ -13,8 +13,6 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Eventos\EventController as EventosEventController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Middleware\EnsureEmailIsVerified;
-use App\Mail\EmailVerification;
-use Illuminate\Support\Facades\Mail;
 use App\Http\Controllers\Admin\AdminAuthController;
 use App\Http\Controllers\Admin\UserController;
 
@@ -156,9 +154,11 @@ Route::middleware(['auth', EnsureEmailIsVerified::class])->group(function () {
         ->name('logout');
 });
 
-// Rutas de administración
+// ============================================
+// RUTAS DE ADMINISTRACIÓN - TODO EN UN SOLO LUGAR
+// ============================================
 Route::prefix('admin')->group(function () {
-    // Rutas públicas para administración
+    // ===== RUTAS PÚBLICAS DE ADMIN (sin autenticación) =====
     Route::get('/login', function () {
         return Inertia::render('Admin/AdminLoginCheck');
     })->name('admin.login');
@@ -173,8 +173,8 @@ Route::prefix('admin')->group(function () {
     Route::post('/create-first', [AdminAuthController::class, 'createFirstAdmin']);
     Route::post('/create', [AdminAuthController::class, 'createAdmin']);
     
-    // Rutas protegidas que requieren autenticación de administrador
-    Route::middleware(['auth:sanctum', 'admin'])->group(function () {
+    // ===== RUTAS PROTEGIDAS DE ADMIN (requieren autenticación) =====
+    Route::middleware(['auth:sanctum', \App\Http\Middleware\AdminAuth::class])->group(function () {
         // Dashboard de admin
         Route::get('/dashboard', function () {
             return Inertia::render('Admin/AdminDashboard');
@@ -248,5 +248,6 @@ Route::prefix('admin')->group(function () {
     });
 });
 
+// ===== RUTA CATCH-ALL =====
 // Ruta catch-all - debe estar al final
 Route::get('/{any}', [HomeController::class, 'index'])->where('any', '.*');

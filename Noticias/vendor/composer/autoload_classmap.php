@@ -7,7 +7,9 @@ $baseDir = dirname($vendorDir);
 
 return array(
     'App\\Console\\Commands\\CheckMissingFields' => $baseDir . '/app/Console/Commands/CheckMissingFields.php',
+    'App\\Console\\Commands\\VerifyDatabase' => $baseDir . '/app/Console/Commands/VerifyDatabase.php',
     'App\\Http\\Controllers\\Admin\\AdminAuthController' => $baseDir . '/app/Http/Controllers/Admin/AdminAuthController.php',
+    'App\\Http\\Controllers\\Admin\\UserController' => $baseDir . '/app/Http/Controllers/Admin/UserController.php',
     'App\\Http\\Controllers\\Auth\\AuthController' => $baseDir . '/app/Http/Controllers/Auth/AuthController.php',
     'App\\Http\\Controllers\\Auth\\AuthenticatedSessionController' => $baseDir . '/app/Http/Controllers/Auth/AuthenticatedSessionController.php',
     'App\\Http\\Controllers\\Auth\\ConfirmablePasswordController' => $baseDir . '/app/Http/Controllers/Auth/ConfirmablePasswordController.php',
@@ -30,6 +32,7 @@ return array(
     'App\\Http\\Controllers\\Home\\QuienesSomosController' => $baseDir . '/app/Http/Controllers/Home/QuienesSomosController.php',
     'App\\Http\\Controllers\\ProfileController' => $baseDir . '/app/Http/Controllers/ProfileController.php',
     'App\\Http\\Controllers\\Usuarios\\UsuarioController' => $baseDir . '/app/Http/Controllers/Usuarios/UsuarioController.php',
+    'App\\Http\\Middleware\\AdminAuth' => $baseDir . '/app/Http/Middleware/AdminAuth.php',
     'App\\Http\\Middleware\\CheckAdminPermission' => $baseDir . '/app/Http/Middleware/CheckAdminPermission.php',
     'App\\Http\\Middleware\\EnsureEmailIsVerified' => $baseDir . '/app/Http/Middleware/EnsureEmailIsVerified.php',
     'App\\Http\\Middleware\\HandleInertiaRequests' => $baseDir . '/app/Http/Middleware/HandleInertiaRequests.php',

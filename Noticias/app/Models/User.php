@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Cache;
 use App\Models\Rol;
 use App\Models\Company;
 use Illuminate\Container\Attributes\Log;
+use Illuminate\Support\Str;
 
 class User extends Authenticatable
 {
@@ -40,17 +41,29 @@ class User extends Authenticatable
     ];
 
     /**
+     * Boot method para eventos del modelo
+     * ESTO ES LO ÚNICO NUEVO QUE SE AGREGA
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        // Generar salt automáticamente si no existe
+        static::creating(function ($user) {
+            if (empty($user->salt)) {
+                $user->salt = Str::random(32);
+            }
+        });
+    }
+
+    /**
      * Obtener los roles del usuario.
      */
     public function roles()
     {
-        try {
-            // Primero intenta user_role
-            return $this->belongsToMany(Rol::class, 'user_role', 'user_id', 'rol_id');
-        } catch (\Exception $e) {
-            // Si falla, intenta user_roles
-            return $this->belongsToMany(Rol::class, 'user_roles', 'user_id', 'rol_id');
-        }
+        // Solo usar user_role que es la tabla que existe
+        return $this->belongsToMany(Rol::class, 'user_role', 'user_id', 'rol_id')
+                    ->withTimestamps();
     }
     
     /**

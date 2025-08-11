@@ -12,10 +12,10 @@ class Company extends Model
     protected $table = 'companies';
 
     protected $fillable = [
+        'user_id',
         'list_companies_id',
         'description',
         'phone',
-        'user_id', // Añadido campo user_id
     ];
 
     protected $casts = [
@@ -45,7 +45,7 @@ class Company extends Model
     }
     
     /**
-     * Obtiene el usuario propietario de esta empresa (relación nueva)
+     * Obtiene el usuario propietario de esta empresa
      */
     public function user()
     {
