@@ -16,6 +16,7 @@ use App\Http\Middleware\EnsureEmailIsVerified;
 use App\Http\Controllers\Admin\AdminAuthController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\EventController;
+use App\Http\Controllers\Admin\AdminSettingsController;
 
 // Rutas para vistas principales (renderizan la SPA de React)
 Route::get('/', function () {
@@ -207,11 +208,15 @@ Route::prefix('admin')->group(function () {
         
         Route::get('/events/{id}', [EventController::class, 'show'])
             ->name('admin.events.show');
-        
+            
         // Vista de roles
         Route::get('/roles', function () {
             return Inertia::render('Admin/Roles/Index');
         })->name('admin.roles');
+        
+        // Vista de configuración
+        Route::get('/settings', [AdminSettingsController::class, 'index'])
+            ->name('admin.settings');
         
         // ===== API ENDPOINTS (devuelven JSON) =====
         Route::prefix('api')->group(function () {
@@ -264,6 +269,16 @@ Route::prefix('admin')->group(function () {
             
             Route::get('/stats/events', [EventController::class, 'getEventStats'])
                 ->name('admin.api.events.stats');
+            
+            // Endpoints de configuración
+            Route::get('/settings/info', [AdminSettingsController::class, 'getAdminInfo'])
+                ->name('admin.api.settings.info');
+            
+            Route::put('/settings/profile', [AdminSettingsController::class, 'updateProfile'])
+                ->name('admin.api.settings.profile');
+            
+            Route::put('/settings/password', [AdminSettingsController::class, 'updatePassword'])
+                ->name('admin.api.settings.password');
         });
         
         // Otros endpoints protegidos
