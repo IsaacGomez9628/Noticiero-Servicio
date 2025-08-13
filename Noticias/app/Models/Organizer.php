@@ -10,6 +10,14 @@ class Organizer extends Model
 {
     /** @use HasFactory<\Database\Factories\OrganizersFactory> */
     use HasFactory, SoftDeletes;
+
+    protected $fillable = [
+        'name',
+        'email',
+        'phone',
+        'description'
+    ];
+
     
     // Relación con Events (un organizador puede tener muchos eventos)
     public function events()

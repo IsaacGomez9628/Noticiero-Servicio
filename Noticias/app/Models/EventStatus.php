@@ -7,16 +7,15 @@ use Illuminate\Database\Eloquent\Model;
 
 class EventStatus extends Model
 {
-    /** @use HasFactory<\Database\Factories\EventStatusFactory> */
     use HasFactory;
-    
-    // Relación con Events (un estado puede tener muchos eventos)
+
+    protected $fillable = ['name', 'description'];
+
     public function events()
     {
         return $this->hasMany(Event::class, 'event_statuses_id');
     }
-    
-    // Relación polimórfica para registrar actividades sobre este modelo
+        // Relación polimórfica para registrar actividades sobre este modelo
     public function activities()
     {
         return $this->morphMany(ActivityLog::class, 'object');

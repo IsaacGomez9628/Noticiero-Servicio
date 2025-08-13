@@ -15,6 +15,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Middleware\EnsureEmailIsVerified;
 use App\Http\Controllers\Admin\AdminAuthController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\EventController;
 
 // Rutas para vistas principales (renderizan la SPA de React)
 Route::get('/', function () {
@@ -181,6 +182,7 @@ Route::prefix('admin')->group(function () {
         })->name('admin.dashboard');
         
         // ===== VISTAS INERTIA (renderizan páginas) =====
+        // Vistas de usuarios
         Route::get('/users', [UserController::class, 'index'])
             ->name('admin.users');
         
@@ -193,10 +195,20 @@ Route::prefix('admin')->group(function () {
         Route::get('/users/{id}', [UserController::class, 'show'])
             ->name('admin.users.show');
         
-        Route::get('/events', function () {
-            return Inertia::render('Admin/Events/Index');
-        })->name('admin.events');
+        // Vistas de eventos
+        Route::get('/events', [EventController::class, 'index'])
+            ->name('admin.events');
         
+        Route::get('/events/create', [EventController::class, 'create'])
+            ->name('admin.events.create');
+        
+        Route::get('/events/{id}/edit', [EventController::class, 'edit'])
+            ->name('admin.events.edit');
+        
+        Route::get('/events/{id}', [EventController::class, 'show'])
+            ->name('admin.events.show');
+        
+        // Vista de roles
         Route::get('/roles', function () {
             return Inertia::render('Admin/Roles/Index');
         })->name('admin.roles');
@@ -230,6 +242,28 @@ Route::prefix('admin')->group(function () {
             
             Route::get('/stats/users', [UserController::class, 'getUserStats'])
                 ->name('admin.api.users.stats');
+            
+            // Endpoints de eventos
+            Route::get('/events', [EventController::class, 'apiIndex'])
+                ->name('admin.api.events');
+            
+            Route::get('/events/{id}', [EventController::class, 'apiShow'])
+                ->name('admin.api.events.show');
+            
+            Route::post('/events', [EventController::class, 'store'])
+                ->name('admin.api.events.store');
+            
+            Route::put('/events/{id}', [EventController::class, 'update'])
+                ->name('admin.api.events.update');
+            
+            Route::delete('/events/{id}', [EventController::class, 'destroy'])
+                ->name('admin.api.events.destroy');
+            
+            Route::patch('/events/{id}/toggle-status', [EventController::class, 'toggleStatus'])
+                ->name('admin.api.events.toggle-status');
+            
+            Route::get('/stats/events', [EventController::class, 'getEventStats'])
+                ->name('admin.api.events.stats');
         });
         
         // Otros endpoints protegidos

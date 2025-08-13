@@ -9,6 +9,8 @@ class Location extends Model
 {
     /** @use HasFactory<\Database\Factories\LocationsFactory> */
     use HasFactory;
+
+    protected $fillable = ['name', 'address', 'city', 'state', 'country'];
     
     // Relación con Events (una ubicación puede tener muchos eventos)
     public function events()

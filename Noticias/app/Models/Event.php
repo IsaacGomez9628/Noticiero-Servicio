@@ -8,34 +8,60 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Event extends Model
 {
-    /** @use HasFactory<\Database\Factories\EventsFactory> */
     use HasFactory, SoftDeletes;
-    
-    // Relación con Organizer (un evento pertenece a un organizador)
-    public function organizer()
-    {
-        return $this->belongsTo(Organizer::class);
-    }
-    
-    // Relación con Location (un evento pertenece a una ubicación)
+
+    protected $fillable = [
+        'titule',
+        'description',
+        'start_date',
+        'end_date',
+        'start_time',
+        'end_time',
+        'price',
+        'its_free',
+        'organizer_id',
+        'location_id',
+        'admin_id',
+        'capacity',
+        'event_statuses_id',
+        'slug'
+    ];
+
+    protected $casts = [
+        'its_free' => 'boolean',
+        'price' => 'decimal:2',
+        'capacity' => 'integer',
+        'start_date' => 'date',
+        'end_date' => 'date'
+    ];
+
+    // Relaciones
     public function location()
     {
         return $this->belongsTo(Location::class);
     }
-    
-    // Relación con Admin (un evento pertenece a un administrador que lo creó)
-    public function admin()
-    {
-        return $this->belongsTo(Admin::class);
-    }
-    
-    // Relación con EventStatus (un evento pertenece a un estado)
+
     public function status()
     {
         return $this->belongsTo(EventStatus::class, 'event_statuses_id');
     }
-    
-    // Relación muchos a muchos con Categories (un evento puede tener muchas categorías)
+
+    public function organizer()
+    {
+        return $this->belongsTo(Organizer::class, 'organizer_id'); // Cambiar de Admin a Organizer
+    }
+
+    public function admin()
+    {
+        return $this->belongsTo(Admin::class, 'admin_id');
+    }
+
+    public function attendances()
+    {
+        return $this->hasMany(EventAttendance::class);
+    }
+
+        // Relación muchos a muchos con Categories (un evento puede tener muchas categorías)
     public function categories()
     {
         return $this->belongsToMany(Categorie::class, 'event_categories', 'event_id', 'categorie_id')

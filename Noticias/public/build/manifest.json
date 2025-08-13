@@ -1,16 +1,16 @@
 {
   "resources/css/app.css": {
-    "file": "assets/app-DhTtooJ7.css",
+    "file": "assets/app-DGiWTOlo.css",
     "src": "resources/css/app.css",
     "isEntry": true
   },
   "resources/js/app.jsx": {
-    "file": "assets/app-CAcrIaZU.js",
+    "file": "assets/app-liInJ_3_.js",
     "name": "app",
     "src": "resources/js/app.jsx",
     "isEntry": true,
     "css": [
-      "assets/app-BezcWPuA.css"
+      "assets/app-B7aNec8U.css"
     ],
     "assets": [
       "assets/Logo_SecretariaDeEducacion-C-m42lM7.png",
