@@ -295,36 +295,51 @@ export default function EventosPage({
         });
     };
 
+    // Función para verificar si hay filtros activos
+    const hayFiltrosActivos = () => {
+        return filtroCategoria || filtroFecha || filtroPrecio;
+    };
+
     // Filtramos los eventos según los criterios
-    const eventosFiltrados = eventos.filter((evento) => {
-        // Filtrar por categoría
-        if (filtroCategoria && evento.categoria !== filtroCategoria) {
-            return false;
+    const eventosFiltrados = (() => {
+        // Si no hay filtros activos, usar solo eventos regulares
+        if (!hayFiltrosActivos()) {
+            return eventos;
         }
 
-        // Filtrar por fecha
-        if (filtroFecha) {
-            const fechaEvento = new Date(evento.fecha_inicio);
-            const fechaFiltro = new Date(filtroFecha);
-
-            if (
-                fechaEvento.getDate() !== fechaFiltro.getDate() ||
-                fechaEvento.getMonth() !== fechaFiltro.getMonth() ||
-                fechaEvento.getFullYear() !== fechaFiltro.getFullYear()
-            ) {
+        // Si hay filtros activos, combinar todos los eventos y filtrarlos
+        const todosLosEventos = [...eventosDestacados, ...eventos];
+        
+        return todosLosEventos.filter((evento) => {
+            // Filtrar por categoría
+            if (filtroCategoria && evento.categoria !== filtroCategoria) {
                 return false;
             }
-        }
 
-        // Filtrar por precio
-        if (filtroPrecio === "gratis" && evento.precio > 0) {
-            return false;
-        } else if (filtroPrecio === "pago" && evento.precio === 0) {
-            return false;
-        }
+            // Filtrar por fecha
+            if (filtroFecha) {
+                const fechaEvento = new Date(evento.fecha_inicio);
+                const fechaFiltro = new Date(filtroFecha);
 
-        return true;
-    });
+                if (
+                    fechaEvento.getDate() !== fechaFiltro.getDate() ||
+                    fechaEvento.getMonth() !== fechaFiltro.getMonth() ||
+                    fechaEvento.getFullYear() !== fechaFiltro.getFullYear()
+                ) {
+                    return false;
+                }
+            }
+
+            // Filtrar por precio
+            if (filtroPrecio === "gratis" && evento.precio > 0) {
+                return false;
+            } else if (filtroPrecio === "pago" && evento.precio === 0) {
+                return false;
+            }
+
+            return true;
+        });
+    })();
 
     // Cálculos para la paginación
     const indexUltimoEvento = paginaActual * eventosPorPagina;
@@ -569,7 +584,7 @@ export default function EventosPage({
                         } order-1 md:order-2`}
                     >
                         {/* Sección de Eventos Destacados */}
-                        {eventosDestacados.length > 0 && (
+                        {eventosDestacados.length > 0 && !hayFiltrosActivos() && (
                             <div className="mb-12">
                                 <h2 className="text-2xl font-bold mb-6">
                                     Eventos Destacados

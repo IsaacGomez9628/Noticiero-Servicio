@@ -15,6 +15,7 @@ import {
     X,
     Calendar,
     Newspaper,
+    Home,
 } from "lucide-react";
 import Logo_SecretariaDeEducacion from "@/assets/Logo_SecretariaDeEducacion.png";
 import Logo_CEATyCC from "@/assets/logo_ceatycc.png";
@@ -215,14 +216,11 @@ export default function DashboardLayout({
 
                                         {/* Opciones comunes para todos los usuarios */}
                                         <Link
-                                            href="/dashboard"
+                                            href="/"
                                             className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 transition-colors flex items-center"
-                                            onClick={() =>
-                                                setCurrentView("dashboard")
-                                            }
                                         >
-                                            <LayoutDashboard className="h-4 w-4 mr-2" />
-                                            Dashboard
+                                            <Home className="h-4 w-4 mr-2" />
+                                            Inicio
                                         </Link>
                                         <Link
                                             href="/eventos"
@@ -232,41 +230,19 @@ export default function DashboardLayout({
                                             Eventos
                                         </Link>
                                         <Link
-                                            href="/noticias"
+                                            href="/perfil/editar"
                                             className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 transition-colors flex items-center"
                                         >
-                                            <Newspaper className="h-4 w-4 mr-2" />
-                                            Noticias
+                                        <Settings className="h-4 w-4 mr-2" />
+                                            Ajustes
                                         </Link>
-                                        <Link
-                                            href="/mis-asistencias"
-                                            className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 transition-colors flex items-center"
-                                            onClick={() =>
-                                                setCurrentView(
-                                                    "mis-asistencias"
-                                                )
-                                            }
+                                        <button
+                                            onClick={handleLogout}
+                                            className="block w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 transition-colors flex items-center"
                                         >
-                                            <Ticket className="h-4 w-4 mr-2" />
-                                            Mis Asistencias
-                                        </Link>
-
-                                        <div className="border-t border-gray-100 mt-2 pt-2">
-                                            <Link
-                                                href="/perfil/editar"
-                                                className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 transition-colors flex items-center"
-                                            >
-                                                <Settings className="h-4 w-4 mr-2" />
-                                                Ajustes
-                                            </Link>
-                                            <button
-                                                onClick={handleLogout}
-                                                className="block w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 transition-colors flex items-center"
-                                            >
-                                                <LogOut className="h-4 w-4 mr-2" />
-                                                Cerrar sesión
-                                            </button>
-                                        </div>
+                                            <LogOut className="h-4 w-4 mr-2" />
+                                            Cerrar sesión
+                                        </button>
                                     </motion.div>
                                 )}
                             </AnimatePresence>
@@ -292,29 +268,11 @@ export default function DashboardLayout({
                             />
                             <NavItem
                                 icon={Ticket}
-                                label="Mis Asistencias"
+                                label="Eventos futuros"
                                 isActive={currentView === "mis-asistencias"}
                                 onClick={() =>
                                     setCurrentView("mis-asistencias")
                                 }
-                            />
-                            <NavItem
-                                icon={Heart}
-                                label="Me gustaron"
-                                isActive={currentView === "me-gustaron"}
-                                onClick={() => setCurrentView("me-gustaron")}
-                            />
-                            <NavItem
-                                icon={Users}
-                                label="Siguiendo"
-                                isActive={currentView === "siguiendo"}
-                                onClick={() => setCurrentView("siguiendo")}
-                            />
-                            <NavItem
-                                icon={Compass}
-                                label="Intereses"
-                                isActive={currentView === "intereses"}
-                                onClick={() => setCurrentView("intereses")}
                             />
                         </div>
                     </div>

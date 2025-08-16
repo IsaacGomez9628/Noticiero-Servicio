@@ -11,6 +11,7 @@ import {
     Newspaper,
     Settings,
     LogOut,
+    Home,
 } from "lucide-react";
 import Logo_SecretariaDeEducacion from "@/assets/Logo_SecretariaDeEducacion.png";
 
@@ -176,7 +177,7 @@ export default function AnimatedHeader() {
                                         </>
                                     ) : (
                                         // Opciones para usuario no autenticado
-                                        <div className="px-4 py-3 border-b border-gray-100">
+                                        <div className="px-4 py-3">
                                             <p className="text-sm font-medium text-gray-700">
                                                 Menú
                                             </p>
@@ -188,6 +189,13 @@ export default function AnimatedHeader() {
                                         <>
                                             {/* Opciones comunes para todos los usuarios */}
                                             <Link
+                                                href="/"
+                                                className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 transition-colors flex items-center"
+                                            >
+                                                <Home className="h-4 w-4 mr-2" />
+                                                Inicio
+                                            </Link>
+                                            <Link
                                                 href="/eventos"
                                                 className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 transition-colors flex items-center"
                                             >
@@ -195,46 +203,22 @@ export default function AnimatedHeader() {
                                                 Eventos
                                             </Link>
                                             <Link
-                                                href="/noticias"
+                                                href="/dashboard"
                                                 className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 transition-colors flex items-center"
                                             >
-                                                <Newspaper className="h-4 w-4 mr-2" />
-                                                Noticias
+                                                <User className="h-4 w-4 mr-2" />
+                                                Mi Perfil
                                             </Link>
-
-                                            <div className="border-t border-gray-100 mt-2 pt-2">
-                                                <Link
-                                                    href="/dashboard"
-                                                    className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 transition-colors flex items-center"
-                                                >
-                                                    <User className="h-4 w-4 mr-2" />
-                                                    Mi Perfil
-                                                </Link>
-                                                <Link
-                                                    href="/mis-asistencias"
-                                                    className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 transition-colors flex items-center"
-                                                >
-                                                    <Bell className="h-4 w-4 mr-2" />
-                                                    Mis asistencias
-                                                </Link>
-                                                <Link
-                                                    href="/preferencias"
-                                                    className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 transition-colors flex items-center"
-                                                >
-                                                    <Settings className="h-4 w-4 mr-2" />
-                                                    Preferencias
-                                                </Link>
-                                                <button
-                                                    onClick={handleLogout}
-                                                    className="block w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 transition-colors flex items-center"
-                                                >
-                                                    <LogOut className="h-4 w-4 mr-2" />
-                                                    Cerrar sesión
-                                                </button>
-                                            </div>
+                                            <button
+                                                onClick={handleLogout}
+                                                className="block w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 transition-colors flex items-center"
+                                            >
+                                                 <LogOut className="h-4 w-4 mr-2" />
+                                                 Cerrar sesión
+                                            </button>                                          
                                         </>
                                     ) : (
-                                        <div className="border-t border-gray-100 mt-2 pt-2">
+                                        <div className="mt-2 pt-2">
                                             <Link
                                                 href="/login"
                                                 className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 transition-colors"

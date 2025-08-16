@@ -16,7 +16,7 @@ class EventController extends Controller
     {
         try {
             // Obtener eventos activos ordenados por fecha
-            $eventos = Event::with(['organizer', 'location', 'status', 'categories', 'images'])
+            $eventos = Event::with(['organizer', 'location.city', 'location.estate', 'status', 'categories', 'images'])
                 ->whereHas('status', function($query) {
                     $query->where('active', true);
                 })
@@ -46,7 +46,10 @@ class EventController extends Controller
                         ],
                     ],
                     'direccion' => [
-                        'direccion_completa' => $evento->location->direction . ', ' . $evento->location->city,
+                        // CORRECCIÓN: Acceder a la propiedad 'name' de la ciudad
+                        'direccion_completa' => $evento->location->direction . ', ' . 
+                            ($evento->location->city ? $evento->location->city->name : '') . 
+                            ($evento->location->estate ? ', ' . $evento->location->estate->name : ''),
                     ],
                     'modalidad' => 'Presencial', // Podría determinarse por alguna lógica si es necesario
                     'capacidad' => $evento->capacity,
@@ -170,7 +173,7 @@ class EventController extends Controller
     public function showRegistrationForm($id)
     {
         try {
-            $evento = Event::with(['organizer', 'location'])->findOrFail($id);
+            $evento = Event::with(['organizer', 'location.city', 'location.estate'])->findOrFail($id);
             
             $eventoData = [
                 'id' => $evento->id,
@@ -178,7 +181,10 @@ class EventController extends Controller
                 'fecha_inicio' => $evento->start_date,
                 'hora' => $evento->start_time,
                 'organizador' => $evento->organizer->name,
-                'direccion' => $evento->location->direction . ', ' . $evento->location->city,
+                // CORRECCIÓN: Acceder a la propiedad 'name' de la ciudad
+                'direccion' => $evento->location->direction . ', ' . 
+                    ($evento->location->city ? $evento->location->city->name : '') .
+                    ($evento->location->estate ? ', ' . $evento->location->estate->name : ''),
             ];
             
             return Inertia::render('EventoRegistro', [

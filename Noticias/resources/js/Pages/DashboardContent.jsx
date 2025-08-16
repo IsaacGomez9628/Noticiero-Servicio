@@ -24,18 +24,11 @@ export function DashboardContent() {
             color: "blue",
         },
         {
-            title: "Mis Asistencias",
+            title: "Eventos registrados",
             value: eventAttendances.length || "0",
             icon: <Users className="h-6 w-6" />,
             description: "Próximo evento: 25 de mayo",
             color: "purple",
-        },
-        {
-            title: "Noticias Recientes",
-            value: "8", // Idealmente esto vendría del backend
-            icon: <FileText className="h-6 w-6" />,
-            description: "Última actualización: hoy",
-            color: "orange",
         },
         {
             title: "Próximos Eventos",

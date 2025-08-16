@@ -29,7 +29,7 @@ import Logo_CEATyCC from "@/assets/Logo_CEATyCC.png";
 import Fondo_CEATyCC from "@/assets/fondo3.jpg";
 import Fondo_CEATyCC2 from "@/assets/Fondo_electronica2.jpg";
 
-// Importaciones de imágenes (mantenidas igual que en tu código original)
+// Importaciones de imágenes 
 import img1 from "@/assets/img1.jpeg";
 import img2 from "@/assets/img2.png";
 import img4 from "@/assets/img4.jpg";

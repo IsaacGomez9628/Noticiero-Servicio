@@ -3,6 +3,32 @@ import { Link } from "@inertiajs/react";
 import MainLayout from "@/Layouts/MainLayout";
 
 export default function RegistroConfirmado({ evento, registro, success }) {
+    // Función para formatear fechas
+    const formatDate = (dateString) => {
+        if (!dateString) return "Fecha por confirmar";
+        const date = new Date(dateString);
+        return date.toLocaleDateString("es-ES", {
+            year: "numeric",
+            month: "long", 
+            day: "numeric",
+        });
+    };
+
+    // Función para formatear horas
+    const formatTime = (timeString) => {
+        if (!timeString) return "18:00";
+        // Si viene como string de hora (ej: "18:00:00")
+        if (typeof timeString === "string" && timeString.includes(":")) {
+            return timeString.substring(0, 5); // Tomar solo HH:MM
+        }
+        // Si viene como fecha completa
+        const date = new Date(timeString);
+        return date.toLocaleTimeString("es-ES", {
+            hour: "2-digit",
+            minute: "2-digit",
+        });
+    };
+
     if (!evento) {
         return (
             <MainLayout>
@@ -69,7 +95,8 @@ export default function RegistroConfirmado({ evento, registro, success }) {
                                         </span>{" "}
                                         {formatDate(
                                             evento.fecha_inicio ||
-                                                evento.start_date
+                                                evento.start_date ||
+                                                evento.fecha
                                         )}
                                     </p>
                                     <p>
@@ -77,7 +104,9 @@ export default function RegistroConfirmado({ evento, registro, success }) {
                                             Hora:
                                         </span>{" "}
                                         {formatTime(
-                                            evento.fecha_inicio ||
+                                            evento.hora ||
+                                                evento.start_time ||
+                                                evento.fecha_inicio ||
                                                 evento.start_date
                                         )}
                                     </p>
@@ -119,16 +148,28 @@ export default function RegistroConfirmado({ evento, registro, success }) {
                                 </ul>
                             </div>
 
+                            {/* SECCIÓN DE BOTONES CON EL NUEVO BOTÓN REGRESAR */}
                             <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                                {/* NUEVO BOTÓN REGRESAR */}
                                 <Link
-                                    href={`/evento/${evento.id}`}
-                                    className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                                    href="/eventos"
+                                    className="inline-flex items-center justify-center px-6 py-3 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+                                >
+                                    ← Regresar
+                                </Link>
+                                
+                                {/* Botón Ver detalles del evento */}
+                                <Link
+                                    href={`/evento/${evento.id}/detalles`}
+                                    className="inline-flex items-center justify-center px-6 py-3 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
                                 >
                                     Ver detalles del evento
                                 </Link>
+                                
+                                {/* Botón Explorar más eventos */}
                                 <Link
                                     href="/eventos"
-                                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                                    className="inline-flex items-center justify-center px-6 py-3 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
                                 >
                                     Explorar más eventos
                                 </Link>
@@ -139,25 +180,4 @@ export default function RegistroConfirmado({ evento, registro, success }) {
             </div>
         </MainLayout>
     );
-}
-
-// Función para formatear fechas
-function formatDate(dateString) {
-    if (!dateString) return "Fecha por confirmar";
-    const date = new Date(dateString);
-    return date.toLocaleDateString("es-ES", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-    });
-}
-
-// Función para formatear horas
-function formatTime(dateString) {
-    if (!dateString) return "Hora por confirmar";
-    const date = new Date(dateString);
-    return date.toLocaleTimeString("es-ES", {
-        hour: "2-digit",
-        minute: "2-digit",
-    });
 }

@@ -163,7 +163,7 @@ export function EventsAttendance() {
                                 value="asistencias"
                                 className="px-6 py-2.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-indigo-600 data-[state=active]:text-white data-[state=inactive]:text-gray-700 data-[state=inactive]:dark:text-gray-200"
                             >
-                                Mis Asistencias
+                                Mis proximos eventos
                             </TabsTrigger>
 
                             <TabsTrigger
