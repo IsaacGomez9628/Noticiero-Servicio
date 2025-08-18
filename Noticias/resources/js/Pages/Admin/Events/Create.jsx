@@ -2,8 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { Link, router } from '@inertiajs/react';
 import AdminLayout from '../../../Components/Admin/AdminLayout';
 import adminEventService from '../../../Services/adminEventService';
+import LocationModal from '../../../Components/Admin/LocationModal';
+import locationService from '../../../Services/locationService';
 
-const CreateEvent = ({ locations, statuses, organizers }) => {
+const CreateEvent = ({ locations: initialLocations, statuses, organizers, estates, cities }) => {
+    const [locations, setLocations] = useState(initialLocations || []);
+    const [showLocationModal, setShowLocationModal] = useState(false);
     const [formData, setFormData] = useState({
         titule: '',
         description: '',
@@ -15,14 +19,13 @@ const CreateEvent = ({ locations, statuses, organizers }) => {
         price: 0,
         capacity: 1,
         location_id: '',
-        event_statuses_id: '1', // Por defecto activo
+        event_statuses_id: '1',
         organizer_id: ''
     });
     
     const [errors, setErrors] = useState({});
     const [loading, setLoading] = useState(false);
     
-    // Log para debugging
     useEffect(() => {
         console.log('Ubicaciones disponibles:', locations);
         console.log('Estados disponibles:', statuses);
@@ -45,7 +48,6 @@ const CreateEvent = ({ locations, statuses, organizers }) => {
             }));
         }
         
-        // Limpiar error del campo cuando el usuario empiece a escribir
         if (errors[name]) {
             setErrors(prev => ({
                 ...prev,
@@ -57,7 +59,6 @@ const CreateEvent = ({ locations, statuses, organizers }) => {
     const validateForm = () => {
         const newErrors = {};
         
-        // Validaciones básicas
         if (!formData.titule) newErrors.titule = 'El título es requerido';
         if (!formData.description) newErrors.description = 'La descripción es requerida';
         if (!formData.start_date) newErrors.start_date = 'La fecha de inicio es requerida';
@@ -68,12 +69,10 @@ const CreateEvent = ({ locations, statuses, organizers }) => {
         if (!formData.location_id) newErrors.location_id = 'La ubicación es requerida';
         if (!formData.event_statuses_id) newErrors.event_statuses_id = 'El estado es requerido';
         
-        // Validar precio si no es gratis
         if (!formData.its_free && (!formData.price || formData.price <= 0)) {
             newErrors.price = 'El precio debe ser mayor a 0 para eventos de pago';
         }
         
-        // Validar que la fecha de fin no sea anterior a la de inicio
         if (formData.start_date && formData.end_date) {
             const startDate = new Date(formData.start_date);
             const endDate = new Date(formData.end_date);
@@ -83,6 +82,20 @@ const CreateEvent = ({ locations, statuses, organizers }) => {
         }
         
         return newErrors;
+    };
+    
+    const handleLocationCreated = (newLocation) => {
+        // Añadir la nueva ubicación a la lista
+        setLocations(prevLocations => [...prevLocations, newLocation]);
+        
+        // Seleccionar automáticamente la nueva ubicación
+        setFormData(prev => ({
+            ...prev,
+            location_id: newLocation.id.toString()
+        }));
+        
+        // Cerrar el modal
+        setShowLocationModal(false);
     };
     
     const handleSubmit = async (e) => {
@@ -98,7 +111,6 @@ const CreateEvent = ({ locations, statuses, organizers }) => {
         setLoading(true);
         
         try {
-            // Preparar los datos para enviar
             const dataToSend = {
                 ...formData,
                 its_free: Boolean(formData.its_free),
@@ -163,7 +175,6 @@ const CreateEvent = ({ locations, statuses, organizers }) => {
             </div>
             
             <div className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
-                {/* Mostrar errores generales si existen */}
                 {Object.keys(errors).length > 0 && (
                     <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
                         <strong className="font-bold">¡Hay errores en el formulario!</strong>
@@ -371,21 +382,33 @@ const CreateEvent = ({ locations, statuses, organizers }) => {
                                 <label className="block text-gray-700 text-sm font-bold mb-2">
                                     Ubicación <span className="text-red-500">*</span>
                                 </label>
-                                <select
-                                    name="location_id"
-                                    value={formData.location_id}
-                                    onChange={handleChange}
-                                    className={`shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline ${
-                                        errors.location_id ? 'border-red-500' : ''
-                                    }`}
-                                >
-                                    <option value="">Seleccionar ubicación...</option>
-                                    {locations?.map(location => (
-                                        <option key={location.id} value={location.id}>
-                                            {location.name}
-                                        </option>
-                                    ))}
-                                </select>
+                                <div className="relative">
+                                    <select
+                                        name="location_id"
+                                        value={formData.location_id}
+                                        onChange={handleChange}
+                                        className={`shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline ${
+                                            errors.location_id ? 'border-red-500' : ''
+                                        }`}
+                                    >
+                                        <option value="">Seleccionar ubicación...</option>
+                                        {locations?.map(location => (
+                                            <option key={location.id} value={location.id}>
+                                                {location.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowLocationModal(true)}
+                                        className="mt-2 text-sm text-blue-600 hover:text-blue-800 font-semibold flex items-center"
+                                    >
+                                        <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                        </svg>
+                                        Añadir nueva ubicación
+                                    </button>
+                                </div>
                                 {errors.location_id && (
                                     <p className="text-red-500 text-xs italic mt-1">{errors.location_id}</p>
                                 )}
@@ -455,6 +478,17 @@ const CreateEvent = ({ locations, statuses, organizers }) => {
                     </div>
                 </form>
             </div>
+            
+            {/* Modal de Nueva Ubicación */}
+            {showLocationModal && (
+                <LocationModal
+                    isOpen={showLocationModal}
+                    onClose={() => setShowLocationModal(false)}
+                    onLocationCreated={handleLocationCreated}
+                    estates={estates}
+                    cities={cities}
+                />
+            )}
         </div>
     );
 };

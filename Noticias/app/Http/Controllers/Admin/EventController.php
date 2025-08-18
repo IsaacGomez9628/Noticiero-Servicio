@@ -7,6 +7,9 @@ use App\Models\Event;
 use App\Models\Location;
 use App\Models\EventStatus;
 use App\Models\Admin;
+use App\Models\Organizer;
+use App\Models\Estate;
+use App\Models\City;
 use App\Models\EventAttendance; // ✅ AGREGADO
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -147,23 +150,45 @@ class EventController extends Controller
     }
     
     /**
-     * Show the form for creating a new event
+     * ✅ CORREGIDO: Show the form for creating a new event
+     * Agregadas las definiciones de $estates y $cities que faltaban
      */
     public function create()
     {
-        $locations = Location::all();
+        // Obtener todas las ubicaciones activas
+        $locations = Location::where('active', true)
+            ->orderBy('name', 'asc')
+            ->get();
+        
+        // Obtener todos los estados de eventos
         $statuses = EventStatus::all();
-        $organizers = \App\Models\Organizer::all();  // O puedes usar User si los organizadores son usuarios
+        
+        // Obtener todos los organizadores activos
+        $organizers = Organizer::where('active', true)
+            ->orderBy('name', 'asc')
+            ->get();
+        
+        // ✅ CORREGIDO: Definir las variables que faltaban
+        $estates = Estate::orderBy('name', 'asc')->get();
+        $cities = City::orderBy('name', 'asc')->get();
+        
+        // Logs para debug - puedes comentar estas líneas después
+        \Log::info('Enviando al frontend:');
+        \Log::info('Estados: ' . $estates->count());
+        \Log::info('Ciudades: ' . $cities->count());
         
         return Inertia::render('Admin/Events/Create', [
             'locations' => $locations,
             'statuses' => $statuses,
-            'organizers' => $organizers
+            'organizers' => $organizers,
+            'estates' => $estates,    // ✅ AHORA SÍ DEFINIDO
+            'cities' => $cities       // ✅ AHORA SÍ DEFINIDO
         ]);
     }
     
     /**
-     * Store a newly created event in storage (API endpoint)
+     * ✅ ACTUALIZADO: Store a newly created event in storage (API endpoint)
+     * Integra las validaciones mejoradas de la nueva versión
      */
     public function store(Request $request)
     {
@@ -172,6 +197,7 @@ class EventController extends Controller
         \Log::info('Request data:', $request->all());
         \Log::info('=====================================');
         
+        // ✅ ACTUALIZADO: Validaciones mejoradas con mensajes personalizados
         $rules = [
             'titule' => 'required|string|max:255',
             'description' => 'required|string',
@@ -187,7 +213,27 @@ class EventController extends Controller
             'organizer_id' => 'nullable|exists:organizers,id'
         ];
         
-        $validated = $request->validate($rules);
+        // ✅ NUEVO: Mensajes de validación personalizados
+        $messages = [
+            'titule.required' => 'El título del evento es requerido',
+            'description.required' => 'La descripción es requerida',
+            'start_date.required' => 'La fecha de inicio es requerida',
+            'end_date.required' => 'La fecha de fin es requerida',
+            'end_date.after_or_equal' => 'La fecha de fin debe ser igual o posterior a la fecha de inicio',
+            'start_time.required' => 'La hora de inicio es requerida',
+            'end_time.required' => 'La hora de fin es requerida',
+            'price.required_if' => 'El precio es requerido para eventos de pago',
+            'price.min' => 'El precio debe ser mayor o igual a 0',
+            'capacity.required' => 'La capacidad es requerida',
+            'capacity.min' => 'La capacidad debe ser al menos 1',
+            'location_id.required' => 'La ubicación es requerida',
+            'location_id.exists' => 'La ubicación seleccionada no es válida',
+            'event_statuses_id.required' => 'El estado del evento es requerido',
+            'event_statuses_id.exists' => 'El estado seleccionado no es válido',
+            'organizer_id.exists' => 'El organizador seleccionado no es válido'
+        ];
+        
+        $validated = $request->validate($rules, $messages);
         
         try {
             DB::beginTransaction();
@@ -235,7 +281,8 @@ class EventController extends Controller
             return response()->json([
                 'status' => 'success',
                 'message' => 'Evento creado exitosamente',
-                'event' => $event
+                'event' => $event,
+                'data' => $event  // ✅ AGREGADO para compatibilidad
             ], 201);
             
         } catch (\Exception $e) {
@@ -321,50 +368,88 @@ class EventController extends Controller
     }
     
     /**
-     * Show the form for editing the specified event
+     * ✅ CORREGIDO: Show the form for editing the specified event
+     * Agregadas las definiciones de $estates y $cities que faltaban
      */
     public function edit($id)
     {
         $event = Event::with(['location', 'status', 'organizer', 'admin'])->findOrFail($id);
-        $locations = Location::all();
+        
+        // Obtener los mismos datos que en create()
+        $locations = Location::where('active', true)
+            ->orderBy('name', 'asc')
+            ->get();
+        
         $statuses = EventStatus::all();
-        $organizers = \App\Models\Organizer::all(); 
+        
+        $organizers = Organizer::where('active', true)
+            ->orderBy('name', 'asc')
+            ->get();
+        
+        // ✅ CORREGIDO: Definir las variables que faltaban
+        $estates = Estate::orderBy('name', 'asc')->get();
+        $cities = City::orderBy('name', 'asc')->get();
         
         return Inertia::render('Admin/Events/Edit', [
             'event' => $event,
             'locations' => $locations,
             'statuses' => $statuses,
-            'organizers' => $organizers
+            'organizers' => $organizers,
+            'estates' => $estates,    // ✅ AHORA SÍ DEFINIDO
+            'cities' => $cities       // ✅ AHORA SÍ DEFINIDO
         ]);
     }
     
     /**
-     * Update the specified event in storage (API endpoint)
+     * ✅ ACTUALIZADO: Update the specified event in storage (API endpoint)
+     * Integra las validaciones mejoradas
      */
     public function update(Request $request, $id)
     {
         $event = Event::findOrFail($id);
         
-        $validated = $request->validate([
-            'titule' => 'required|string|max:255',
-            'description' => 'required|string',
-            'start_date' => 'required|date',
-            'end_date' => 'required|date|after_or_equal:start_date',
-            'start_time' => 'required',
-            'end_time' => 'required',
+        // ✅ ACTUALIZADO: Validaciones mejoradas con mensajes personalizados
+        $rules = [
+            'titule' => 'sometimes|required|string|max:255',
+            'description' => 'sometimes|required|string',
+            'start_date' => 'sometimes|required|date',
+            'end_date' => 'sometimes|required|date|after_or_equal:start_date',
+            'start_time' => 'sometimes|required',
+            'end_time' => 'sometimes|required',
+            'its_free' => 'boolean',
             'price' => 'required_if:its_free,false|numeric|min:0',
-            'its_free' => 'required|boolean',
-            'capacity' => 'required|integer|min:1',
-            'location_id' => 'required|exists:locations,id',
-            'event_statuses_id' => 'required|exists:event_statuses,id',
+            'capacity' => 'sometimes|required|integer|min:1',
+            'location_id' => 'sometimes|required|exists:locations,id',
+            'event_statuses_id' => 'sometimes|required|exists:event_statuses,id',
             'organizer_id' => 'nullable|exists:organizers,id'
-        ]);
+        ];
+        
+        $messages = [
+            'titule.required' => 'El título del evento es requerido',
+            'description.required' => 'La descripción es requerida',
+            'start_date.required' => 'La fecha de inicio es requerida',
+            'end_date.required' => 'La fecha de fin es requerida',
+            'end_date.after_or_equal' => 'La fecha de fin debe ser igual o posterior a la fecha de inicio',
+            'start_time.required' => 'La hora de inicio es requerida',
+            'end_time.required' => 'La hora de fin es requerida',
+            'price.required_if' => 'El precio es requerido para eventos de pago',
+            'price.min' => 'El precio debe ser mayor o igual a 0',
+            'capacity.required' => 'La capacidad es requerida',
+            'capacity.min' => 'La capacidad debe ser al menos 1',
+            'location_id.required' => 'La ubicación es requerida',
+            'location_id.exists' => 'La ubicación seleccionada no es válida',
+            'event_statuses_id.required' => 'El estado del evento es requerido',
+            'event_statuses_id.exists' => 'El estado seleccionado no es válido',
+            'organizer_id.exists' => 'El organizador seleccionado no es válido'
+        ];
+        
+        $validated = $request->validate($rules, $messages);
         
         try {
             DB::beginTransaction();
             
             // Actualizar slug si cambió el título
-            if ($event->titule !== $validated['titule']) {
+            if (isset($validated['titule']) && $event->titule !== $validated['titule']) {
                 $slug = Str::slug($validated['titule']);
                 $originalSlug = $slug;
                 $count = 1;
@@ -377,7 +462,7 @@ class EventController extends Controller
             }
             
             // Si es gratis, asegurar que el precio sea 0
-            if ($validated['its_free']) {
+            if (isset($validated['its_free']) && $validated['its_free']) {
                 $validated['price'] = 0;
             }
             
@@ -389,7 +474,8 @@ class EventController extends Controller
             return response()->json([
                 'status' => 'success',
                 'message' => 'Evento actualizado exitosamente',
-                'event' => $event->fresh(['location', 'status', 'organizer', 'admin'])
+                'event' => $event->fresh(['location', 'status', 'organizer', 'admin']),
+                'data' => $event->fresh(['location', 'status', 'organizer', 'admin'])  // ✅ AGREGADO para compatibilidad
             ]);
             
         } catch (\Exception $e) {

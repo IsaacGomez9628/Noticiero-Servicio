@@ -565,9 +565,15 @@ class ComposerStaticInit626b9e7ddd47fb7eff9aaa53cce0c9ad
     );
 
     public static $classMap = array (
+        'App\\Console\\Commands\\CheckAndSeedStates' => __DIR__ . '/../..' . '/app/Console/Commands/CheckAndSeedStates.php',
         'App\\Console\\Commands\\CheckMissingFields' => __DIR__ . '/../..' . '/app/Console/Commands/CheckMissingFields.php',
         'App\\Console\\Commands\\VerifyDatabase' => __DIR__ . '/../..' . '/app/Console/Commands/VerifyDatabase.php',
         'App\\Http\\Controllers\\Admin\\AdminAuthController' => __DIR__ . '/../..' . '/app/Http/Controllers/Admin/AdminAuthController.php',
+        'App\\Http\\Controllers\\Admin\\AdminDashboardController' => __DIR__ . '/../..' . '/app/Http/Controllers/Admin/AdminDashboardController.php',
+        'App\\Http\\Controllers\\Admin\\AdminSettingsController' => __DIR__ . '/../..' . '/app/Http/Controllers/Admin/AdminSettingsController.php',
+        'App\\Http\\Controllers\\Admin\\EventController' => __DIR__ . '/../..' . '/app/Http/Controllers/Admin/EventController.php',
+        'App\\Http\\Controllers\\Admin\\LocationController' => __DIR__ . '/../..' . '/app/Http/Controllers/Admin/LocationController.php',
+        'App\\Http\\Controllers\\Admin\\OrganizerController' => __DIR__ . '/../..' . '/app/Http/Controllers/Admin/OrganizerController.php',
         'App\\Http\\Controllers\\Admin\\UserController' => __DIR__ . '/../..' . '/app/Http/Controllers/Admin/UserController.php',
         'App\\Http\\Controllers\\Auth\\AuthController' => __DIR__ . '/../..' . '/app/Http/Controllers/Auth/AuthController.php',
         'App\\Http\\Controllers\\Auth\\AuthenticatedSessionController' => __DIR__ . '/../..' . '/app/Http/Controllers/Auth/AuthenticatedSessionController.php',
@@ -629,6 +635,7 @@ class ComposerStaticInit626b9e7ddd47fb7eff9aaa53cce0c9ad
         'App\\Models\\UserRoles' => __DIR__ . '/../..' . '/app/Models/UserRoles.php',
         'App\\Providers\\AppServiceProvider' => __DIR__ . '/../..' . '/app/Providers/AppServiceProvider.php',
         'App\\Services\\EmailVerificationService' => __DIR__ . '/../..' . '/app/Services/EmailVerificationService.php',
+        'App\\Traits\\LogsActivity' => __DIR__ . '/../..' . '/app/Traits/LogsActivity.php',
         'Attribute' => __DIR__ . '/..' . '/symfony/polyfill-php80/Resources/stubs/Attribute.php',
         'Brick\\Math\\BigDecimal' => __DIR__ . '/..' . '/brick/math/src/BigDecimal.php',
         'Brick\\Math\\BigInteger' => __DIR__ . '/..' . '/brick/math/src/BigInteger.php',
@@ -770,6 +777,7 @@ class ComposerStaticInit626b9e7ddd47fb7eff9aaa53cce0c9ad
         'Database\\Factories\\SocialNetworkFactory' => __DIR__ . '/../..' . '/database/factories/SocialNetworkFactory.php',
         'Database\\Factories\\StatusFactory' => __DIR__ . '/../..' . '/database/factories/StatusFactory.php',
         'Database\\Factories\\UserFactory' => __DIR__ . '/../..' . '/database/factories/UserFactory.php',
+        'Database\\Seeders\\ActivityLogSeeder' => __DIR__ . '/../..' . '/database/seeders/ActivityLogSeeder.php',
         'Database\\Seeders\\AdminSeeder' => __DIR__ . '/../..' . '/database/seeders/AdminSeeder.php',
         'Database\\Seeders\\CategorySeeder' => __DIR__ . '/../..' . '/database/seeders/CategorySeeder.php',
         'Database\\Seeders\\CityEstateSeeder' => __DIR__ . '/../..' . '/database/seeders/CityEstateSeeder.php',

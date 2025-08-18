@@ -134,10 +134,6 @@ export default function RegistroConfirmado({ evento, registro, success }) {
                                 </h3>
                                 <ul className="space-y-1 text-sm text-blue-700">
                                     <li>
-                                        • Se ha enviado un correo de
-                                        confirmación a tu dirección de email.
-                                    </li>
-                                    <li>
                                         • Por favor, llega 15 minutos antes del
                                         inicio del evento.
                                     </li>

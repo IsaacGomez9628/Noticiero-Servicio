@@ -18,6 +18,7 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\EventController;
 use App\Http\Controllers\Admin\OrganizerController;
 use App\Http\Controllers\Admin\AdminSettingsController;
+use App\Http\Controllers\Admin\LocationController;
 
 // Rutas para vistas principales (renderizan la SPA de React)
 Route::get('/', function () {
@@ -580,6 +581,34 @@ Route::prefix('admin')->group(function () {
 
             Route::get('/stats/organizers', [OrganizerController::class, 'getOrganizerStats'])
                 ->name('admin.api.organizers.stats');
+            
+            // Endpoints de ubicaciones
+            Route::get('/locations', [LocationController::class, 'getActiveLocations'])
+                ->name('admin.api.locations');
+
+            Route::get('/locations/form-data', [LocationController::class, 'getFormData'])
+                ->name('admin.api.locations.form-data');
+
+            Route::post('/locations', [LocationController::class, 'store'])
+                ->name('admin.api.locations.store');
+
+            Route::get('/locations/search', [LocationController::class, 'search'])
+                ->name('admin.api.locations.search');
+
+            Route::get('/locations/city/{cityId}', [LocationController::class, 'getByCity'])
+                ->name('admin.api.locations.by-city');
+
+            Route::get('/locations/state/{stateId}', [LocationController::class, 'getByState'])
+                ->name('admin.api.locations.by-state');
+
+            Route::get('/locations/{id}', [LocationController::class, 'show'])
+                ->name('admin.api.locations.show');
+
+            Route::put('/locations/{id}', [LocationController::class, 'update'])
+                ->name('admin.api.locations.update');
+
+            Route::delete('/locations/{id}', [LocationController::class, 'destroy'])
+                ->name('admin.api.locations.destroy');
             
             // Endpoints de configuración
             Route::get('/settings/info', [AdminSettingsController::class, 'getAdminInfo'])

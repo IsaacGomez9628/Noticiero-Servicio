@@ -6,9 +6,15 @@ $vendorDir = dirname(__DIR__);
 $baseDir = dirname($vendorDir);
 
 return array(
+    'App\\Console\\Commands\\CheckAndSeedStates' => $baseDir . '/app/Console/Commands/CheckAndSeedStates.php',
     'App\\Console\\Commands\\CheckMissingFields' => $baseDir . '/app/Console/Commands/CheckMissingFields.php',
     'App\\Console\\Commands\\VerifyDatabase' => $baseDir . '/app/Console/Commands/VerifyDatabase.php',
     'App\\Http\\Controllers\\Admin\\AdminAuthController' => $baseDir . '/app/Http/Controllers/Admin/AdminAuthController.php',
+    'App\\Http\\Controllers\\Admin\\AdminDashboardController' => $baseDir . '/app/Http/Controllers/Admin/AdminDashboardController.php',
+    'App\\Http\\Controllers\\Admin\\AdminSettingsController' => $baseDir . '/app/Http/Controllers/Admin/AdminSettingsController.php',
+    'App\\Http\\Controllers\\Admin\\EventController' => $baseDir . '/app/Http/Controllers/Admin/EventController.php',
+    'App\\Http\\Controllers\\Admin\\LocationController' => $baseDir . '/app/Http/Controllers/Admin/LocationController.php',
+    'App\\Http\\Controllers\\Admin\\OrganizerController' => $baseDir . '/app/Http/Controllers/Admin/OrganizerController.php',
     'App\\Http\\Controllers\\Admin\\UserController' => $baseDir . '/app/Http/Controllers/Admin/UserController.php',
     'App\\Http\\Controllers\\Auth\\AuthController' => $baseDir . '/app/Http/Controllers/Auth/AuthController.php',
     'App\\Http\\Controllers\\Auth\\AuthenticatedSessionController' => $baseDir . '/app/Http/Controllers/Auth/AuthenticatedSessionController.php',
@@ -70,6 +76,7 @@ return array(
     'App\\Models\\UserRoles' => $baseDir . '/app/Models/UserRoles.php',
     'App\\Providers\\AppServiceProvider' => $baseDir . '/app/Providers/AppServiceProvider.php',
     'App\\Services\\EmailVerificationService' => $baseDir . '/app/Services/EmailVerificationService.php',
+    'App\\Traits\\LogsActivity' => $baseDir . '/app/Traits/LogsActivity.php',
     'Attribute' => $vendorDir . '/symfony/polyfill-php80/Resources/stubs/Attribute.php',
     'Brick\\Math\\BigDecimal' => $vendorDir . '/brick/math/src/BigDecimal.php',
     'Brick\\Math\\BigInteger' => $vendorDir . '/brick/math/src/BigInteger.php',
@@ -211,6 +218,7 @@ return array(
     'Database\\Factories\\SocialNetworkFactory' => $baseDir . '/database/factories/SocialNetworkFactory.php',
     'Database\\Factories\\StatusFactory' => $baseDir . '/database/factories/StatusFactory.php',
     'Database\\Factories\\UserFactory' => $baseDir . '/database/factories/UserFactory.php',
+    'Database\\Seeders\\ActivityLogSeeder' => $baseDir . '/database/seeders/ActivityLogSeeder.php',
     'Database\\Seeders\\AdminSeeder' => $baseDir . '/database/seeders/AdminSeeder.php',
     'Database\\Seeders\\CategorySeeder' => $baseDir . '/database/seeders/CategorySeeder.php',
     'Database\\Seeders\\CityEstateSeeder' => $baseDir . '/database/seeders/CityEstateSeeder.php',
