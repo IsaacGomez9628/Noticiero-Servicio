@@ -3,20 +3,13 @@ import { Link, router } from '@inertiajs/react';
 import AdminLayout from '../../../Components/Admin/AdminLayout';
 import adminEventService from '../../../Services/adminEventService';
 import debounce from 'lodash/debounce';
+import { Eye, Edit, Pause, Trash2, Plus, Filter, AlertCircle, MoreVertical, Play, Calendar, MapPin, DollarSign } from 'lucide-react';
 import axios from 'axios';
 
-const showNotification = (type, message) => {
-    if (type === 'error') {
-        alert(`Error: ${message}`);
-    } else {
-        alert(message);
-    }
-};
-
 const EventsIndex = ({ events: initialEvents, filters: initialFilters, statuses, locations }) => {
-    // Estados
     const [events, setEvents] = useState(initialEvents || { data: [], current_page: 1, last_page: 1, total: 0 });
     const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
     const [filters, setFilters] = useState({
         search: '',
         status_id: '',
@@ -30,11 +23,35 @@ const EventsIndex = ({ events: initialEvents, filters: initialFilters, statuses,
     const [selectedEvents, setSelectedEvents] = useState([]);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [eventToDelete, setEventToDelete] = useState(null);
+    const [showActionsDropdown, setShowActionsDropdown] = useState(null);
+
+    // Función para mostrar notificaciones
+    const showNotification = (type, message) => {
+        if (type === 'error') {
+            console.error('Error:', message);
+            alert(`❌ Error: ${message}`);
+        } else if (type === 'success') {
+            console.log('Success:', message);
+            alert(`✅ ${message}`);
+        } else {
+            alert(message);
+        }
+    };
+
+    // Función para formatear precio
+    const formatPrice = (price, isFree) => {
+        if (isFree) return 'Gratis';
+        return `$${parseFloat(price).toFixed(2)}`;
+    };
 
     // Cargar eventos
     const loadEvents = async (params = filters) => {
         setLoading(true);
+        setError(null);
+        
         try {
+            console.log('🔄 Cargando eventos con params:', params);
+            
             const response = await axios.get('/admin/api/events', { 
                 params,
                 headers: {
@@ -43,39 +60,51 @@ const EventsIndex = ({ events: initialEvents, filters: initialFilters, statuses,
                 }
             });
             
+            console.log('📊 Datos recibidos:', response.data);
+            
             if (response.data.events) {
                 setEvents(response.data.events);
             } else if (response.data.data) {
                 setEvents(response.data);
             } else {
+                console.warn('⚠️ Estructura de datos inesperada:', response.data);
                 setEvents({ data: [], current_page: 1, last_page: 1, total: 0 });
             }
         } catch (error) {
-            console.error('Error al cargar eventos:', error);
-            showNotification('error', 'Error al cargar eventos');
+            console.error('❌ Error al cargar eventos:', error);
+            setError(error.response?.data?.message || 'Error al cargar eventos');
+            showNotification('error', error.response?.data?.message || 'Error al cargar eventos');
             setEvents({ data: [], current_page: 1, last_page: 1, total: 0 });
         } finally {
             setLoading(false);
         }
     };
 
-    // Búsqueda con debounce
+    // Debounce para búsqueda
     const debouncedLoadEvents = useCallback(
         debounce((params) => {
+            console.log('🔍 Búsqueda debounced:', params);
             loadEvents(params);
         }, 500),
         []
     );
 
     // Manejar cambios en filtros
-    const handleFilterChange = (key, value) => {
-        const newFilters = { ...filters, [key]: value, page: 1 };
+    const handleFilterChange = (field, value) => {
+        console.log(`🔧 Cambiando filtro ${field}:`, value);
+        const newFilters = { ...filters, [field]: value, page: 1 };
         setFilters(newFilters);
-        debouncedLoadEvents(newFilters);
+        
+        if (field === 'search') {
+            debouncedLoadEvents(newFilters);
+        } else {
+            loadEvents(newFilters);
+        }
     };
 
-    // Cambiar página
+    // Manejar paginación
     const handlePageChange = (page) => {
+        console.log('📄 Cambiando a página:', page);
         const newFilters = { ...filters, page };
         setFilters(newFilters);
         loadEvents(newFilters);
@@ -83,31 +112,41 @@ const EventsIndex = ({ events: initialEvents, filters: initialFilters, statuses,
 
     // Toggle estado evento
     const handleToggleStatus = async (eventId) => {
+        console.log('🔄 Cambiando estado del evento:', eventId);
+        
         const event = events.data.find(e => e.id === eventId);
         const action = event?.status?.id === 1 ? 'desactivar' : 'activar';
         
-        if (confirm(`¿Estás seguro de que quieres ${action} este evento?`)) {
-            try {
-                const response = await adminEventService.toggleEventStatus(eventId);
-                showNotification('success', response.message || 'Estado actualizado');
-                loadEvents();
-            } catch (error) {
-                showNotification('error', 'Error al cambiar estado del evento');
-            }
+        try {
+            const response = await adminEventService.toggleEventStatus(eventId);
+            console.log('✅ Estado cambiado:', response);
+            
+            showNotification('success', response.message || 'Estado actualizado');
+            await loadEvents();
+        } catch (error) {
+            console.error('❌ Error al cambiar estado:', error);
+            showNotification('error', 'Error al cambiar estado del evento');
         }
+        
+        setShowActionsDropdown(null);
     };
 
     // Eliminar evento
     const handleDeleteEvent = async () => {
         if (!eventToDelete) return;
         
+        console.log('🗑️ Eliminando evento:', eventToDelete.id);
+        
         try {
             const response = await adminEventService.deleteEvent(eventToDelete.id);
+            console.log('✅ Evento eliminado:', response);
+            
             showNotification('success', response.message || 'Evento eliminado');
             setShowDeleteModal(false);
             setEventToDelete(null);
-            loadEvents();
+            await loadEvents();
         } catch (error) {
+            console.error('❌ Error al eliminar:', error);
             showNotification('error', error.response?.data?.message || 'Error al eliminar evento');
         }
     };
@@ -131,7 +170,8 @@ const EventsIndex = ({ events: initialEvents, filters: initialFilters, statuses,
     };
 
     // Limpiar filtros
-    const clearFiltersAndReload = () => {
+    const clearFilters = () => {
+        console.log('🧹 Limpiando filtros');
         const resetFilters = {
             search: '',
             status_id: '',
@@ -149,235 +189,400 @@ const EventsIndex = ({ events: initialEvents, filters: initialFilters, statuses,
         
         setFilters(resetFilters);
         loadEvents(resetFilters);
+        setSelectedEvents([]);
     };
 
-    // Cargar eventos al montar
+    // Cerrar dropdown al hacer click fuera
     useEffect(() => {
+        const handleClickOutside = () => {
+            setShowActionsDropdown(null);
+        };
+
+        document.addEventListener('click', handleClickOutside);
+        return () => document.removeEventListener('click', handleClickOutside);
+    }, []);
+
+    // Cargar datos al montar el componente
+    useEffect(() => {
+        console.log('🚀 Componente montado, cargando eventos');
         loadEvents();
     }, []);
 
-    // Función para formatear precio
-    const formatPrice = (price, isFree) => {
-        if (isFree) return 'Gratis';
-        return `$${parseFloat(price).toFixed(2)}`;
-    };
+    // Componente para botones de acción responsivos
+    const ActionButtons = ({ event }) => (
+        <div className="flex items-center justify-center space-x-1">
+            {/* Versión Desktop - Botones individuales */}
+            <div className="hidden lg:flex space-x-1">
+                <Link
+                    href={`/admin/events/${event.id}`}
+                    className="inline-flex items-center px-2 py-1 bg-gray-600 hover:bg-gray-700 text-white text-xs font-medium rounded transition-colors duration-200"
+                    title="Ver detalles"
+                >
+                    <Eye className="w-3 h-3 mr-1" />
+                    Ver
+                </Link>
+                
+                <Link
+                    href={`/admin/events/${event.id}/edit`}
+                    className="inline-flex items-center px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded transition-colors duration-200"
+                    title="Editar evento"
+                >
+                    <Edit className="w-3 h-3 mr-1" />
+                    Editar
+                </Link>
+                
+                <button
+                    onClick={() => handleToggleStatus(event.id)}
+                    className={`inline-flex items-center px-2 py-1 text-white text-xs font-medium rounded transition-colors duration-200 ${
+                        event.status?.id === 1 
+                            ? 'bg-yellow-600 hover:bg-yellow-700' 
+                            : 'bg-green-600 hover:bg-green-700'
+                    }`}
+                    title={event.status?.id === 1 ? 'Pausar evento' : 'Activar evento'}
+                >
+                    {event.status?.id === 1 ? (
+                        <>
+                            <Pause className="w-3 h-3 mr-1" />
+                            Pausar
+                        </>
+                    ) : (
+                        <>
+                            <Play className="w-3 h-3 mr-1" />
+                            Activar
+                        </>
+                    )}
+                </button>
+                
+                <button
+                    onClick={() => {
+                        console.log('🗑️ Solicitando eliminar evento:', event);
+                        setEventToDelete(event);
+                        setShowDeleteModal(true);
+                    }}
+                    className="inline-flex items-center px-2 py-1 bg-red-600 hover:bg-red-700 text-white text-xs font-medium rounded transition-colors duration-200"
+                    title="Eliminar evento"
+                >
+                    <Trash2 className="w-3 h-3 mr-1" />
+                    Eliminar
+                </button>
+            </div>
+
+            {/* Versión Mobile/Tablet - Dropdown */}
+            <div className="lg:hidden relative">
+                <button
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        setShowActionsDropdown(showActionsDropdown === event.id ? null : event.id);
+                    }}
+                    className="inline-flex items-center px-2 py-1 bg-gray-100 hover:bg-gray-200 text-gray-600 text-xs font-medium rounded border"
+                >
+                    <MoreVertical className="w-3 h-3" />
+                </button>
+
+                {showActionsDropdown === event.id && (
+                    <div className="absolute right-0 top-full mt-1 w-32 bg-white rounded-md shadow-lg border border-gray-200 z-50">
+                        <div className="py-1">
+                            <Link
+                                href={`/admin/events/${event.id}`}
+                                className="flex items-center px-3 py-2 text-xs text-gray-700 hover:bg-gray-100"
+                                onClick={() => setShowActionsDropdown(null)}
+                            >
+                                <Eye className="w-3 h-3 mr-2" />
+                                Ver
+                            </Link>
+                            
+                            <Link
+                                href={`/admin/events/${event.id}/edit`}
+                                className="flex items-center px-3 py-2 text-xs text-gray-700 hover:bg-gray-100"
+                                onClick={() => setShowActionsDropdown(null)}
+                            >
+                                <Edit className="w-3 h-3 mr-2" />
+                                Editar
+                            </Link>
+                            
+                            <button
+                                onClick={() => handleToggleStatus(event.id)}
+                                className="flex items-center w-full px-3 py-2 text-xs text-gray-700 hover:bg-gray-100"
+                            >
+                                {event.status?.id === 1 ? (
+                                    <>
+                                        <Pause className="w-3 h-3 mr-2" />
+                                        Pausar
+                                    </>
+                                ) : (
+                                    <>
+                                        <Play className="w-3 h-3 mr-2" />
+                                        Activar
+                                    </>
+                                )}
+                            </button>
+                            
+                            <button
+                                onClick={() => {
+                                    setEventToDelete(event);
+                                    setShowDeleteModal(true);
+                                    setShowActionsDropdown(null);
+                                }}
+                                className="flex items-center w-full px-3 py-2 text-xs text-red-600 hover:bg-red-50"
+                            >
+                                <Trash2 className="w-3 h-3 mr-2" />
+                                Eliminar
+                            </button>
+                        </div>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
 
     return (
-        <div className="container mx-auto p-4">
-            <div className="flex justify-between items-center mb-6">
-                <h1 className="text-2xl font-bold">Gestión de Eventos</h1>
-                <Link
-                    href="/admin/events/create"
-                    className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded transition-colors duration-200"
-                >
-                    ➕ Nuevo Evento
-                </Link>
-            </div>
-
-            {/* Acciones masivas */}
-            {selectedEvents.length > 0 && (
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4 flex justify-between items-center">
-                    <span className="text-blue-700">
-                        {selectedEvents.length} evento(s) seleccionado(s)
-                    </span>
-                    <div className="flex gap-2">
-                        <button
-                            onClick={() => {
-                                if (confirm(`¿Estás seguro de que quieres eliminar ${selectedEvents.length} evento(s)?`)) {
-                                    showNotification('info', 'Función en desarrollo');
-                                    setSelectedEvents([]);
-                                }
-                            }}
-                            className="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-3 rounded text-sm"
-                        >
-                            Eliminar seleccionados
-                        </button>
-                        <button
-                            onClick={() => setSelectedEvents([])}
-                            className="bg-gray-300 hover:bg-gray-400 text-gray-700 font-bold py-1 px-3 rounded text-sm"
-                        >
-                            Cancelar selección
-                        </button>
-                    </div>
-                </div>
-            )}
-
-            {/* Filtros */}
-            <div className="bg-white shadow-lg rounded-lg px-8 pt-6 pb-8 mb-6">
-                <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
-                    <div className="md:col-span-2">
-                        <label className="block text-gray-700 text-sm font-bold mb-2">
-                            Buscar
-                        </label>
-                        <input
-                            type="text"
-                            value={filters.search}
-                            onChange={(e) => handleFilterChange('search', e.target.value)}
-                            placeholder="Título o descripción..."
-                            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                        />
-                    </div>
-                    
+        <div className="p-6">
+            {/* Header */}
+            <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
                     <div>
-                        <label className="block text-gray-700 text-sm font-bold mb-2">
-                            Estado
-                        </label>
-                        <select
-                            value={filters.status_id}
-                            onChange={(e) => handleFilterChange('status_id', e.target.value)}
-                            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                        >
-                            <option value="">Todos</option>
-                            {statuses?.map(status => (
-                                <option key={status.id} value={status.id}>{status.name}</option>
-                            ))}
-                        </select>
+                        <h1 className="text-2xl font-bold text-gray-900">Gestión de Eventos</h1>
+                        <p className="text-sm text-gray-600 mt-1">Gestión del sistema</p>
                     </div>
-                    
-                    <div>
-                        <label className="block text-gray-700 text-sm font-bold mb-2">
-                            Ubicación
-                        </label>
-                        <select
-                            value={filters.location_id}
-                            onChange={(e) => handleFilterChange('location_id', e.target.value)}
-                            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                        >
-                            <option value="">Todas</option>
-                            {locations?.map(location => (
-                                <option key={location.id} value={location.id}>{location.name}</option>
-                            ))}
-                        </select>
-                    </div>
-                    
-                    <div>
-                        <label className="block text-gray-700 text-sm font-bold mb-2">
-                            Tipo
-                        </label>
-                        <select
-                            value={filters.its_free}
-                            onChange={(e) => handleFilterChange('its_free', e.target.value)}
-                            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                        >
-                            <option value="">Todos</option>
-                            <option value="1">Gratuitos</option>
-                            <option value="0">De pago</option>
-                        </select>
-                    </div>
-                    
-                    <div>
-                        <label className="block text-gray-700 text-sm font-bold mb-2">
-                            Desde
-                        </label>
-                        <input
-                            type="date"
-                            value={filters.date_from}
-                            onChange={(e) => handleFilterChange('date_from', e.target.value)}
-                            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                        />
-                    </div>
-                    
-                    <div>
-                        <label className="block text-gray-700 text-sm font-bold mb-2">
-                            Hasta
-                        </label>
-                        <input
-                            type="date"
-                            value={filters.date_to}
-                            onChange={(e) => handleFilterChange('date_to', e.target.value)}
-                            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                        />
-                    </div>
+                    <Link
+                        href="/admin/events/create"
+                        className="inline-flex items-center px-4 py-2 bg-green-500 hover:bg-green-600 text-white font-medium rounded-lg transition-colors duration-200"
+                    >
+                        <Plus className="w-5 h-5 mr-2" />
+                        Nuevo Evento
+                    </Link>
                 </div>
 
-                <div className="mt-4 flex justify-between items-center">
-                    <div className="flex items-center gap-4">
-                        <button
-                            onClick={clearFiltersAndReload}
-                            className="text-sm bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium py-1 px-3 rounded transition-colors duration-200"
-                        >
-                            🔄 Limpiar filtros
-                        </button>
-                        
-                        {(filters.search || filters.status_id || filters.location_id || filters.its_free !== '' || filters.date_from || filters.date_to) && (
-                            <span className="text-sm text-yellow-700 bg-yellow-100 px-3 py-1 rounded-full font-medium">
-                                ⚠️ Filtros activos
-                            </span>
-                        )}
-                    </div>
-                    
-                    <div className="flex items-center gap-4">
-                        <div className="flex items-center gap-2">
-                            <label className="text-sm text-gray-600">Mostrar:</label>
-                            <select
-                                value={filters.per_page}
-                                onChange={(e) => handleFilterChange('per_page', e.target.value)}
-                                className="shadow-sm border rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                {/* Acciones masivas */}
+                {selectedEvents.length > 0 && (
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                        <span className="text-blue-700 font-medium">
+                            {selectedEvents.length} evento(s) seleccionado(s)
+                        </span>
+                        <div className="flex gap-2">
+                            <button
+                                onClick={() => {
+                                    if (confirm(`¿Estás seguro de que quieres eliminar ${selectedEvents.length} evento(s)?`)) {
+                                        showNotification('info', 'Función en desarrollo');
+                                        setSelectedEvents([]);
+                                    }
+                                }}
+                                className="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-3 rounded text-sm transition-colors duration-200"
                             >
-                                <option value="10">10</option>
-                                <option value="25">25</option>
-                                <option value="50">50</option>
-                                <option value="100">100</option>
+                                Eliminar seleccionados
+                            </button>
+                            <button
+                                onClick={() => setSelectedEvents([])}
+                                className="bg-gray-300 hover:bg-gray-400 text-gray-700 font-bold py-1 px-3 rounded text-sm transition-colors duration-200"
+                            >
+                                Cancelar selección
+                            </button>
+                        </div>
+                    </div>
+                )}
+
+                {/* Mostrar errores si existen */}
+                {error && (
+                    <div className="bg-red-50 border border-red-200 rounded-md p-4 mb-4">
+                        <div className="flex">
+                            <AlertCircle className="h-5 w-5 text-red-400" />
+                            <div className="ml-3">
+                                <h3 className="text-sm font-medium text-red-800">Error</h3>
+                                <p className="text-sm text-red-700 mt-1">{error}</p>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Filtros */}
+                <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                        <div className="md:col-span-2">
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Buscar</label>
+                            <input
+                                type="text"
+                                placeholder="Título o descripción..."
+                                value={filters.search}
+                                onChange={(e) => handleFilterChange('search', e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+                        </div>
+                        
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Estado</label>
+                            <select
+                                value={filters.status_id}
+                                onChange={(e) => handleFilterChange('status_id', e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            >
+                                <option value="">Todos</option>
+                                {statuses?.map(status => (
+                                    <option key={status.id} value={status.id}>{status.name}</option>
+                                ))}
                             </select>
                         </div>
-                        <div className="text-sm text-gray-600">
-                            Mostrando {events.data?.length || 0} de {events.total || 0} eventos
+                        
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Ubicación</label>
+                            <select
+                                value={filters.location_id}
+                                onChange={(e) => handleFilterChange('location_id', e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            >
+                                <option value="">Todas</option>
+                                {locations?.map(location => (
+                                    <option key={location.id} value={location.id}>{location.name}</option>
+                                ))}
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Tipo</label>
+                            <select
+                                value={filters.its_free}
+                                onChange={(e) => handleFilterChange('its_free', e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            >
+                                <option value="">Todos</option>
+                                <option value="1">Gratuitos</option>
+                                <option value="0">De pago</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Desde</label>
+                            <input
+                                type="date"
+                                value={filters.date_from}
+                                onChange={(e) => handleFilterChange('date_from', e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Hasta</label>
+                            <input
+                                type="date"
+                                value={filters.date_to}
+                                onChange={(e) => handleFilterChange('date_to', e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+                        </div>
+
+                        <div className="flex items-end">
+                            <button
+                                onClick={clearFilters}
+                                className="w-full inline-flex items-center justify-center px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white font-medium rounded-lg transition-colors duration-200"
+                            >
+                                <Filter className="w-3 h-3 mr-2" />
+                                Limpiar Filtros
+                            </button>
+                        </div>
+
+                        <div className="md:col-span-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                            <div className="flex items-center gap-4">
+                                {(filters.search || filters.status_id || filters.location_id || filters.its_free !== '' || filters.date_from || filters.date_to) && (
+                                    <span className="text-sm text-yellow-700 bg-yellow-100 px-3 py-1 rounded-full font-medium">
+                                        ⚠️ Filtros activos
+                                    </span>
+                                )}
+                            </div>
+                            
+                            <div className="flex items-center gap-4 text-sm text-gray-600">
+                                <div>
+                                    Mostrar: 
+                                    <select
+                                        value={filters.per_page}
+                                        onChange={(e) => handleFilterChange('per_page', e.target.value)}
+                                        className="mx-2 px-2 py-1 border border-gray-300 rounded"
+                                    >
+                                        <option value="10">10</option>
+                                        <option value="25">25</option>
+                                        <option value="50">50</option>
+                                        <option value="100">100</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    Mostrando {events.data?.length || 0} de {events.total || 0} eventos
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            {/* Tabla de eventos */}
-            <div className="bg-white shadow-lg rounded-lg overflow-hidden">
-                {loading ? (
-                    <div className="p-8 text-center">
-                        <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
-                        <p className="mt-4 text-gray-600">Cargando eventos...</p>
-                    </div>
-                ) : events.data && events.data.length > 0 ? (
-                    <>
-                        <div className="overflow-x-auto">
-                            <table className="min-w-full">
-                                <thead className="bg-gray-50">
-                                    <tr>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            <input
-                                                type="checkbox"
-                                                onChange={handleSelectAll}
-                                                checked={selectedEvents.length === events.data?.length && events.data?.length > 0}
-                                                className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded cursor-pointer"
-                                            />
-                                        </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Título
-                                        </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Fechas
-                                        </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Horario
-                                        </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Precio
-                                        </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Capacidad
-                                        </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Estado
-                                        </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Ubicación
-                                        </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-48">
-                                            Acciones
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody className="bg-white divide-y divide-gray-200">
-                                    {events.data?.map((event) => (
-                                        <tr key={event.id} className="hover:bg-gray-50 transition-colors duration-150">
-                                            <td className="px-6 py-4 whitespace-nowrap">
+            {/* Tabla con scroll horizontal */}
+            <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+                <div className="overflow-x-auto">
+                    <table className="min-w-full">
+                        <thead className="bg-gray-50 border-b border-gray-200">
+                            <tr>
+                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-12">
+                                    <input
+                                        type="checkbox"
+                                        onChange={handleSelectAll}
+                                        checked={selectedEvents.length === events.data?.length && events.data?.length > 0}
+                                        className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded cursor-pointer"
+                                    />
+                                </th>
+                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[250px]">
+                                    Título
+                                </th>
+                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-40">
+                                    Fechas
+                                </th>
+                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
+                                    Horario
+                                </th>
+                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
+                                    Precio
+                                </th>
+                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
+                                    Capacidad
+                                </th>
+                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
+                                    Estado
+                                </th>
+                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
+                                    Ubicación
+                                </th>
+                                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[280px] lg:min-w-[300px]">
+                                    Acciones
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                            {loading ? (
+                                <tr>
+                                    <td colSpan="9" className="px-6 py-12 text-center">
+                                        <div className="flex justify-center">
+                                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+                                        </div>
+                                        <p className="mt-2 text-gray-500">Cargando eventos...</p>
+                                    </td>
+                                </tr>
+                            ) : events.data && events.data.length === 0 ? (
+                                <tr>
+                                    <td colSpan="9" className="px-6 py-12 text-center text-gray-500">
+                                        {(filters.search || filters.status_id || filters.location_id || filters.its_free !== '' || filters.date_from || filters.date_to) 
+                                            ? 'No se encontraron eventos con los filtros aplicados' 
+                                            : 'No hay eventos registrados'}
+                                    </td>
+                                </tr>
+                            ) : (
+                                events.data && events.data.map(event => {
+                                    console.log('🔍 Renderizando evento:', {
+                                        id: event.id,
+                                        title: event.titule,
+                                        status: event.status?.name,
+                                        attendees: event.attendees_count
+                                    });
+
+                                    return (
+                                        <tr key={event.id} className="hover:bg-gray-50">
+                                            <td className="px-4 py-4 whitespace-nowrap">
                                                 <input
                                                     type="checkbox"
                                                     checked={selectedEvents.includes(event.id)}
@@ -385,37 +590,41 @@ const EventsIndex = ({ events: initialEvents, filters: initialFilters, statuses,
                                                     className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded cursor-pointer"
                                                 />
                                             </td>
-                                            <td className="px-6 py-4">
+                                            <td className="px-4 py-4">
                                                 <div>
-                                                    <div className="text-sm font-medium text-gray-900">
+                                                    <div className="text-sm font-medium text-gray-900 truncate max-w-[220px]">
                                                         {event.titule}
                                                     </div>
-                                                    <div className="text-xs text-gray-500">
+                                                    <div className="text-xs text-gray-500 truncate max-w-[220px]">
                                                         {event.description}
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="text-sm text-gray-900">
-                                                    {event.start_date}
-                                                </div>
-                                                <div className="text-xs text-gray-500">
-                                                    hasta {event.end_date}
+                                            <td className="px-4 py-4 whitespace-nowrap">
+                                                <div className="flex items-center text-sm text-gray-900">
+                                                    <Calendar className="w-3 h-3 mr-1 text-gray-400" />
+                                                    <div>
+                                                        <div>{event.start_date}</div>
+                                                        <div className="text-xs text-gray-500">
+                                                            hasta {event.end_date}
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
                                                 {event.start_time} - {event.end_time}
                                             </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                                            <td className="px-4 py-4 whitespace-nowrap">
+                                                <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
                                                     event.its_free 
                                                         ? 'bg-green-100 text-green-800' 
                                                         : 'bg-blue-100 text-blue-800'
                                                 }`}>
+                                                    <DollarSign className="w-3 h-3 mr-1" />
                                                     {formatPrice(event.price, event.its_free)}
                                                 </span>
                                             </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
+                                            <td className="px-4 py-4 whitespace-nowrap">
                                                 <div className="text-sm text-gray-900">
                                                     {event.capacity}
                                                 </div>
@@ -423,222 +632,126 @@ const EventsIndex = ({ events: initialEvents, filters: initialFilters, statuses,
                                                     {event.attendees_count} inscritos
                                                 </div>
                                             </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-${event.status?.color || 'gray'}-100 text-${event.status?.color || 'gray'}-800`}>
+                                            <td className="px-4 py-4 whitespace-nowrap">
+                                                <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-${event.status?.color || 'gray'}-100 text-${event.status?.color || 'gray'}-800`}>
                                                     {event.status?.name || 'Sin estado'}
                                                 </span>
                                             </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                {event.location}
+                                            <td className="px-4 py-4 whitespace-nowrap">
+                                                <div className="flex items-center text-sm text-gray-900">
+                                                    <MapPin className="w-3 h-3 mr-1 text-gray-400" />
+                                                    <span className="truncate max-w-[100px]">
+                                                        {event.location || 'Sin ubicación'}
+                                                    </span>
+                                                </div>
                                             </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                                <div className="flex justify-end gap-1">
-                                                    <Link
-                                                        href={`/admin/events/${event.id}`}
-                                                        className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-1.5 px-3 rounded text-xs transition-colors duration-200"
-                                                    >
-                                                        👁️ Ver
-                                                    </Link>
-                                                    <Link
-                                                        href={`/admin/events/${event.id}/edit`}
-                                                        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1.5 px-3 rounded text-xs transition-colors duration-200"
-                                                    >
-                                                        ✏️ Editar
-                                                    </Link>
-                                                    <button
-                                                        onClick={() => handleToggleStatus(event.id)}
-                                                        className={`font-bold py-1.5 px-3 rounded text-xs transition-colors duration-200 ${
-                                                            event.status?.id === 1 
-                                                                ? 'bg-yellow-500 hover:bg-yellow-700 text-white' 
-                                                                : 'bg-green-500 hover:bg-green-700 text-white'
-                                                        }`}
-                                                    >
-                                                        {event.status?.id === 1 ? '⏸️ Pausar' : '▶️ Activar'}
-                                                    </button>
-                                                    <button
-                                                        onClick={() => {
-                                                            setEventToDelete(event);
-                                                            setShowDeleteModal(true);
-                                                        }}
-                                                        className="bg-red-500 hover:bg-red-700 text-white font-bold py-1.5 px-3 rounded text-xs transition-colors duration-200"
-                                                    >
-                                                        🗑️ Eliminar
-                                                    </button>
-                                                </div>                                                
+                                            <td className="px-4 py-4 whitespace-nowrap">
+                                                <ActionButtons event={event} />
                                             </td>
                                         </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
+                                    );
+                                })
+                            )}
+                        </tbody>
+                    </table>
+                </div>
 
-                        {/* Paginación */}
-                        {events.last_page > 1 && (
-                            <div className="bg-gray-50 px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
-                                <div className="flex-1 flex justify-between sm:hidden">
+                {/* Paginación */}
+                {events.last_page > 1 && (
+                    <div className="bg-gray-50 px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+                        <div className="flex-1 flex justify-between sm:hidden">
+                            <button
+                                onClick={() => handlePageChange(Math.max(1, events.current_page - 1))}
+                                disabled={events.current_page === 1}
+                                className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                Anterior
+                            </button>
+                            <button
+                                onClick={() => handlePageChange(Math.min(events.last_page, events.current_page + 1))}
+                                disabled={events.current_page === events.last_page}
+                                className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                Siguiente
+                            </button>
+                        </div>
+                        <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                            <div>
+                                <p className="text-sm text-gray-700">
+                                    Mostrando{' '}
+                                    <span className="font-medium">{events.from || 0}</span> a{' '}
+                                    <span className="font-medium">{events.to || 0}</span> de{' '}
+                                    <span className="font-medium">{events.total}</span> resultados
+                                </p>
+                            </div>
+                            <div>
+                                <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
                                     <button
-                                        onClick={() => handlePageChange(events.current_page - 1)}
+                                        onClick={() => handlePageChange(Math.max(1, events.current_page - 1))}
                                         disabled={events.current_page === 1}
-                                        className={`relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md ${
-                                            events.current_page === 1
-                                                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                                                : 'bg-white text-gray-700 hover:bg-gray-50'
-                                        }`}
+                                        className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
                                         Anterior
                                     </button>
+                                    
+                                    {[...Array(Math.min(5, events.last_page))].map((_, index) => {
+                                        const page = index + 1;
+                                        return (
+                                            <button
+                                                key={page}
+                                                onClick={() => handlePageChange(page)}
+                                                className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
+                                                    events.current_page === page
+                                                        ? 'z-10 bg-blue-600 border-blue-600 text-white'
+                                                        : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+                                                }`}
+                                            >
+                                                {page}
+                                            </button>
+                                        );
+                                    })}
+                                    
                                     <button
-                                        onClick={() => handlePageChange(events.current_page + 1)}
+                                        onClick={() => handlePageChange(Math.min(events.last_page, events.current_page + 1))}
                                         disabled={events.current_page === events.last_page}
-                                        className={`ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md ${
-                                            events.current_page === events.last_page
-                                                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                                                : 'bg-white text-gray-700 hover:bg-gray-50'
-                                        }`}
+                                        className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
                                         Siguiente
                                     </button>
-                                </div>
-                                <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-                                    <div>
-                                        <p className="text-sm text-gray-700">
-                                            Mostrando página <span className="font-medium">{events.current_page}</span> de{' '}
-                                            <span className="font-medium">{events.last_page}</span>
-                                        </p>
-                                    </div>
-                                    <div>
-                                        <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-                                            {events.current_page > 1 && (
-                                                <button
-                                                    onClick={() => handlePageChange(1)}
-                                                    className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
-                                                >
-                                                    ««
-                                                </button>
-                                            )}
-                                            
-                                            <button
-                                                onClick={() => handlePageChange(Math.max(1, events.current_page - 1))}
-                                                disabled={events.current_page === 1}
-                                                className={`relative inline-flex items-center px-2 py-2 border border-gray-300 bg-white text-sm font-medium ${
-                                                    events.current_page === 1 
-                                                        ? 'text-gray-300 cursor-not-allowed' 
-                                                        : 'text-gray-500 hover:bg-gray-50'
-                                                }`}
-                                            >
-                                                «
-                                            </button>
-                                            
-                                            {(() => {
-                                                const totalPages = events.last_page;
-                                                const currentPage = events.current_page;
-                                                let pages = [];
-                                                
-                                                if (totalPages <= 5) {
-                                                    pages = [...Array(totalPages)].map((_, i) => i + 1);
-                                                } else {
-                                                    if (currentPage <= 3) {
-                                                        pages = [1, 2, 3, 4, '...', totalPages];
-                                                    } else if (currentPage >= totalPages - 2) {
-                                                        pages = [1, '...', totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
-                                                    } else {
-                                                        pages = [1, '...', currentPage - 1, currentPage, currentPage + 1, '...', totalPages];
-                                                    }
-                                                }
-                                                
-                                                return pages.map((page, index) => (
-                                                    page === '...' ? (
-                                                        <span key={`ellipsis-${index}`} className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">
-                                                            ...
-                                                        </span>
-                                                    ) : (
-                                                        <button
-                                                            key={page}
-                                                            onClick={() => handlePageChange(page)}
-                                                            className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
-                                                                events.current_page === page
-                                                                    ? 'z-10 bg-indigo-50 border-indigo-500 text-indigo-600'
-                                                                    : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
-                                                            }`}
-                                                        >
-                                                            {page}
-                                                        </button>
-                                                    )
-                                                ));
-                                            })()}
-                                            
-                                            <button
-                                                onClick={() => handlePageChange(Math.min(events.last_page, events.current_page + 1))}
-                                                disabled={events.current_page === events.last_page}
-                                                className={`relative inline-flex items-center px-2 py-2 border border-gray-300 bg-white text-sm font-medium ${
-                                                    events.current_page === events.last_page 
-                                                        ? 'text-gray-300 cursor-not-allowed' 
-                                                        : 'text-gray-500 hover:bg-gray-50'
-                                                }`}
-                                            >
-                                                »
-                                            </button>
-                                            
-                                            {events.current_page < events.last_page && (
-                                                <button
-                                                    onClick={() => handlePageChange(events.last_page)}
-                                                    className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
-                                                >
-                                                    »»
-                                                </button>
-                                            )}
-                                        </nav>
-                                    </div>
-                                </div>
+                                </nav>
                             </div>
-                        )}
-                    </>
-                ) : (
-                    <div className="text-center py-8">
-                        <p className="text-gray-500 text-lg mb-4">
-                            {filters.search || filters.status_id || filters.location_id || filters.its_free !== '' || filters.date_from || filters.date_to
-                                ? 'No se encontraron eventos con los filtros aplicados' 
-                                : 'No hay eventos registrados'}
-                        </p>
-                        {(filters.search || filters.status_id || filters.location_id || filters.its_free !== '' || filters.date_from || filters.date_to) && (
-                            <button
-                                onClick={clearFiltersAndReload}
-                                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-colors duration-200"
-                            >
-                                🔄 Limpiar filtros y ver todos los eventos
-                            </button>
-                        )}
+                        </div>
                     </div>
                 )}
             </div>
 
-            {/* Modal de confirmación de eliminación */}
+            {/* Modal de eliminación */}
             {showDeleteModal && (
-                <div className="fixed z-10 inset-0 overflow-y-auto">
+                <div className="fixed z-50 inset-0 overflow-y-auto">
                     <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-                        <div className="fixed inset-0 transition-opacity" aria-hidden="true">
+                        <div className="fixed inset-0 transition-opacity" aria-hidden="true" onClick={() => setShowDeleteModal(false)}>
                             <div className="absolute inset-0 bg-gray-500 opacity-75"></div>
                         </div>
+                        
                         <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+                        
                         <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
                             <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                                 <div className="sm:flex sm:items-start">
                                     <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
-                                        <svg className="h-6 w-6 text-red-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                                        </svg>
+                                        <Trash2 className="h-6 w-6 text-red-600" />
                                     </div>
                                     <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
                                         <h3 className="text-lg leading-6 font-medium text-gray-900">
-                                            Eliminar evento
+                                            Eliminar Evento
                                         </h3>
                                         <div className="mt-2">
                                             <p className="text-sm text-gray-500">
-                                                ¿Estás seguro de que deseas eliminar el evento <strong>{eventToDelete?.titule}</strong>? 
+                                                ¿Estás seguro de que deseas eliminar el evento "<strong>{eventToDelete?.titule}</strong>"? 
                                                 Esta acción no se puede deshacer.
                                             </p>
                                             {eventToDelete?.attendees_count > 0 && (
-                                                <p className="text-sm text-red-500 mt-2">
+                                                <p className="text-sm text-red-600 mt-2">
                                                     ⚠️ Este evento tiene {eventToDelete.attendees_count} asistentes registrados.
                                                 </p>
                                             )}

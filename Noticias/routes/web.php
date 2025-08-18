@@ -16,6 +16,7 @@ use App\Http\Middleware\EnsureEmailIsVerified;
 use App\Http\Controllers\Admin\AdminAuthController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\EventController;
+use App\Http\Controllers\Admin\OrganizerController;
 use App\Http\Controllers\Admin\AdminSettingsController;
 
 // Rutas para vistas principales (renderizan la SPA de React)
@@ -177,9 +178,122 @@ Route::prefix('admin')->group(function () {
     
     // ===== RUTAS PROTEGIDAS DE ADMIN (requieren autenticación) =====
     Route::middleware(['auth:sanctum', \App\Http\Middleware\AdminAuth::class])->group(function () {
-        // Dashboard de admin
+        // 🔥 Dashboard de admin CON DATOS REALES + MÉTRICAS ADICIONALES
         Route::get('/dashboard', function () {
-            return Inertia::render('Admin/AdminDashboard');
+            // ✅ MANTENER: Estadísticas originales que YA FUNCIONAN
+            $dashboardStats = [
+                'users' => \App\Models\User::count(),
+                'activeEvents' => \App\Models\Event::where('start_date', '>=', now()->toDateString())->count(),
+                'attendances' => \App\Models\EventAttendance::count(),
+                'activeAdmins' => \App\Models\Admin::count(),
+            ];
+            
+            // ✅ MANTENER: Actividad reciente que YA FUNCIONA
+            $recentActivity = [];
+            try {
+                if (class_exists('\App\Models\ActivityLog')) {
+                    $recentActivity = \App\Models\ActivityLog::with('admin')
+                        ->orderBy('created_at', 'desc')
+                        ->take(10)
+                        ->get()
+                        ->map(function ($activity) {
+                            return [
+                                'id' => $activity->id,
+                                'action' => $activity->action ?? 'Acción',
+                                'user' => $activity->admin ? $activity->admin->name : 'Sistema',
+                                'date' => $activity->created_at->format('d/m/Y H:i'),
+                                'details' => $activity->details ?? 'Actividad en el sistema',
+                                'tag' => ucfirst($activity->action ?? 'Actividad'),
+                                'tagColor' => match($activity->action ?? 'default') {
+                                    'create', 'register' => 'green',
+                                    'update' => 'blue',
+                                    'delete' => 'red',
+                                    'cancel' => 'red',
+                                    'view' => 'gray',
+                                    default => 'gray'
+                                },
+                            ];
+                        });
+                }
+            } catch (\Exception $e) {
+                // Si hay error con ActivityLog, continuar sin actividad
+                $recentActivity = [];
+            }
+            
+            // 🆕 NUEVO: Métricas adicionales (SIN afectar las anteriores)
+            $additionalMetrics = [];
+            try {
+                $additionalMetrics = [
+                    // Usuarios por mes (últimos 6 meses)
+                    'usersPerMonth' => \App\Models\User::selectRaw('YEAR(created_at) as year, MONTH(created_at) as month, COUNT(*) as count')
+                        ->where('created_at', '>=', now()->subMonths(6))
+                        ->groupBy('year', 'month')
+                        ->orderBy('year', 'desc')
+                        ->orderBy('month', 'desc')
+                        ->get()
+                        ->map(function ($item) {
+                            return [
+                                'period' => \Carbon\Carbon::create($item->year, $item->month)->format('M Y'),
+                                'count' => $item->count
+                            ];
+                        }),
+                    
+                    // Eventos más populares (por asistencias)
+                    'topEvents' => \App\Models\Event::withCount('eventAttendances')
+                        ->orderBy('event_attendances_count', 'desc')
+                        ->take(5)
+                        ->get()
+                        ->map(function ($event) {
+                            return [
+                                'id' => $event->id,
+                                'title' => $event->titule,
+                                'attendances_count' => $event->event_attendances_count,
+                                'start_date' => $event->start_date
+                            ];
+                        }),
+                    
+                    // Métricas de crecimiento
+                    'growthMetrics' => [
+                        'usersThisMonth' => \App\Models\User::whereMonth('created_at', now()->month)
+                            ->whereYear('created_at', now()->year)->count(),
+                        'usersLastMonth' => \App\Models\User::whereMonth('created_at', now()->subMonth()->month)
+                            ->whereYear('created_at', now()->subMonth()->year)->count(),
+                        'eventsThisMonth' => \App\Models\Event::whereMonth('created_at', now()->month)
+                            ->whereYear('created_at', now()->year)->count(),
+                        'eventsLastMonth' => \App\Models\Event::whereMonth('created_at', now()->subMonth()->month)
+                            ->whereYear('created_at', now()->subMonth()->year)->count(),
+                    ],
+                    
+                    // Estadísticas por categorías de eventos
+                    'eventStats' => [
+                        'upcoming' => \App\Models\Event::where('start_date', '>', now())->count(),
+                        'ongoing' => \App\Models\Event::where('start_date', '<=', now())
+                            ->where('end_date', '>=', now())->count(),
+                        'completed' => \App\Models\Event::where('end_date', '<', now())->count(),
+                    ],
+                ];
+            } catch (\Exception $e) {
+                // Si hay error con métricas adicionales, continuar sin ellas
+                $additionalMetrics = [];
+            }
+            
+            // ✅ MANTENER: Datos adicionales originales + AGREGAR nuevas métricas
+            $additionalData = [
+                'todayStats' => [
+                    'newUsers' => \App\Models\User::whereDate('created_at', today())->count(),
+                    'newEvents' => \App\Models\Event::whereDate('created_at', today())->count(),
+                    'newAttendances' => \App\Models\EventAttendance::whereDate('created_at', today())->count(),
+                    'activities' => class_exists('\App\Models\ActivityLog') ? \App\Models\ActivityLog::whereDate('created_at', today())->count() : 0,
+                ],
+                // 🆕 NUEVO: Agregar métricas adicionales
+                'additionalMetrics' => $additionalMetrics,
+            ];
+            
+            return Inertia::render('Admin/AdminDashboard', [
+                'dashboardStats' => $dashboardStats,
+                'recentActivity' => $recentActivity,
+                'additionalData' => $additionalData
+            ]);
         })->name('admin.dashboard');
         
         // ===== VISTAS INERTIA (renderizan páginas) =====
@@ -208,6 +322,32 @@ Route::prefix('admin')->group(function () {
         
         Route::get('/events/{id}', [EventController::class, 'show'])
             ->name('admin.events.show');
+
+        // Vistas de organizadores
+        Route::get('/organizers', [OrganizerController::class, 'index'])
+            ->name('admin.organizers');
+
+        Route::get('/organizers/create', [OrganizerController::class, 'create'])
+            ->name('admin.organizers.create');
+
+        Route::get('/organizers/{id}/edit', [OrganizerController::class, 'edit'])
+            ->name('admin.organizers.edit');
+
+        Route::get('/organizers/{id}', [OrganizerController::class, 'show'])
+            ->name('admin.organizers.show');
+
+        
+
+        
+        // ✅ NUEVAS: Rutas para gestión de asistencias desde admin
+        Route::get('/events/{id}/attendances', [EventController::class, 'showAttendances'])
+            ->name('admin.events.attendances');
+        
+        Route::patch('/events/{eventId}/attendances/{attendanceId}/status', [EventController::class, 'updateAttendanceStatus'])
+            ->name('admin.events.attendance.update-status');
+        
+        Route::get('/events/{id}/attendances/export', [EventController::class, 'exportAttendances'])
+            ->name('admin.events.attendances.export');
             
         // Vista de roles
         Route::get('/roles', function () {
@@ -220,6 +360,155 @@ Route::prefix('admin')->group(function () {
         
         // ===== API ENDPOINTS (devuelven JSON) =====
         Route::prefix('api')->group(function () {
+            // ✅ MANTENER: API endpoints existentes que YA FUNCIONAN
+            Route::get('/dashboard/stats', function () {
+                $stats = [
+                    'users' => \App\Models\User::count(),
+                    'activeEvents' => \App\Models\Event::where('start_date', '>=', now()->toDateString())->count(),
+                    'attendances' => \App\Models\EventAttendance::count(),
+                    'activeAdmins' => \App\Models\Admin::count(),
+                ];
+                
+                return response()->json(['success' => true, 'data' => $stats]);
+            })->name('admin.api.dashboard.stats');
+            
+            Route::get('/dashboard/activity', function () {
+                $activity = [];
+                try {
+                    if (class_exists('\App\Models\ActivityLog')) {
+                        $activity = \App\Models\ActivityLog::with('admin')
+                            ->orderBy('created_at', 'desc')
+                            ->take(10)
+                            ->get()
+                            ->map(function ($log) {
+                                return [
+                                    'id' => $log->id,
+                                    'action' => $log->action ?? 'Acción',
+                                    'user' => $log->admin ? $log->admin->name : 'Sistema',
+                                    'date' => $log->created_at->format('d/m/Y H:i'),
+                                    'details' => $log->details ?? 'Actividad en el sistema',
+                                    'tag' => ucfirst($log->action ?? 'Actividad'),
+                                    'tagColor' => match($log->action ?? 'default') {
+                                        'create', 'register' => 'green',
+                                        'update' => 'blue',
+                                        'delete' => 'red',
+                                        'cancel' => 'red',
+                                        'view' => 'gray',
+                                        default => 'gray'
+                                    },
+                                ];
+                            });
+                    }
+                } catch (\Exception $e) {
+                    $activity = [];
+                }
+                
+                return response()->json(['success' => true, 'data' => $activity]);
+            })->name('admin.api.dashboard.activity');
+
+            // 🆕 NUEVO: API endpoints para métricas adicionales
+            Route::get('/dashboard/metrics', function () {
+                try {
+                    $metrics = [
+                        // Usuarios por mes
+                        'usersPerMonth' => \App\Models\User::selectRaw('YEAR(created_at) as year, MONTH(created_at) as month, COUNT(*) as count')
+                            ->where('created_at', '>=', now()->subMonths(6))
+                            ->groupBy('year', 'month')
+                            ->orderBy('year', 'desc')
+                            ->orderBy('month', 'desc')
+                            ->get()
+                            ->map(function ($item) {
+                                return [
+                                    'period' => \Carbon\Carbon::create($item->year, $item->month)->format('M Y'),
+                                    'count' => $item->count
+                                ];
+                            }),
+                        
+                        // Eventos más populares
+                        'topEvents' => \App\Models\Event::withCount('eventAttendances')
+                            ->orderBy('event_attendances_count', 'desc')
+                            ->take(5)
+                            ->get()
+                            ->map(function ($event) {
+                                return [
+                                    'id' => $event->id,
+                                    'title' => $event->titule,
+                                    'attendances_count' => $event->event_attendances_count,
+                                    'start_date' => $event->start_date
+                                ];
+                            }),
+                        
+                        // Métricas de crecimiento
+                        'growthMetrics' => [
+                            'usersThisMonth' => \App\Models\User::whereMonth('created_at', now()->month)
+                                ->whereYear('created_at', now()->year)->count(),
+                            'usersLastMonth' => \App\Models\User::whereMonth('created_at', now()->subMonth()->month)
+                                ->whereYear('created_at', now()->subMonth()->year)->count(),
+                            'eventsThisMonth' => \App\Models\Event::whereMonth('created_at', now()->month)
+                                ->whereYear('created_at', now()->year)->count(),
+                            'eventsLastMonth' => \App\Models\Event::whereMonth('created_at', now()->subMonth()->month)
+                                ->whereYear('created_at', now()->subMonth()->year)->count(),
+                        ],
+                    ];
+                    
+                    return response()->json(['success' => true, 'data' => $metrics]);
+                } catch (\Exception $e) {
+                    return response()->json(['success' => false, 'error' => 'Error al obtener métricas']);
+                }
+            })->name('admin.api.dashboard.metrics');
+
+            // 🆕 NUEVO: Endpoint para exportar datos
+            Route::get('/dashboard/export', function () {
+                try {
+                    $exportData = [
+                        'fecha_reporte' => now()->format('Y-m-d H:i:s'),
+                        'estadisticas_generales' => [
+                            'usuarios' => \App\Models\User::count(),
+                            'eventos_activos' => \App\Models\Event::where('start_date', '>=', now()->toDateString())->count(),
+                            'asistencias' => \App\Models\EventAttendance::count(),
+                            'administradores' => \App\Models\Admin::count(),
+                        ],
+                        'metricas_crecimiento' => [
+                            'usuarios_mes_actual' => \App\Models\User::whereMonth('created_at', now()->month)
+                                ->whereYear('created_at', now()->year)->count(),
+                            'eventos_mes_actual' => \App\Models\Event::whereMonth('created_at', now()->month)
+                                ->whereYear('created_at', now()->year)->count(),
+                        ],
+                        'eventos_populares' => \App\Models\Event::withCount('eventAttendances')
+                            ->orderBy('event_attendances_count', 'desc')
+                            ->take(10)
+                            ->get()
+                            ->map(function ($event) {
+                                return [
+                                    'titulo' => $event->titule,
+                                    'asistencias' => $event->event_attendances_count,
+                                    'fecha_inicio' => $event->start_date
+                                ];
+                            }),
+                        'actividad_reciente' => class_exists('\App\Models\ActivityLog') 
+                            ? \App\Models\ActivityLog::with('admin')
+                                ->orderBy('created_at', 'desc')
+                                ->take(20)
+                                ->get()
+                                ->map(function ($log) {
+                                    return [
+                                        'accion' => $log->action,
+                                        'usuario' => $log->admin ? $log->admin->name : 'Sistema',
+                                        'fecha' => $log->created_at->format('Y-m-d H:i:s'),
+                                        'detalles' => $log->details
+                                    ];
+                                })
+                            : []
+                    ];
+                    
+                    return response()->json($exportData)
+                        ->header('Content-Disposition', 'attachment; filename="dashboard-report-' . now()->format('Y-m-d') . '.json"');
+                        
+                } catch (\Exception $e) {
+                    return response()->json(['success' => false, 'error' => 'Error al exportar datos']);
+                }
+            })->name('admin.api.dashboard.export');
+            
             // Endpoints de usuarios
             Route::get('/users', [UserController::class, 'apiIndex'])
                 ->name('admin.api.users');
@@ -269,6 +558,28 @@ Route::prefix('admin')->group(function () {
             
             Route::get('/stats/events', [EventController::class, 'getEventStats'])
                 ->name('admin.api.events.stats');
+
+            // Endpoints de organizadores
+            Route::get('/organizers', [OrganizerController::class, 'apiIndex'])
+                ->name('admin.api.organizers');
+
+            Route::get('/organizers/{id}', [OrganizerController::class, 'apiShow'])
+                ->name('admin.api.organizers.show');
+
+            Route::post('/organizers', [OrganizerController::class, 'store'])
+                ->name('admin.api.organizers.store');
+
+            Route::put('/organizers/{id}', [OrganizerController::class, 'update'])
+                ->name('admin.api.organizers.update');
+
+            Route::delete('/organizers/{id}', [OrganizerController::class, 'destroy'])
+                ->name('admin.api.organizers.destroy');
+
+            Route::patch('/organizers/{id}/toggle-status', [OrganizerController::class, 'toggleStatus'])
+                ->name('admin.api.organizers.toggle-status');
+
+            Route::get('/stats/organizers', [OrganizerController::class, 'getOrganizerStats'])
+                ->name('admin.api.organizers.stats');
             
             // Endpoints de configuración
             Route::get('/settings/info', [AdminSettingsController::class, 'getAdminInfo'])
@@ -288,7 +599,7 @@ Route::prefix('admin')->group(function () {
         Route::get('/me', [AdminAuthController::class, 'getCurrentAdmin'])
             ->name('admin.me');
         
-        // Gestión de eventos y asistencias
+        // Gestión de eventos y asistencias (rutas existentes mantenidas)
         Route::get('/eventos/{id}/asistentes', [EventoAsistenciaController::class, 'listarAsistentes'])
             ->name('admin.eventos.asistentes');
         

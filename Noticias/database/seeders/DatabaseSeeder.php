@@ -43,6 +43,9 @@ class DatabaseSeeder extends Seeder
             EventAttendanceSeeder::class,
 
             ListCompanySeeder::class,
+            
+            // Activity logs - DEBE IR AL FINAL porque depende de otros datos
+            ActivityLogSeeder::class,
         ]);
     }
 }

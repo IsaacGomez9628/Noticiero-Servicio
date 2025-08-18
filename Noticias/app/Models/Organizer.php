@@ -8,32 +8,52 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Organizer extends Model
 {
-    /** @use HasFactory<\Database\Factories\OrganizersFactory> */
     use HasFactory, SoftDeletes;
-
+    
     protected $fillable = [
         'name',
         'email',
         'phone',
-        'description'
+        'description',
+        'web_site',
+        'social_media',
+        'direction',
+        'city',
+        'logo',
+        'active'
     ];
-
     
-    // Relación con Events (un organizador puede tener muchos eventos)
+    protected $casts = [
+        'active' => 'boolean',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+        'deleted_at' => 'datetime'
+    ];
+    
+    // Relación con Events
     public function events()
     {
         return $this->hasMany(Event::class);
     }
     
-    // Relación polimórfica con Images (un organizador puede tener imágenes, como su logo)
+    // Relación polimórfica con Images
     public function images()
     {
         return $this->morphMany(Image::class, 'imageable');
     }
     
-    // Relación polimórfica para registrar actividades sobre este modelo
+    // Relación polimórfica para actividades
     public function activities()
     {
         return $this->morphMany(ActivityLog::class, 'object');
+    }
+    
+    // Accessor para obtener la URL completa del logo
+    public function getLogoUrlAttribute()
+    {
+        if ($this->logo) {
+            return asset('storage/' . $this->logo);
+        }
+        return null;
     }
 }

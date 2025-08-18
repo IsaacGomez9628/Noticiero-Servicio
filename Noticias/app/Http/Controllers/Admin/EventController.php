@@ -7,6 +7,7 @@ use App\Models\Event;
 use App\Models\Location;
 use App\Models\EventStatus;
 use App\Models\Admin;
+use App\Models\EventAttendance; // ✅ AGREGADO
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -46,7 +47,8 @@ class EventController extends Controller
             'all_params' => $request->all()
         ]);
         
-        $query = Event::with(['location', 'status', 'organizer', 'admin']);
+        // ✅ CORREGIDO: Agregada la relación 'attendances'
+        $query = Event::with(['location', 'status', 'organizer', 'admin', 'attendances']);
         
         // Búsqueda por título o descripción
         if ($request->filled('search')) {
@@ -114,6 +116,7 @@ class EventController extends Controller
                 'admin' => $event->admin ? $event->admin->name : 'Sin admin',
                 'slug' => $event->slug,
                 'created_at' => Carbon::parse($event->created_at)->format('d/m/Y H:i'),
+                // ✅ CORREGIDO: Uso de la relación 'attendances'
                 'attendees_count' => $event->attendances ? $event->attendances->count() : 0
             ];
         }
@@ -250,11 +253,11 @@ class EventController extends Controller
     }
     
     /**
-     * Display the specified event (Vista Inertia)
+     * ✅ ACTUALIZADO: Display the specified event (Vista Inertia)
      */
     public function show($id)
     {
-        $event = Event::with(['location', 'status', 'organizer', 'admin', 'attendances'])
+        $event = Event::with(['location', 'status', 'organizer', 'admin', 'attendances.status'])
                       ->findOrFail($id);
         
         $eventData = $this->transformEventData($event);
@@ -265,11 +268,11 @@ class EventController extends Controller
     }
 
     /**
-     * API endpoint for getting event data
+     * ✅ ACTUALIZADO: API endpoint for getting event data
      */
     public function apiShow($id)
     {
-        $event = Event::with(['location', 'status', 'organizer', 'admin', 'attendances'])
+        $event = Event::with(['location', 'status', 'organizer', 'admin', 'attendances.status'])
                       ->findOrFail($id);
         
         $eventData = $this->transformEventData($event);
@@ -278,10 +281,15 @@ class EventController extends Controller
     }
 
     /**
-     * Transform event data for responses
+     * ✅ ACTUALIZADO: Transform event data for responses
      */
     private function transformEventData($event)
     {
+        // Cargar attendances si no están cargadas
+        if (!$event->relationLoaded('attendances')) {
+            $event->load('attendances.status');
+        }
+        
         return [
             'id' => $event->id,
             'titule' => $event->titule,
@@ -301,7 +309,14 @@ class EventController extends Controller
             'created_at' => Carbon::parse($event->created_at)->format('d/m/Y H:i'),
             'updated_at' => Carbon::parse($event->updated_at)->format('d/m/Y H:i'),
             'attendees_count' => $event->attendances ? $event->attendances->count() : 0,
-            'available_capacity' => $event->capacity - ($event->attendances ? $event->attendances->count() : 0)
+            'available_capacity' => $event->capacity - ($event->attendances ? $event->attendances->count() : 0),
+            // ✅ NUEVO: Estadísticas de asistencias
+            'attendance_stats' => [
+                'total' => $event->attendances ? $event->attendances->count() : 0,
+                'confirmed' => $event->attendances ? $event->attendances->filter(fn($a) => $a->status && $a->status->slug === 'confirmado')->count() : 0,
+                'pending' => $event->attendances ? $event->attendances->filter(fn($a) => $a->status && $a->status->slug === 'pendiente')->count() : 0,
+                'cancelled' => $event->attendances ? $event->attendances->filter(fn($a) => $a->status && $a->status->slug === 'cancelado')->count() : 0,
+            ]
         ];
     }
     
@@ -490,6 +505,111 @@ class EventController extends Controller
             return response()->json([
                 'status' => 'error',
                 'message' => 'Error al obtener estadísticas',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+    
+    /**
+     * ✅ NUEVO: Mostrar asistencias de un evento específico
+     */
+    public function showAttendances($id)
+    {
+        $event = Event::with([
+            'attendances' => function($query) {
+                $query->with(['user', 'status', 'company'])
+                      ->orderBy('created_at', 'desc');
+            },
+            'location',
+            'status',
+            'organizer'
+        ])->findOrFail($id);
+        
+        // Estadísticas de asistencias
+        $attendanceStats = [
+            'total' => $event->attendances->count(),
+            'confirmed' => $event->attendances->filter(fn($a) => $a->status && $a->status->slug === 'confirmado')->count(),
+            'pending' => $event->attendances->filter(fn($a) => $a->status && $a->status->slug === 'pendiente')->count(),
+            'cancelled' => $event->attendances->filter(fn($a) => $a->status && $a->status->slug === 'cancelado')->count(),
+        ];
+        
+        return Inertia::render('Admin/Events/Attendances', [
+            'event' => $event,
+            'attendances' => $event->attendances,
+            'stats' => $attendanceStats
+        ]);
+    }
+    
+    /**
+     * ✅ NUEVO: Actualizar estado de una asistencia
+     */
+    public function updateAttendanceStatus(Request $request, $eventId, $attendanceId)
+    {
+        $request->validate([
+            'status_id' => 'required|exists:statuses,id'
+        ]);
+        
+        try {
+            $event = Event::findOrFail($eventId);
+            $attendance = $event->attendances()->findOrFail($attendanceId);
+            
+            $attendance->update([
+                'status_id' => $request->status_id
+            ]);
+            
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Estado de asistencia actualizado correctamente'
+            ]);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Error al actualizar el estado de la asistencia',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+    
+    /**
+     * ✅ NUEVO: Exportar lista de asistentes
+     */
+    public function exportAttendances($id)
+    {
+        try {
+            $event = Event::with(['attendances.user', 'attendances.status', 'attendances.company'])
+                         ->findOrFail($id);
+            
+            $attendancesData = $event->attendances->map(function($attendance) {
+                return [
+                    'nombre' => $attendance->nombre ?: ($attendance->user ? $attendance->user->name : 'N/A'),
+                    'email' => $attendance->email,
+                    'telefono' => $attendance->telefono ?: 'N/A',
+                    'tipo_registro' => $attendance->tipo_registro,
+                    'estado' => $attendance->status ? $attendance->status->name : 'Sin estado',
+                    'empresa' => $attendance->company ? $attendance->company->name : 'N/A',
+                    'fecha_registro' => $attendance->created_at->format('d/m/Y H:i'),
+                    'codigo_registro' => $attendance->codigo_registro
+                ];
+            });
+            
+            $exportData = [
+                'evento' => [
+                    'titulo' => $event->titule,
+                    'fecha' => $event->start_date,
+                    'total_asistentes' => $attendancesData->count()
+                ],
+                'fecha_exportacion' => now()->format('d/m/Y H:i'),
+                'asistentes' => $attendancesData
+            ];
+            
+            return response()->json($exportData)
+                ->header('Content-Disposition', 'attachment; filename="asistentes-' . \Str::slug($event->titule) . '-' . now()->format('Y-m-d') . '.json"');
+                
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error', 
+                'message' => 'Error al exportar asistentes',
                 'error' => $e->getMessage()
             ], 500);
         }

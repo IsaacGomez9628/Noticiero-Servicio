@@ -9,9 +9,11 @@ use App\Models\Rol;
 use App\Models\Company;
 use Illuminate\Container\Attributes\Log;
 use Illuminate\Support\Str;
+use App\Traits\LogsActivity;
 
 class User extends Authenticatable
 {
+    use LogsActivity;
     protected $fillable = [
         'email',
         'password',
