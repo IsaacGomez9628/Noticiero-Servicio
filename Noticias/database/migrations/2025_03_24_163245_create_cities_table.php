@@ -12,9 +12,16 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('cities', function (Blueprint $table) {
-            $table->id()->primary();
+            $table->id();
             $table->string('name', 100);
+            $table->foreignId('estate_id')
+                  ->constrained('estates')
+                  ->onDelete('cascade')
+                  ->onUpdate('cascade');
             $table->timestamps();
+            
+            // Índice para optimizar búsquedas
+            $table->index('estate_id');
         });
     }
 

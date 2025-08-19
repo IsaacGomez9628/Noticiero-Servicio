@@ -10,16 +10,7 @@ class City extends Model
     use HasFactory;
 
     /**
-     * The table associated with the model.
-     *
-     * @var string
-     */
-    protected $table = 'cities';
-
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array
+     * Los atributos que se pueden asignar masivamente.
      */
     protected $fillable = [
         'name',
@@ -27,50 +18,42 @@ class City extends Model
     ];
 
     /**
-     * The attributes that should be visible in arrays.
-     *
-     * @var array
-     */
-    protected $visible = [
-        'id',
-        'name',
-        'estate_id',
-        'created_at',
-        'updated_at'
-    ];
-
-    /**
-     * The attributes that should be cast.
-     *
-     * @var array
-     */
-    protected $casts = [
-        'id' => 'integer',
-        'estate_id' => 'integer',
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime'
-    ];
-
-    /**
-     * The accessors to append to the model's array form.
-     *
-     * @var array
-     */
-    protected $appends = [];
-
-    /**
-     * Get the state that owns the city.
+     * Relación: Una ciudad pertenece a un estado
      */
     public function estate()
     {
-        return $this->belongsTo(Estate::class, 'estate_id');
+        return $this->belongsTo(Estate::class);
     }
 
     /**
-     * Get the locations for the city.
+     * Relación: Una ciudad tiene muchas ubicaciones
      */
     public function locations()
     {
-        return $this->hasMany(Location::class, 'city_id');
+        return $this->hasMany(Location::class);
+    }
+
+    /**
+     * Scope para obtener ciudades por estado
+     */
+    public function scopeByEstate($query, $estateId)
+    {
+        return $query->where('estate_id', $estateId);
+    }
+
+    /**
+     * Scope para búsqueda por nombre
+     */
+    public function scopeSearch($query, $search)
+    {
+        return $query->where('name', 'like', '%' . $search . '%');
+    }
+
+    /**
+     * Obtener el nombre completo con estado
+     */
+    public function getFullNameAttribute()
+    {
+        return $this->name . ', ' . $this->estate->name;
     }
 }

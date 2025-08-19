@@ -12,15 +12,32 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('persons', function (Blueprint $table) {
-            $table->id()->primary();
-            $table->string('name', 50);
-            $table->string('last_name', 50);
-            $table->string('second_last_name')->nullable()->change();
-            $table->foreignId('gender_id')->constrained()->onDelete('cascade');
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->date('birth_date');
-            $table->unsignedInteger('age')->nullable()->change();
+            $table->id();
+            $table->string('name', 100);
+            $table->string('last_name', 100);
+            $table->string('second_last_name', 100)->nullable(); // ✅ AGREGADO: Segundo apellido
+            $table->foreignId('gender_id')
+                  ->nullable()
+                  ->constrained('genders')
+                  ->onDelete('set null');
+            $table->foreignId('user_id')
+                  ->unique()
+                  ->constrained('users')
+                  ->onDelete('cascade');
+            $table->date('birth_date')->nullable();
+            $table->integer('age')->nullable();
+            $table->string('phone', 20)->nullable();
+            $table->string('mobile', 20)->nullable();
+            $table->text('address')->nullable();
+            $table->string('city', 100)->nullable();
+            $table->string('state', 100)->nullable();
+            $table->string('country', 100)->nullable();
+            $table->string('zip_code', 10)->nullable();
             $table->timestamps();
+            
+            // Índices
+            $table->index('user_id');
+            $table->index(['name', 'last_name', 'second_last_name']);
         });
     }
 
@@ -29,10 +46,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('persons', function (Blueprint $table) {
-            // Revertir cambios si es necesario
-            $table->string('second_last_name')->change();
-            $table->integer('age')->change();
-        });
+        Schema::dropIfExists('persons');
     }
 };

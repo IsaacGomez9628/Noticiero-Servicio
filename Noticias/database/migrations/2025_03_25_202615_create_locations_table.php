@@ -12,22 +12,28 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('locations', function (Blueprint $table) {
-            $table->id()->primary();
+            $table->id();
             $table->string('name');
-            $table->string('direction');
-            $table->foreignId('estate_id')->constrained('estates')
-                ->onDelete('cascade') 
-                ->onUpdate('cascade'); 
-            $table->foreignId('city_id')->constrained('cities') 
-                ->onDelete('cascade') 
-                ->onUpdate('cascade'); 
-            $table->string('country')->nullable();
-            $table->string('zip_code')->nullable();
-            $table->decimal('latitude', 10, 7)->nullable();
-            $table->decimal('length', 10, 7)->nullable();
-            $table->string('link_google_maps')->nullable();
+            $table->text('direction');
+            $table->foreignId('estate_id')
+                  ->constrained('estates')
+                  ->onDelete('restrict')
+                  ->onUpdate('cascade');
+            $table->foreignId('city_id')
+                  ->constrained('cities')
+                  ->onDelete('restrict')
+                  ->onUpdate('cascade');
+            $table->string('country', 100)->default('México');
+            $table->string('zip_code', 10)->nullable();
+            $table->decimal('latitude', 10, 8)->nullable();
+            $table->decimal('length', 11, 8)->nullable(); // longitude
+            $table->text('link_google_maps')->nullable();
             $table->boolean('active')->default(true);
-            $table->timestamps(); // created_at y updated_at
+            $table->timestamps();
+            
+            // Índices para optimizar búsquedas
+            $table->index('active');
+            $table->index(['estate_id', 'city_id']);
         });
     }
 

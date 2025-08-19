@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import locationService from '../../Services/locationService';
 
-const LocationModal = ({ isOpen, onClose, onLocationCreated, estates, cities }) => {
+const LocationModal = ({ isOpen, onClose, onLocationCreated, estates: propsEstates, cities: propsCities }) => {
     const [formData, setFormData] = useState({
         name: '',
         direction: '',
@@ -18,63 +18,120 @@ const LocationModal = ({ isOpen, onClose, onLocationCreated, estates, cities }) 
     const [errors, setErrors] = useState({});
     const [loading, setLoading] = useState(false);
     const [filteredCities, setFilteredCities] = useState([]);
-    const [estatesData, setEstatesData] = useState(estates || []);
-    const [citiesData, setCitiesData] = useState(cities || []);
+    const [estatesData, setEstatesData] = useState([]);
+    const [citiesData, setCitiesData] = useState([]);
     const [loadingData, setLoadingData] = useState(false);
     
-    // Si no recibimos estates o cities, los obtenemos del backend
+    // Cargar datos iniciales
     useEffect(() => {
-        if (isOpen && (!estatesData || estatesData.length === 0 || !citiesData || citiesData.length === 0)) {
-            setLoadingData(true);
-            locationService.getFormData()
-                .then(response => {
-                    console.log('Datos recibidos del backend:', response); // Debug
-                    if (response.data) {
-                        setEstatesData(response.data.estates || []);
-                        setCitiesData(response.data.cities || []);
-                        console.log('Estados cargados:', response.data.estates); // Debug
-                        console.log('Ciudades cargadas:', response.data.cities); // Debug
-                    }
-                })
-                .catch(error => {
-                    console.error('Error al cargar datos del formulario:', error);
-                })
-                .finally(() => {
-                    setLoadingData(false);
-                });
+        if (isOpen) {
+            // Si tenemos datos desde props, usarlos
+            if (propsEstates && propsEstates.length > 0) {
+                setEstatesData(propsEstates);
+                setCitiesData(propsCities || []);
+            } else {
+                // Si no, cargarlos desde el backend
+                loadFormData();
+            }
         }
-    }, [isOpen]);
+    }, [isOpen, propsEstates, propsCities]);
     
-    // Filtrar ciudades basado en el estado seleccionado
+    // Cargar datos del formulario desde el backend
+    const loadFormData = async () => {
+        setLoadingData(true);
+        try {
+            const response = await locationService.getFormData();
+            console.log('Datos del formulario cargados:', response);
+            
+            if (response.data) {
+                setEstatesData(response.data.estates || []);
+                setCitiesData(response.data.cities || []);
+                
+                console.log('Estados cargados:', response.data.estates?.length);
+                console.log('Ciudades cargadas:', response.data.cities?.length);
+            }
+        } catch (error) {
+            console.error('Error al cargar datos del formulario:', error);
+            alert('Error al cargar los datos del formulario. Por favor, recarga la página.');
+        } finally {
+            setLoadingData(false);
+        }
+    };
+    
+    // Filtrar ciudades cuando cambia el estado seleccionado
     useEffect(() => {
-        console.log('Estado seleccionado ID:', formData.estate_id); // Debug
-        console.log('Ciudades disponibles:', citiesData); // Debug
+        console.log('=== Filtrado de ciudades ===');
+        console.log('Estado seleccionado ID:', formData.estate_id);
+        console.log('Total de ciudades disponibles:', citiesData.length);
         
         if (formData.estate_id && citiesData && citiesData.length > 0) {
-            const filtered = citiesData.filter(city => 
-                String(city.estate_id) === String(formData.estate_id)
-            );
-            console.log('Ciudades filtradas:', filtered); // Debug
+            // Convertir a string para comparación segura
+            const estateIdStr = String(formData.estate_id);
+            
+            const filtered = citiesData.filter(city => {
+                const cityEstateIdStr = String(city.estate_id);
+                const match = cityEstateIdStr === estateIdStr;
+                
+                if (match) {
+                    console.log(`Ciudad "${city.name}" (estate_id: ${city.estate_id}) coincide`);
+                }
+                
+                return match;
+            });
+            
+            console.log('Ciudades filtradas:', filtered.length);
+            console.log('Ciudades:', filtered.map(c => c.name));
+            
             setFilteredCities(filtered);
         } else {
+            console.log('No hay estado seleccionado o no hay ciudades disponibles');
             setFilteredCities([]);
         }
     }, [formData.estate_id, citiesData]);
     
+    // Cargar ciudades dinámicamente cuando se selecciona un estado (opcional, como respaldo)
+    const loadCitiesByEstate = async (estateId) => {
+        if (!estateId) return;
+        
+        try {
+            console.log('Cargando ciudades para estado ID:', estateId);
+            const response = await locationService.getCitiesByEstate(estateId);
+            
+            if (response.data) {
+                console.log('Ciudades cargadas dinámicamente:', response.data.length);
+                setFilteredCities(response.data);
+            }
+        } catch (error) {
+            console.error('Error al cargar ciudades:', error);
+            // Si falla la carga dinámica, usar el filtrado local
+            const filtered = citiesData.filter(city => 
+                String(city.estate_id) === String(estateId)
+            );
+            setFilteredCities(filtered);
+        }
+    };
+    
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
         
+        // Actualizar el valor del campo
+        const newValue = type === 'checkbox' ? checked : value;
+        
         setFormData(prev => ({
             ...prev,
-            [name]: type === 'checkbox' ? checked : value
+            [name]: newValue
         }));
         
-        // Limpiar ciudad si cambia el estado
+        // Si cambia el estado, limpiar la ciudad seleccionada
         if (name === 'estate_id') {
             setFormData(prev => ({
                 ...prev,
+                estate_id: value,
                 city_id: ''
             }));
+            
+            // Opcionalmente, cargar ciudades dinámicamente
+            // loadCitiesByEstate(value);
         }
         
         // Limpiar error del campo cuando el usuario empiece a escribir
@@ -89,14 +146,25 @@ const LocationModal = ({ isOpen, onClose, onLocationCreated, estates, cities }) 
     const validateForm = () => {
         const newErrors = {};
         
-        if (!formData.name) newErrors.name = 'El nombre es requerido';
-        if (!formData.direction) newErrors.direction = 'La dirección es requerida';
-        if (!formData.estate_id) newErrors.estate_id = 'El estado es requerido';
-        if (!formData.city_id) newErrors.city_id = 'La ciudad es requerida';
-        if (!formData.zip_code) newErrors.zip_code = 'El código postal es requerido';
+        if (!formData.name?.trim()) {
+            newErrors.name = 'El nombre es requerido';
+        }
         
-        // Validar formato de código postal (5 dígitos para México)
-        if (formData.zip_code && !/^\d{5}$/.test(formData.zip_code)) {
+        if (!formData.direction?.trim()) {
+            newErrors.direction = 'La dirección es requerida';
+        }
+        
+        if (!formData.estate_id) {
+            newErrors.estate_id = 'El estado es requerido';
+        }
+        
+        if (!formData.city_id) {
+            newErrors.city_id = 'La ciudad es requerida';
+        }
+        
+        if (!formData.zip_code?.trim()) {
+            newErrors.zip_code = 'El código postal es requerido';
+        } else if (!/^\d{5}$/.test(formData.zip_code)) {
             newErrors.zip_code = 'El código postal debe tener 5 dígitos';
         }
         
@@ -116,7 +184,9 @@ const LocationModal = ({ isOpen, onClose, onLocationCreated, estates, cities }) 
         }
         
         // Validar URL de Google Maps si se proporciona
-        if (formData.link_google_maps && !formData.link_google_maps.includes('maps.google.com')) {
+        if (formData.link_google_maps && 
+            !formData.link_google_maps.includes('maps.google.com') && 
+            !formData.link_google_maps.includes('goo.gl/maps')) {
             newErrors.link_google_maps = 'Debe ser un enlace válido de Google Maps';
         }
         
@@ -126,15 +196,18 @@ const LocationModal = ({ isOpen, onClose, onLocationCreated, estates, cities }) 
     const handleSubmit = async (e) => {
         e.preventDefault();
         
+        // Validar formulario
         const validationErrors = validateForm();
         if (Object.keys(validationErrors).length > 0) {
             setErrors(validationErrors);
+            console.log('Errores de validación:', validationErrors);
             return;
         }
         
         setLoading(true);
         
         try {
+            // Preparar datos para enviar
             const dataToSend = {
                 ...formData,
                 estate_id: parseInt(formData.estate_id),
@@ -144,20 +217,36 @@ const LocationModal = ({ isOpen, onClose, onLocationCreated, estates, cities }) 
                 length: formData.length ? parseFloat(formData.length) : null
             };
             
+            console.log('Enviando datos:', dataToSend);
+            
+            // Crear ubicación
             const response = await locationService.createLocation(dataToSend);
+            
+            console.log('Respuesta del servidor:', response);
             
             if (response.status === 'success') {
                 alert('Ubicación creada exitosamente');
-                onLocationCreated(response.data);
+                
+                // Notificar al componente padre
+                if (onLocationCreated) {
+                    onLocationCreated(response.data);
+                }
+                
+                // Cerrar modal
                 handleClose();
             }
         } catch (error) {
             console.error('Error al crear ubicación:', error);
             
             if (error.errors) {
+                // Mostrar errores de validación del servidor
                 setErrors(error.errors);
+                
+                // Mostrar mensaje de error general
+                const errorMessages = Object.values(error.errors).flat().join('\n');
+                alert(`Error al crear la ubicación:\n${errorMessages}`);
             } else {
-                alert('Error al crear la ubicación. Por favor, intenta nuevamente.');
+                alert(error.message || 'Error al crear la ubicación. Por favor, intenta nuevamente.');
             }
         } finally {
             setLoading(false);
@@ -165,6 +254,7 @@ const LocationModal = ({ isOpen, onClose, onLocationCreated, estates, cities }) 
     };
     
     const handleClose = () => {
+        // Limpiar formulario
         setFormData({
             name: '',
             direction: '',
@@ -177,23 +267,30 @@ const LocationModal = ({ isOpen, onClose, onLocationCreated, estates, cities }) 
             link_google_maps: '',
             active: true
         });
+        
+        // Limpiar errores y ciudades filtradas
         setErrors({});
+        setFilteredCities([]);
+        
+        // Cerrar modal
         onClose();
     };
     
+    // No renderizar si el modal no está abierto
     if (!isOpen) return null;
     
     return (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
             <div className="relative top-20 mx-auto p-5 border w-full max-w-2xl shadow-lg rounded-md bg-white">
                 <div className="mt-3">
+                    {/* Header */}
                     <div className="flex justify-between items-center mb-4">
                         <h3 className="text-lg font-bold text-gray-900">
                             Añadir Nueva Ubicación
                         </h3>
                         <button
                             onClick={handleClose}
-                            className="text-gray-400 hover:text-gray-500"
+                            className="text-gray-400 hover:text-gray-500 transition-colors"
                         >
                             <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -201,6 +298,7 @@ const LocationModal = ({ isOpen, onClose, onLocationCreated, estates, cities }) 
                         </button>
                     </div>
                     
+                    {/* Formulario */}
                     <form onSubmit={handleSubmit}>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {/* Nombre */}
@@ -280,13 +378,17 @@ const LocationModal = ({ isOpen, onClose, onLocationCreated, estates, cities }) 
                                     name="city_id"
                                     value={formData.city_id}
                                     onChange={handleChange}
-                                    disabled={!formData.estate_id}
+                                    disabled={!formData.estate_id || loadingData}
                                     className={`shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline ${
                                         errors.city_id ? 'border-red-500' : ''
-                                    } ${!formData.estate_id ? 'bg-gray-100' : ''}`}
+                                    } ${!formData.estate_id || loadingData ? 'bg-gray-100' : ''}`}
                                 >
                                     <option value="">
-                                        {formData.estate_id ? 'Seleccionar ciudad...' : 'Primero selecciona un estado'}
+                                        {!formData.estate_id 
+                                            ? 'Primero selecciona un estado' 
+                                            : filteredCities.length === 0 
+                                                ? 'No hay ciudades disponibles' 
+                                                : 'Seleccionar ciudad...'}
                                     </option>
                                     {filteredCities?.map(city => (
                                         <option key={city.id} value={city.id}>
@@ -296,6 +398,11 @@ const LocationModal = ({ isOpen, onClose, onLocationCreated, estates, cities }) 
                                 </select>
                                 {errors.city_id && (
                                     <p className="text-red-500 text-xs italic mt-1">{errors.city_id}</p>
+                                )}
+                                {formData.estate_id && filteredCities.length === 0 && !loadingData && (
+                                    <p className="text-yellow-600 text-xs italic mt-1">
+                                        No hay ciudades registradas para este estado
+                                    </p>
                                 )}
                             </div>
                             
@@ -415,14 +522,14 @@ const LocationModal = ({ isOpen, onClose, onLocationCreated, estates, cities }) 
                             <button
                                 type="button"
                                 onClick={handleClose}
-                                className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                                className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition-colors"
                             >
                                 Cancelar
                             </button>
                             <button
                                 type="submit"
                                 disabled={loading}
-                                className={`bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline ${
+                                className={`bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition-colors ${
                                     loading ? 'opacity-50 cursor-not-allowed' : ''
                                 }`}
                             >

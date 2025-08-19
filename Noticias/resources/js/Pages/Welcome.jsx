@@ -56,15 +56,15 @@ import img14 from "@/assets/img14.jpg";
 import img15 from "@/assets/img15.jpg";
 
 // Imágenes del equipo
-import miembroImg2 from "@/assets/lira.png";
-import miembroImg5 from "@/assets/hugo.png";
+import miembroImg2 from "@/assets/lira.jpg";
+import miembroImg5 from "@/assets/hugo.jpg";
 import miembroImg4 from "@/assets/mlg.png";
 import miembroImg6 from "@/assets/olmo.png";
 import miembroImg7 from "@/assets/manuel.png";
 import miembroImg8 from "@/assets/victor.png";
-import Jacinto from "@/assets/Jacinto.png";
-import Jorge from "@/assets/Jorge.png";
-import Jose from "@/assets/Jose.png";
+import Jacinto from "@/assets/Jacinto.jpg";
+import Jorge from "@/assets/Jorge.jpg";
+import Jose from "@/assets/Gonzalo.jpg";
 import Orfelinda from "@/assets/Orfelinda.jpg";
 import Dora from "@/assets/Dora.jpg";
 

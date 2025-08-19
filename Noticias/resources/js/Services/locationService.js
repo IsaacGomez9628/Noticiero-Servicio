@@ -1,162 +1,176 @@
-// Services/locationService.js
 import axios from 'axios';
 
-const API_URL = '/admin/api/locations';
+// Configuración base de axios
+const API_BASE_URL = '/admin/api';
+
+// Configurar interceptor para incluir el token CSRF
+axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
+axios.defaults.headers.common['X-CSRF-TOKEN'] = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
 const locationService = {
     /**
-     * Obtener datos para el formulario (estados y ciudades)
+     * Obtener datos del formulario (estados y ciudades)
      */
     getFormData: async () => {
         try {
-            const response = await axios.get(`${API_URL}/form-data`);
+            const response = await axios.get(`${API_BASE_URL}/locations/form-data`);
+            console.log('Form data response:', response.data);
             return response.data;
         } catch (error) {
-            console.error('Error al obtener datos del formulario:', error);
+            console.error('Error getting form data:', error);
             throw error.response?.data || error;
         }
     },
 
     /**
-     * Obtener todas las ubicaciones
+     * Obtener ciudades por estado
      */
-    getAllLocations: async () => {
+    getCitiesByEstate: async (estateId) => {
         try {
-            const response = await axios.get(API_URL);
+            const response = await axios.get(`${API_BASE_URL}/locations/cities/${estateId}`);
+            console.log('Cities response:', response.data);
             return response.data;
         } catch (error) {
-            console.error('Error al obtener ubicaciones:', error);
+            console.error('Error getting cities:', error);
             throw error.response?.data || error;
         }
     },
 
     /**
-     * Obtener ubicaciones activas
+     * Obtener todas las ubicaciones con filtros
      */
-    getActiveLocations: async () => {
+    getLocations: async (filters = {}) => {
         try {
-            const response = await axios.get(`${API_URL}/active`);
+            const params = new URLSearchParams();
+
+            Object.keys(filters).forEach(key => {
+                if (filters[key] !== '' && filters[key] !== null) {
+                    params.append(key, filters[key]);
+                }
+            });
+
+            const response = await axios.get(`${API_BASE_URL}/locations?${params.toString()}`);
             return response.data;
         } catch (error) {
-            console.error('Error al obtener ubicaciones activas:', error);
+            console.error('Error getting locations:', error);
             throw error.response?.data || error;
         }
     },
 
     /**
-     * Obtener una ubicación por ID
+     * Obtener una ubicación específica
      */
     getLocation: async (id) => {
         try {
-            const response = await axios.get(`${API_URL}/${id}`);
+            const response = await axios.get(`${API_BASE_URL}/locations/${id}`);
             return response.data;
         } catch (error) {
-            console.error('Error al obtener ubicación:', error);
+            console.error('Error getting location:', error);
             throw error.response?.data || error;
         }
     },
 
     /**
-     * Crear nueva ubicación
+     * Crear una nueva ubicación
      */
-    createLocation: async (data) => {
+    createLocation: async (locationData) => {
         try {
-            const response = await axios.post(API_URL, data);
+            console.log('Creating location with data:', locationData);
+
+            const response = await axios.post(`${API_BASE_URL}/locations`, locationData);
+
+            console.log('Location created:', response.data);
             return response.data;
         } catch (error) {
-            console.error('Error al crear ubicación:', error);
+            console.error('Error creating location:', error);
+
+            // Si hay errores de validación, los devolvemos
+            if (error.response?.status === 422) {
+                throw {
+                    status: 'error',
+                    errors: error.response.data.errors,
+                    message: error.response.data.message
+                };
+            }
+
             throw error.response?.data || error;
         }
     },
 
     /**
-     * Actualizar ubicación existente
+     * Actualizar una ubicación existente
      */
-    updateLocation: async (id, data) => {
+    updateLocation: async (id, locationData) => {
         try {
-            const response = await axios.put(`${API_URL}/${id}`, data);
+            const response = await axios.put(`${API_BASE_URL}/locations/${id}`, locationData);
             return response.data;
         } catch (error) {
-            console.error('Error al actualizar ubicación:', error);
+            console.error('Error updating location:', error);
+
+            if (error.response?.status === 422) {
+                throw {
+                    status: 'error',
+                    errors: error.response.data.errors,
+                    message: error.response.data.message
+                };
+            }
+
             throw error.response?.data || error;
         }
     },
 
     /**
-     * Eliminar ubicación
+     * Cambiar el estado activo/inactivo de una ubicación
+     */
+    toggleLocationStatus: async (id) => {
+        try {
+            const response = await axios.patch(`${API_BASE_URL}/locations/${id}/toggle-status`);
+            return response.data;
+        } catch (error) {
+            console.error('Error toggling location status:', error);
+            throw error.response?.data || error;
+        }
+    },
+
+    /**
+     * Eliminar una ubicación
      */
     deleteLocation: async (id) => {
         try {
-            const response = await axios.delete(`${API_URL}/${id}`);
+            const response = await axios.delete(`${API_BASE_URL}/locations/${id}`);
             return response.data;
         } catch (error) {
-            console.error('Error al eliminar ubicación:', error);
+            console.error('Error deleting location:', error);
             throw error.response?.data || error;
         }
     },
 
     /**
-     * Buscar ubicaciones
+     * Verificar si una ubicación tiene eventos asociados
+     */
+    checkLocationEvents: async (id) => {
+        try {
+            const response = await axios.get(`${API_BASE_URL}/locations/${id}/events`);
+            return response.data;
+        } catch (error) {
+            console.error('Error checking location events:', error);
+            throw error.response?.data || error;
+        }
+    },
+
+    /**
+     * Buscar ubicaciones (para autocompletado)
      */
     searchLocations: async (query) => {
         try {
-            const response = await axios.get(`${API_URL}/search`, {
+            const response = await axios.get(`${API_BASE_URL}/locations/search`, {
                 params: { q: query }
             });
             return response.data;
         } catch (error) {
-            console.error('Error al buscar ubicaciones:', error);
+            console.error('Error searching locations:', error);
             throw error.response?.data || error;
         }
-    },
-
-    /**
-     * Obtener ubicaciones por ciudad
-     */
-    getLocationsByCity: async (cityId) => {
-        try {
-            const response = await axios.get(`${API_URL}/city/${cityId}`);
-            return response.data;
-        } catch (error) {
-            console.error('Error al obtener ubicaciones por ciudad:', error);
-            throw error.response?.data || error;
-        }
-    },
-
-    /**
-     * Obtener ubicaciones por estado
-     */
-    getLocationsByState: async (stateId) => {
-        try {
-            const response = await axios.get(`${API_URL}/state/${stateId}`);
-            return response.data;
-        } catch (error) {
-            console.error('Error al obtener ubicaciones por estado:', error);
-            throw error.response?.data || error;
-        }
-    },
-
-    /**
-     * Validar coordenadas de Google Maps
-     */
-    validateGoogleMapsLink: (link) => {
-        const googleMapsRegex = /^https?:\/\/(www\.)?maps\.google\.com\/.*/;
-        return googleMapsRegex.test(link);
-    },
-
-    /**
-     * Extraer coordenadas de un link de Google Maps
-     */
-    extractCoordinatesFromGoogleMaps: (link) => {
-        // Intentar extraer coordenadas del formato @lat,lng
-        const match = link.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
-        if (match) {
-            return {
-                latitude: parseFloat(match[1]),
-                longitude: parseFloat(match[2])
-            };
-        }
-        return null;
     }
 };
 

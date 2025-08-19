@@ -337,8 +337,18 @@ Route::prefix('admin')->group(function () {
         Route::get('/organizers/{id}', [OrganizerController::class, 'show'])
             ->name('admin.organizers.show');
 
-        
+        // 🆕 NUEVAS Vistas de ubicaciones
+        Route::get('/locations', [LocationController::class, 'index'])
+            ->name('admin.locations');
 
+        Route::get('/locations/create', [LocationController::class, 'create'])
+            ->name('admin.locations.create');
+
+        Route::get('/locations/{id}/edit', [LocationController::class, 'edit'])
+            ->name('admin.locations.edit');
+
+        Route::get('/locations/{id}', [LocationController::class, 'show'])
+            ->name('admin.locations.show');
         
         // ✅ NUEVAS: Rutas para gestión de asistencias desde admin
         Route::get('/events/{id}/attendances', [EventController::class, 'showAttendances'])
@@ -582,33 +592,61 @@ Route::prefix('admin')->group(function () {
             Route::get('/stats/organizers', [OrganizerController::class, 'getOrganizerStats'])
                 ->name('admin.api.organizers.stats');
             
-            // Endpoints de ubicaciones
+            // ========================================
+            // 🔥 ENDPOINTS DE UBICACIONES COMPLETOS Y CORREGIDOS
+            // ========================================
+            
+            // Obtener ubicaciones activas
             Route::get('/locations', [LocationController::class, 'getActiveLocations'])
                 ->name('admin.api.locations');
 
+            // Obtener datos del formulario (estados y ciudades para dropdowns)
             Route::get('/locations/form-data', [LocationController::class, 'getFormData'])
                 ->name('admin.api.locations.form-data');
 
+            // ⚠️ RUTA CRÍTICA - Obtener ciudades por estado (FALTABA ESTA)
+            Route::get('/locations/cities/{estateId}', [LocationController::class, 'getCitiesByEstate'])
+                ->name('admin.api.locations.cities');
+
+            // Crear nueva ubicación
             Route::post('/locations', [LocationController::class, 'store'])
                 ->name('admin.api.locations.store');
 
+            // Buscar ubicaciones (autocompletado)
             Route::get('/locations/search', [LocationController::class, 'search'])
                 ->name('admin.api.locations.search');
 
+            // Obtener ubicaciones por ciudad
             Route::get('/locations/city/{cityId}', [LocationController::class, 'getByCity'])
                 ->name('admin.api.locations.by-city');
 
+            // Obtener ubicaciones por estado
             Route::get('/locations/state/{stateId}', [LocationController::class, 'getByState'])
                 ->name('admin.api.locations.by-state');
 
+            // Ver ubicación específica
             Route::get('/locations/{id}', [LocationController::class, 'show'])
                 ->name('admin.api.locations.show');
 
+            // Actualizar ubicación
             Route::put('/locations/{id}', [LocationController::class, 'update'])
                 ->name('admin.api.locations.update');
 
+            // Eliminar ubicación
             Route::delete('/locations/{id}', [LocationController::class, 'destroy'])
                 ->name('admin.api.locations.destroy');
+
+            // Cambiar estado activo/inactivo
+            Route::patch('/locations/{id}/toggle-status', [LocationController::class, 'toggleStatus'])
+                ->name('admin.api.locations.toggle-status');
+
+            // Verificar si tiene eventos asociados
+            Route::get('/locations/{id}/events', [LocationController::class, 'checkLocationEvents'])
+                ->name('admin.api.locations.events');
+
+            // Estadísticas de ubicaciones
+            Route::get('/stats/locations', [LocationController::class, 'getLocationStats'])
+                ->name('admin.api.locations.stats');
             
             // Endpoints de configuración
             Route::get('/settings/info', [AdminSettingsController::class, 'getAdminInfo'])
